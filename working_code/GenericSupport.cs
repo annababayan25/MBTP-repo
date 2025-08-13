@@ -184,7 +184,6 @@ namespace GenericSupport
         return false;
         }
         
-        /*
         public static bool BlackedOutDate(string dateIn, byte pcidIn)
         {
             //            SqlConnection sqlConn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
@@ -205,7 +204,7 @@ namespace GenericSupport
 
             return (bool)cmd.Parameters["@Result"].Value;
         }
-        */
+        
         public static bool AllFilesPresent(int pcIDIn)
         {
             string subDirName;

@@ -222,8 +222,7 @@ input:checked + .slider:before {
             mySlider.addEventListener('change', function () {
                 $.post("/Home/ToggleSqlConnection", function (response) {
                     if (response.success) {
-                        alert("Switched to " + response.mode + " mode");
-                        location.reload(); // apply the new DB connection
+                        location.reload(); // this applies the new DB connection
                     } else {
                         alert("Toggle failed.");
                     }
