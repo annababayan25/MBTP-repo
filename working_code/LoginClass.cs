@@ -3,128 +3,87 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-
+using MBTP.Interfaces;
 
 namespace MBTP.Logins
 {
-   public class LoginClass
-   {
-       private readonly IConfiguration _configuration;
+    public class LoginClass
+    {
+        private readonly IDatabaseConnectionService _dbConnectionService;
 
+        public LoginClass(IDatabaseConnectionService dbConnectionService)
+        {
+            _dbConnectionService = dbConnectionService;
+        }
 
-       public LoginClass(IConfiguration configuration)
-       {
-           _configuration = configuration;
-       }
+        public static string EncryptPassword(string passwordTxt)
+        {
+            using (SHA256 sha256 = SHA256.Create())
+            {
+                byte[] bytes = Encoding.UTF8.GetBytes(passwordTxt);
+                byte[] hash = sha256.ComputeHash(bytes);
+                return Convert.ToBase64String(hash);
+            }
+        }
 
+        public bool ValidateLogin(string username, string passwordTxt, out string LID, out string accID)
+        {
+            LID = "0";
+            accID = string.Empty;
 
-       // Method to encrypt the password using SHA256 with UTF-8 encoding
-       public static string EncryptPassword(string passwordTxt)
-       {
-           using (SHA256 sha256 = SHA256.Create())
-           {
-               //Console.WriteLine(passwordTxt);
-               byte[] bytes = Encoding.UTF8.GetBytes(passwordTxt);
-               byte[] hash = sha256.ComputeHash(bytes);
-                //Console.WriteLine(Convert.ToBase64String(hash));
-               return Convert.ToBase64String(hash);
-           }
-       }
+            using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+            {
+                sqlConn.Open();
 
+                SqlCommand fetchCmd = new SqlCommand("SELECT Password FROM LoginsHope WHERE Username = @Username", sqlConn);
+                fetchCmd.Parameters.Add("@Username", SqlDbType.NVarChar, 15).Value = username.Trim();
+                string storedEncryptedPassword = fetchCmd.ExecuteScalar()?.ToString();
 
-       // Method to validate login credentials by connecting to the SQL database and executing the stored procedure
-       public bool ValidateLogin(string username, string passwordTxt, out string LID, out string accID)
-       {
-           LID = "0";
-           accID = string.Empty;
+                string encryptedPassword = EncryptPassword(passwordTxt.Trim());
 
+                if (storedEncryptedPassword != null && storedEncryptedPassword == encryptedPassword)
+                {
+                    SqlCommand cmd = new SqlCommand("dbo.ValidateLogin", sqlConn)
+                    {
+                        CommandType = CommandType.StoredProcedure
+                    };
 
-           // Retrieve the connection string from the configuration file
-           string connectionString = _configuration.GetConnectionString("DefaultConnection");
+                    cmd.Parameters.Add("@username", SqlDbType.NVarChar, 15).Value = username.Trim();
+                    cmd.Parameters.Add("@pwd", SqlDbType.NVarChar, 50).Value = encryptedPassword;
+                    SqlParameter lidParam = cmd.Parameters.Add("@LID", SqlDbType.Int);
+                    lidParam.Direction = ParameterDirection.Output;
+                    SqlParameter accIdParam = cmd.Parameters.Add("@accID", SqlDbType.SmallInt);
+                    accIdParam.Direction = ParameterDirection.Output;
+                    SqlParameter returnParam = cmd.Parameters.Add("@ReturnVal", SqlDbType.Bit);
+                    returnParam.Direction = ParameterDirection.ReturnValue;
 
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        bool result = Convert.ToBoolean(returnParam.Value);
 
-           if (string.IsNullOrEmpty(connectionString))
-           {
-               throw new Exception("Database connection string is not configured.");
-           }
+                        if (result)
+                        {
+                            LID = lidParam.Value.ToString();
+                            accID = accIdParam.Value.ToString();
+                            return true;
+                        }
 
+                        return false;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Login error: {e.Message}");
+                        return false;
+                    }
+                }
 
-           using (SqlConnection sqlConn = new SqlConnection(connectionString))
-           {
-               sqlConn.Open();
+                return false;
+            }
+        }
+    }
+}
 
-
-               // Fetch the stored encrypted password for the given username
-               SqlCommand fetchCmd = new SqlCommand("SELECT Password FROM LoginsHope WHERE Username = @Username", sqlConn);
-               fetchCmd.Parameters.Add("@Username", SqlDbType.NVarChar, 15).Value = username.Trim();
-               string storedEncryptedPassword = fetchCmd.ExecuteScalar()?.ToString();
-               //Console.WriteLine($"Stored Encrypted Password: {storedEncryptedPassword}");
-
-
-               // Encrypt the input password
-               string encryptedPassword = EncryptPassword(passwordTxt.Trim());
-               //Console.WriteLine($"Input password cleartext: {passwordTxt}");
-               //Console.WriteLine($"Input Encrypted Password: {encryptedPassword}");
-
-
-               // Compare the passwords
-               if (storedEncryptedPassword != null && storedEncryptedPassword == encryptedPassword)
-               {
-                   SqlCommand cmd = new SqlCommand("dbo.ValidateLogin", sqlConn)
-                   {
-                       CommandType = CommandType.StoredProcedure
-                   };
-
-
-                   // Add parameters for the procedure
-                   cmd.Parameters.Add("@username", SqlDbType.NVarChar, 15).Value = username.Trim();
-                   cmd.Parameters.Add("@pwd", SqlDbType.NVarChar, 50).Value = encryptedPassword;
-                   SqlParameter LIDParameter = cmd.Parameters.Add("@LID", SqlDbType.Int);
-                   LIDParameter.Direction = ParameterDirection.Output;
-                   SqlParameter accIDParameter = cmd.Parameters.Add("@accID", SqlDbType.SmallInt);
-                   accIDParameter.Direction = ParameterDirection.Output;
-
-
-                   SqlParameter returnParameter = cmd.Parameters.Add("@ReturnVal", SqlDbType.Bit);
-                   returnParameter.Direction = ParameterDirection.ReturnValue;
-
-
-                   try
-                   {
-                       // Execute the procedure
-                       cmd.ExecuteNonQuery();
-                       bool result = Convert.ToBoolean(cmd.Parameters["@ReturnVal"].Value);
-
-
-                       if (result)
-                       {
-                           //Console.WriteLine($"Login successful. LID: {LID}, Access: {accID}");
-                       LID = cmd.Parameters["@LID"].Value.ToString();
-                       accID = cmd.Parameters["@accID"].Value.ToString();
-                           return true;
-                       }
-                       else
-                       {
-                           Console.WriteLine("Login failed. Invalid username or password.");
-                           return false;
-                       }
-                   }
-                   catch (Exception e)
-                   {
-                       // Log the exception message to the console
-                       Console.WriteLine(e.Message);
-                       return false;
-                   }
-               }
-               else
-               {
-                   Console.WriteLine("Login failed. Passwords do not match.");
-                    //Console.WriteLine($"Input Encrypted Password Dave: {encryptedPassword}");
-                   return false;
-               }
-           }
-       }
 
 
        // Method to encrypt existing passwords
@@ -165,5 +124,4 @@ namespace MBTP.Logins
                Console.WriteLine("All passwords have been encrypted and updated in the database.");
            }
        }*/
-   }
-}
+   

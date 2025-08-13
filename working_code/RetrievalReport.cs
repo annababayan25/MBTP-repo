@@ -4,29 +4,31 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
+using MBTP.Interfaces;
 
 namespace MBTP.Retrieval
 {
     public class RetrievalReport
     {
-        private readonly IConfiguration _configuration;
-        public RetrievalReport(IConfiguration configuration)
+         private readonly IDatabaseConnectionService _dbConnectionService;
+
+        public RetrievalReport(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
         public async Task<DataSet> RetrievalOfData(DateTime startDate)
         {
-            
+
             DataSet myDS = new DataSet();
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDailyReportFrontOfficeAdditions", sqlConn)) 
-                { 
-                    cmd.CommandType = CommandType.StoredProcedure ;
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDailyReportFrontOfficeAdditions", sqlConn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add("@TransDate", SqlDbType.Date);
                     SqlDataAdapter myDA = new SqlDataAdapter(cmd);
-                    
+
                     sqlConn.Open();
 
                     cmd.Parameters["@TransDate"].Value = startDate;
@@ -37,24 +39,24 @@ namespace MBTP.Retrieval
                     {
                         cmd.CommandText = "dbo.RetrieveDailyReportFrontOfficeMiscAdditions";
                         SqlDataAdapter myDA1b = new SqlDataAdapter(cmd);
-                        myDA1b.Fill(myDS,"Miscellaneous");
+                        myDA1b.Fill(myDS, "Miscellaneous");
                         cmd.CommandText = "dbo.RetrieveOpDeductions";
                         SqlDataAdapter myDA2 = new SqlDataAdapter(cmd);
-                        myDA2.Fill(myDS,"Deductions");
+                        myDA2.Fill(myDS, "Deductions");
                         cmd.CommandText = "dbo.RetrieveDailyTransfers";
                         SqlDataAdapter myDA3 = new SqlDataAdapter(cmd);
-                        myDA3.Fill(myDS,"Transfers");
+                        myDA3.Fill(myDS, "Transfers");
                         cmd.CommandText = "dbo.RetrieveDailyManualChecks";
                         SqlDataAdapter myDA4 = new SqlDataAdapter(cmd);
-                        myDA4.Fill(myDS,"Checks");
+                        myDA4.Fill(myDS, "Checks");
                         // Now create a table to hold weather data
                         DataTable WeatherTable = myDS.Tables.Add("Weather");
                         WeatherTable.Columns.Add("Sunrise", typeof(string));
                         WeatherTable.Columns.Add("Sunset", typeof(string));
-                        WeatherTable.Columns.Add("Precip",typeof(decimal));
+                        WeatherTable.Columns.Add("Precip", typeof(decimal));
                         WeatherTable.Columns.Add("Precipcover", typeof(decimal));
-                        WeatherTable.Columns.Add("TempMax",typeof(decimal));
-                        WeatherTable.Columns.Add("TempMin",typeof(decimal));
+                        WeatherTable.Columns.Add("TempMax", typeof(decimal));
+                        WeatherTable.Columns.Add("TempMin", typeof(decimal));
                         WeatherTable.Columns.Add("Description", typeof(string));
                         // Fetch weather data for the actual date used in the report
                         using (HttpClient client = new HttpClient())
@@ -94,7 +96,7 @@ namespace MBTP.Retrieval
                                         //Console.WriteLine($"Cover: {precipcover}");
                                         //Console.WriteLine($"Temp: {temperature}");
                                         //Console.WriteLine($"Description: {description}");
-                                        WeatherTable.Rows.Add(sunrise, sunset, precip, precipcover, tempmax, tempmin,description);
+                                        WeatherTable.Rows.Add(sunrise, sunset, precip, precipcover, tempmax, tempmin, description);
                                     }
                                 }
                             }

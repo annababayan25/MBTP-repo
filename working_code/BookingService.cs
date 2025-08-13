@@ -2,18 +2,17 @@ using System;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using MBTP.Interfaces;
 
 namespace MBTP.Retrieval
 {
     public class BookingRepository
     {
-        private readonly IConfiguration _configuration;
-
-        public BookingRepository(IConfiguration configuration)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+        public BookingRepository(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
-
         public DataSet GetBookingCountsByStateYearMonth(string state, int year, int month)
         {
             DataSet bookingDataSet = new DataSet();
@@ -21,7 +20,7 @@ namespace MBTP.Retrieval
 
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.GetBookingCountByStateYearMonth", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;

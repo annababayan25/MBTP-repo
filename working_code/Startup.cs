@@ -7,6 +7,8 @@ using MBTP.Services;
 using MBTP.Logins;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using MBTP.Retrieval;
+using SQLStuff;
+using MBTP.Interfaces;
 
 namespace MBTP
 {
@@ -21,24 +23,25 @@ namespace MBTP
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<IDatabaseConnectionService, DatabaseConnectionService>();
+            services.AddHttpContextAccessor();
             services.AddSingleton<DailyService>();
-            services.AddSingleton<DailyBookingsService>();
-            services.AddSingleton<OccupancyService>();
-            services.AddSingleton<DailyReport>();
+            services.AddScoped<DailyBookingsService>();
             services.AddScoped<OccupancyService>();
+            services.AddScoped<DailyReport>();
             services.AddSingleton<WeatherService>();
             services.AddScoped<LoginClass>();
-            services.AddControllersWithViews();
-            services.AddSingleton<NewBookService>();
-            services.AddSingleton<BookingRepository>();
-            services.AddSingleton<TrailerMovesReport>();
-            services.AddSingleton<ExpressCheckinsReport>();
-            services.AddSingleton(new BookingRepository(Configuration));
-            services.AddSingleton<AccessLevelsActions>();
-            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped<NewBookService>();
+            services.AddScoped<BookingRepository>();
+            services.AddScoped<TrailerMovesReport>();
+            services.AddScoped<ExpressCheckinsReport>();
+            services.AddScoped<AccessLevelsActions>();
             services.AddSingleton<AdministrationService>();
             services.AddSingleton<RetailService>();
-            services.AddSingleton<SpecialAddonsService>();
+            services.AddScoped<SpecialAddonsService>();
+            services.AddScoped<SQLSupport>();
+
+            // Auth
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
@@ -46,6 +49,7 @@ namespace MBTP
                     options.LogoutPath = "/Home/Logout";
                 });
 
+            // Session
             services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -54,6 +58,7 @@ namespace MBTP
             });
 
             services.AddRazorPages();
+            services.AddControllersWithViews();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -83,7 +88,6 @@ namespace MBTP
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });
-   
         }
     }
 }

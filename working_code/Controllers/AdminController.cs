@@ -38,17 +38,28 @@ namespace MBTP.Controllers
     {
         private readonly ICompositeViewEngine _viewEngine;
         private readonly IConfiguration _configuration;
+        private readonly IDatabaseConnectionService _dbConnectionService;
         private readonly AccessLevelsActions _accessLevelsActions;
         private readonly NewBookService _newBookService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
 
-        public AdminController(ILogger<HomeController> logger, IConfiguration configuration, ICompositeViewEngine viewEngine, AccessLevelsActions accessLevelsActions,
-                                NewBookService newBookService, IHttpContextAccessor httpContextAccessor, AdministrationService adminActions, RetailService retailService)
+        public AdminController(
+            ILogger<HomeController> logger,
+            IConfiguration configuration,
+            IDatabaseConnectionService dbConnectionService,
+            ICompositeViewEngine viewEngine,
+            AccessLevelsActions accessLevelsActions,
+            NewBookService newBookService,
+            IHttpContextAccessor httpContextAccessor,
+            AdministrationService adminActions,
+            RetailService retailService
+        )
         {
             _viewEngine = viewEngine;
             _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
             _accessLevelsActions = accessLevelsActions;
             _newBookService = newBookService;
             _httpContextAccessor = httpContextAccessor;
@@ -62,10 +73,15 @@ namespace MBTP.Controllers
         public IActionResult ManageUsers()
         {
             DataSet AccessLevels = _accessLevelsActions.RetrieveAccessLevels();
+            Console.WriteLine(HttpContext.Session.GetString("sqlConnString"));
             return View(AccessLevels);
         }
         [Authorize]
-        public async Task<IActionResult> ProcessExports(string startDate, string endDate, string opts)
+        public async Task<IActionResult> ProcessExports(
+            string startDate,
+            string endDate,
+            string opts
+        )
         {
             string host = _httpContextAccessor.HttpContext.Request.Host.Value;
 
@@ -84,17 +100,45 @@ namespace MBTP.Controllers
                     endDateParsed = startDateParsed;
                 }
                 bool cnvrtResult;
-                for (DateTime counter = startDateParsed; counter <= endDateParsed; counter = counter.AddDays(1))
+                for (
+                    DateTime counter = startDateParsed;
+                    counter <= endDateParsed;
+                    counter = counter.AddDays(1)
+                )
                 {
                     GenericRoutines.repDateStr = counter.ToString("yyyy-MM-dd");
                     cnvrtResult = System.DateTime.TryParse(GenericRoutines.repDateStr, out GenericRoutines.repDateTmp);
-                    if (opts.Contains('F')) { NewbookImport.ReadNewbookFiles(); }
-                    if (opts.Contains('A')) { POSImports.ReadArcadeFiles(); }
-                    if (opts.Contains('C')) { POSImports.ReadCoffeeFiles(); }
-                    if (opts.Contains('K')) { POSImports.ReadKayakFiles(); }
-                    if (opts.Contains('G')) { POSImports.ReadGuestFiles(); }
-//                    if (opts.Contains('M')) { POSImports.ReadSpecialAddonsFile(); }
-                    if (opts.Contains('S')) { await RetailService.PopulateRetailData(counter); }
+                    var useTestDb = opts.Contains('T');
+                    if (opts.Contains('F'))
+                    {
+                        NewbookImport newbookImport = new NewbookImport(_dbConnectionService);
+                        newbookImport.ReadNewbookFiles();
+                    }
+                    if (opts.Contains('A'))
+                    {
+                        POSImports posImports = new POSImports(_dbConnectionService);
+                        posImports.ReadArcadeFiles();
+                    }
+                    if (opts.Contains('C'))
+                    {
+                        POSImports posImports = new POSImports(_dbConnectionService);
+                        posImports.ReadCoffeeFiles();
+                    }
+                    if (opts.Contains('K'))
+                    {
+                        POSImports posImports = new POSImports(_dbConnectionService);
+                        posImports.ReadKayakFiles();
+                    }
+                    if (opts.Contains('G'))
+                    {
+                        POSImports posImports = new POSImports(_dbConnectionService);
+                        posImports.ReadGuestFiles();
+                    }
+                    //                    if (opts.Contains('M')) { POSImports.ReadSpecialAddonsFile(); }
+                    if (opts.Contains('S'))
+                    {
+                        await RetailService.PopulateRetailData(counter);
+                    }
                 }
             }
             ViewBag.Host = host;
@@ -131,6 +175,8 @@ namespace MBTP.Controllers
             bool updateResult = await _adminActions.PostBlackoutDate(blackoutIdIn);
             return Json(blackoutIdIn);
         }
+        
+        
     }
 }
 

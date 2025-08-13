@@ -1,19 +1,21 @@
 using System;
 using System.Data;
 using System.Threading.Tasks;
+using MBTP.Interfaces;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
+using MBTP.Interfaces;
 
 namespace MBTP.Retrieval
 {
     public class Dashboard
     {
-        private readonly IConfiguration _configuration;
+        private readonly IDatabaseConnectionService _dbConnectionService;
 
-        public Dashboard(IConfiguration configuration)
+        public Dashboard(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
 
         public DataSet RetrieveDashboardData()
@@ -22,7 +24,7 @@ namespace MBTP.Retrieval
 
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDashboardData", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
