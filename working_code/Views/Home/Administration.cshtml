@@ -1,0 +1,86 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<style>
+.pdfButton {
+    background-color: #b4dfff;
+    border: none;
+    color: white;
+    padding: 15px; /* Adjust padding as needed */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%; /* Make buttons take full width of the container */
+    max-width: 250px; /* Set a maximum width */
+    margin: 0 auto; /* Center the button */
+}
+
+.beach-image {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.container {
+    margin-top: 20px;
+}
+
+.centered-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px; /* Add space between buttons */
+}
+</style>
+
+<!DOCTYPE html>
+@{
+    ViewData["Title"] = "Administration Page";
+    var accID = User.FindFirst("AccID")?.Value;
+}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" href="~/images/favicon.png" type="image/png" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="homePage bg-dark text-white">
+    <div class="container">
+        <h1 class="display-4 text-center" style="text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000">
+            Myrtle Beach Travel Park System Administration
+        </h1>
+        <div class="centered-buttons my-4">
+                <a class="pdfButton" asp-area="" asp-controller="Admin" asp-action="ManageUsers">Manage Users</a>
+                <a class="pdfButton" asp-area="" asp-controller="Home" asp-action="">Set Blackout Dates</a>
+                <a class="pdfButton" asp-area="" asp-controller="Admin" asp-action="ProcessExports">Process POS Data</a>
+                <a class="pdfButton" asp-area="" asp-controller="Admin" asp-action="PopulateBookings">Load Bookings Data</a>
+                <a class="pdfButton" asp-area="" asp-controller="Admin" asp-action="ReviewDistinctAlerts">Review Data Alerts</a>
+                <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="ManageMisc">Enter Miscellaneous Income</a>
+        </div>
+    </div>
+        <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+</body>
+</html>

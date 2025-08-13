@@ -1,0 +1,819 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+
+<script src="~/js/site.js"></script>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var titleDate = ViewBag.FinalDate != null ? ViewBag.FinalDate.ToString("dddd, MMMM dd, yyyy"): "No Data Selected";
+    var rptDay = ViewBag.FinalDate != null ? ViewBag.FinalDate.ToString("ddd"): "Any";
+    var accID = User.FindFirst("AccID")?.Value;
+    const string numformat = "{0:#,##0.00;(#,##0.00);0.0}";
+    const string numformatdashed = "{0:#,##0.00;(#,##0.00);------}";
+    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    string rightnow = DateTime.Now.ToString("MM/dd/yyyy h:mm tt");
+    string opsButtonText = "Reservations Report for " + ViewBag.FinalDate.ToString("MMM dd, yyyy");
+    bool storeClosed = false;
+    bool arcadeClosed = false;
+    bool coffeeClosed = false;
+    bool kayakClosed = false;
+}
+@if(isPdf)
+{
+    <h4 style="text-align: right;">@rightnow</h4>
+}
+<h2 style="text-align: center;">Daily Operations Overview for @titleDate</h2>
+@if (!isPdf)
+{
+    <input type="date" id="datePicker" placeholder="Select a date" />
+    <input class = "dataButton" type="button" id="fetchDataButton" value="Fetch Data" />
+    <input class="pdfButton" type="button" id="generatePdfButton" value="Generate PDF" />
+    @if(accID != "4" && accID != "5")
+    {
+        <input class="pdfButton" type="button" id="opsButton" value="@(opsButtonText)" />
+    }
+    <p></p>
+}
+<style>
+    .yellow2{
+    text-align: right;
+    }
+    .gray{
+    text-align: right;
+    }
+    .tables-wrapper{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin:10px;
+    }
+
+    @@media (max-width: 400px) {
+        .ded {
+            display: none;
+        }
+
+        .tots {
+            display: none;
+        }
+
+        .widget {
+            width: 100%;
+            background: #f1f1f1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            align-items: center;
+        }
+    }
+
+    @@media (min-width: 401px) {
+        .tot {
+            display: none;
+        }
+    }
+</style>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+    @foreach (DataRow row in Model!.Tables["Weather"].Rows)
+    {
+        var Description = (string)row["Description"];
+        DateTime SunriseString = DateTime.Parse((string)row["sunrise"]);
+        DateTime SunsetString = DateTime.Parse((string)row["sunset"]);
+        //<div class="widget">
+            <div class="grid-container temp">
+                <div>
+                    <table>
+                        <tr>
+                            <td class="weather" style="font-weight:bold">&nbsp;&nbsp;&nbsp;&nbsp;Sunrise:&nbsp;@(SunriseString.ToString("t"))&nbsp;&nbsp;Sunset:&nbsp;@(SunsetString.ToString("t"))</td>
+                        </tr>
+                        <tr>
+                            <td class="weather" style="font-weight:bold; color:@(Description.IndexOf("rain") != -1 ? "darkblue" : "orange")">&nbsp;&nbsp;&nbsp;&nbsp;@((string)row["Description"])&nbsp;&nbsp;High:&nbsp;@String.Format("{0:n0}",((decimal)row["TempMax"]*1.8m)+32)°F&nbsp;&nbsp;Low:&nbsp;@String.Format("{0:n0}",((decimal)row["TempMin"]*1.8m)+32)°F</td>
+                        </tr>
+                        @if(Description.IndexOf("rain") != -1)
+                        {
+                        <tr>
+                            <td class="weather" style="color:darkblue">&nbsp;&nbsp;&nbsp;&nbsp;Rainfall of @String.Format("{0:n2}",((decimal)row["Precip"]*0.0393701m)) inches fell over roughly @String.Format("{0:n0}",(decimal)row["Precipcover"])% of our area</td>
+                        </tr>
+                        }
+                    </table>
+                </div>
+                <div>
+                    @{
+                        @if(Description.IndexOf("rain") != -1)
+                        {
+                            <p style="margin-left:10px" class="emoji">🌧️</p>;
+                        }
+                        else if(Description.IndexOf("Partly sunny") != -1)
+                        {
+                            <p style="margin-left:10px" class="emoji">⛅</p>;
+                        }
+                        else if(Description.IndexOf("Partly cloudy") != -1)
+                        {
+                            <p style="margin-left:10px" class="emoji">🌤️</p>;
+                        }
+                        else if(Description.IndexOf("Cloudy") != -1 || Description.IndexOf("Overcast") != -1)
+                        {
+                            <p style="margin-left:10px" class="emoji">☁️</p>;
+                        }
+                        else
+                        {
+                            <p style="margin-left:10px" class="emoji">☀️</p>;
+                        }
+                    }
+                </div>
+            </div> 
+        //</div>
+    }
+    @foreach (DataRow row in Model!.Tables["Blackout"].Rows)
+    {
+        storeClosed = ((int)row["StoreClosedState"] == 1 ? true : false);
+        arcadeClosed = ((int)row["ArcadeClosedState"] == 1 ? true : false);
+        coffeeClosed = ((int)row["CoffeeClosedState"] == 1 ? true : false);
+        kayakClosed = ((int)row["KayakClosedState"] == 1 ? true : false);
+    }
+    <table class="widget tots">
+        <tbody>
+            @foreach (DataRow row in Model!.Tables[0].Rows)
+            {
+                <tr>
+                    <td class="white" style="border-radius:10px">&nbsp;</td>
+                    @if(accID != "4")
+                    {
+                        <td class="white" style="font-weight:bold; border-radius:10px">Arcade:&nbsp;&nbsp;</td>
+                        <td class="yellow2" style="border-radius:10px">@String.Format(numformat, (decimal)row["PreparedFoodA"] + (decimal)row["Arcade Games"])</td>
+                        <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    }
+                    @if(accID != "5")
+                    {
+                        <td class="white" style="font-weight:bold; border-radius:10px">General Store:&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                        <td class="bYellow" style="border-radius:10px">@String.Format(numformat, (decimal)row["Other Novelty"] + (decimal)row["Seasonal Novelty"] + (decimal)row["Apparel"] + (decimal)row["Food Counter"] + (decimal)row["Alcohol"] + (decimal)row["Hard Goods"] + (decimal)row["RV Parts"] + (decimal)row["Seasonal Merch"] + (decimal)row["Food"] + (decimal)row["Ice"] + (decimal)row["Stamps"])</td>
+                        <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    }
+                    @if(accID != "4")
+                    {
+                        <td class="white" style="font-weight:bold; border-radius:10px">Beachy Bean:&nbsp;&nbsp;</td>
+                        <td class="blue" style="border-radius:10px">&nbsp;@String.Format(numformat, (decimal)row["Non-Taxable Food"] + (decimal)row["Merchandise"] + (decimal)row["PreparedFoodC"])</td>
+                        <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    }
+                    @if(accID != "4" && accID != "5")
+                    {
+                        <td class="white" style="font-weight:bold; border-radius:10px">Kayak Shack:&nbsp;&nbsp;</td>
+                        <td class="lGreen" style="border-radius:10px">@String.Format(numformat, (decimal)row["No Tax Food"] + (decimal)row["Kayaks and Boards"] + (decimal)row["Pedal Boats"] + (decimal)row["Misc Sales"])</td>
+                        <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    }
+                    @if(accID != "5")
+                    {
+                        <td class="white" style="font-weight:bold; border-radius:10px">Guest Services:&nbsp;&nbsp;</td>
+                        <td class="gray" style="border-radius:10px">@String.Format(numformat, (decimal)row["Guest Services"])</td>
+                        <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    }
+                    <td class="white" style="font-weight:bold; border-radius:10px">Other Revenue:&nbsp;&nbsp;</td>
+                    @if(accID == "4")
+                    {
+                        <td class="green" style="border-radius:10px">@String.Format(numformat, (decimal)row["Laundry"] + (decimal)row["At-Site Propane"] + (decimal)row["Propane Station"])</td>
+                    }
+                    else if(accID == "5")
+                    {
+                        <td class="green" style="border-radius:10px">@String.Format(numformat, (decimal)row["Activities"] + (decimal)row["Store Events"])</td>
+                    }
+                    else
+                    {
+                        <td class="green" style="border-radius:10px">@String.Format(numformat, (decimal)row["Activities"] + (decimal)row["Other"] + (decimal)row["CATV"] + (decimal)row["Store Events"] + (decimal)row["Leased Concessions"] + (decimal)row["Laundry"] + (decimal)row["At-Site Propane"] + (decimal)row["Propane Station"])</td>
+                    }
+                    <td class="white" style="border-radius:10px">&nbsp;</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="tables-wrapper">
+        <div class="table-wrapper">
+            <table>
+                <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                    {
+                        <tr class="top">
+                            <td style=text-align:center colspan="6">Additions</td>
+                        </tr>
+                        @if(accID != "4")
+                        {
+                            <tr class="daily">
+                            @if(!arcadeClosed || ((decimal)row["PreparedFoodA"] != 0))
+                            {
+                                <td>1. Hungry Dolphin</td>
+                                <td>&nbsp;</td>
+                                <td class="center">318</td>
+                                <td colspan="2">&nbsp;</td>
+                                <td class="yellow">@String.Format(numformatdashed,(decimal)row["PreparedFoodA"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="6">1. Hungry Dolphin - CLOSED</td>
+                            }
+                            </tr>
+                        }
+                        @if(accID != "5")
+                        {
+                            <tr class="daily">
+                                @if(((decimal)row["At-Site Propane"] !=0 ) || rptDay == "Tue" || rptDay == "Fri")
+                                {
+                                    <td>2. At-Site Propane</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">320</td>
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["At-Site Propane"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="6">2. At-Site Propane - CLOSED</td>
+                                }
+                            </tr>
+                            <tr class="daily">
+                                <td>3. Propane Station</td>
+                                <td>&nbsp;</td>
+                                <td class="center">321</td>
+                                <td colspan="2">&nbsp;</td>
+                                <td class="green">@String.Format(numformatdashed, (decimal)row["Propane Station"])</td>
+                            </tr>
+                        }
+                        @if(accID != "4")
+                        {
+                            @if(!coffeeClosed || ((decimal)row["Non-Taxable Food"]+(decimal)row["Merchandise"]+(decimal)row["PreparedFoodC"] != 0))
+                        {
+                            <tr class="daily">
+                                <td colspan="6">4. Beachy Bean Cafe</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">4a. Prepared Food Sales</td>
+                                <td>&nbsp;</td>
+                                <td class="center">330</td>
+                                @if((decimal)row["PreparedFoodC"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="blue">@String.Format(numformatdashed, (decimal)row["PreparedFoodC"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">4b. Merchandise Sales</td>
+                                <td>&nbsp;</td>
+                                <td class="center">331</td>
+                                @if((decimal)row["Merchandise"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="blue">@String.Format(numformatdashed, (decimal)row["Merchandise"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">4c. Non-Taxable Food Sales</td>
+                                <td>&nbsp;</td>
+                                <td class="center">332</td>
+                                @if((decimal)row["Non-Taxable Food"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="blue">@String.Format(numformatdashed, (decimal)row["Non-Taxable Food"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                            <tr class="daily">
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Beachy Bean Cafe Sales: </td>
+                                <td>&nbsp;</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed,(decimal)row["Non-Taxable Food"]+(decimal)row["Merchandise"]+(decimal)row["PreparedFoodC"])</td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr class="daily">
+                                <td colspan="6">4. Beachy Bean Cafe - CLOSED</td>
+                            </tr>
+                        }
+                        }
+                        @if(accID != "5")
+                        {
+                            @if(!storeClosed || (decimal)row["Other Novelty"] + (decimal)row["Seasonal Novelty"] + (decimal)row["Apparel"] + (decimal)row["Food Counter"] + (decimal)row["Alcohol"] + (decimal)row["Hard Goods"] + (decimal)row["RV Parts"] + (decimal)row["Seasonal Merch"] + (decimal)row["Food"] + (decimal)row["Ice"] + (decimal)row["Stamps"] != 0)
+                            {
+                                <tr class="daily">
+                                    <td colspan="6">5. Store Novelty Sales</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">5a. Apparel</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed,(decimal)row["Apparel"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">5b. Seasonal-Novelty</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Seasonal Novelty"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">5c. Other Novelty</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Other Novelty"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Store Novelty Sales: </td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">322</td>
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Other Novelty"] + (decimal)row["Seasonal Novelty"] + (decimal)row["Apparel"])</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>6. Store Prepared Food Sales</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">323</td>
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Food Counter"])</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td colspan="6">7. Store Merchandise Sales-Taxable</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">7a. Packaged Alcohol</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Alcohol"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">7b. Grocery-Hard Goods</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Hard Goods"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">7c. RV Parts</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["RV Parts"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">7d. Seasonal-Store Merchandise</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Seasonal Merch"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Store Merchandise Sales: </td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">324</td>
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Alcohol"] + (decimal)row["Hard Goods"] + (decimal)row["RV Parts"] + (decimal)row["Seasonal Merch"])</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td colspan="6">8. Store Non-Taxable Food Sales</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">8a. Grocery</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Food"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">8b. Ice</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Ice"])</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Non-Taxable Food Sales: </td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">325</td>
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Food"] + (decimal)row["Ice"])</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>9. Store Non-Tax/Non-Revenue Sales</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">327</td>
+                                    @if((decimal)row["Stamps"] != 0)
+                                    {
+                                        <td colspan="2">&nbsp;</td>
+                                        <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Stamps"])</td>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="3">&nbsp;</td>
+                                    }
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr class="daily">
+                                    <td colspan="6">5 thru 9. General Store - CLOSED</td>
+                                </tr>
+                            }
+                            <tr class="daily">
+                                <td>10. Vending Machine Receipts</td>
+                                <td>&nbsp;</td>
+                                <td class="center">326</td>
+                                @if((decimal)row["Vending"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Vending"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                            <tr class="daily">
+                                <td>11. Laundromat Receipts</td>
+                                <td>&nbsp;</td>
+                                <td class="center">328</td>
+                                @if((decimal)row["Laundry"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["Laundry"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                        }
+                        @if(accID != "4")
+                        {
+                            <tr class="daily">
+                                <td>12. Arcade Games</td>
+                                <td>&nbsp;</td>
+                                <td class="center">348</td>
+                                @if((decimal)row["Arcade Games"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="yellow">@String.Format(numformatdashed, (decimal)row["Arcade Games"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                        }
+                        @if(accID != "4" && accID != "5")
+                        {
+                            <tr class="daily">
+                                <td>13. Leased Concessions Receipts</td>
+                                <td>&nbsp;</td>
+                                <td class="center">352</td>
+                                @if((decimal)row["Leased Concessions"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["Leased Concessions"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                            @if(!kayakClosed || ((decimal)row["Kayaks and Boards"] + (decimal)row["Pedal Boats"] + (decimal)row["Misc Sales"] != 0))
+                            {
+                                <tr class="daily">
+                                    <td colspan="6">14. Kayak Shack Sales</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">14a. Kayak Shack Food Sales</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">317</td>
+                                    @if((decimal)row["No Tax Food"] != 0)
+                                    {
+                                        <td colspan="2">&nbsp;</td>
+                                        <td class="lGreen">@String.Format(numformatdashed, (decimal)row["No Tax Food"])</td>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="3">&nbsp;</td>
+                                    }
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">14b. Kayaks and Paddle Board Rentals</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">353</td>
+                                    @if((decimal)row["Kayaks and Boards"] != 0)
+                                    {
+                                        <td colspan="2">&nbsp;</td>
+                                        <td class="lGreen">@String.Format(numformatdashed, (decimal)row["Kayaks and Boards"])</td>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="3">&nbsp;</td>
+                                    }
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">14c. Pedal Boat Rentals</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">354</td>
+                                    @if((decimal)row["Pedal Boats"] != 0)
+                                    {
+                                        <td colspan="2">&nbsp;</td>
+                                        <td class="lGreen">@String.Format(numformatdashed, (decimal)row["Pedal Boats"])</td>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="3">&nbsp;</td>
+                                    }
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead">14d. Kayak Shack Misc Sales</td>
+                                    @if((decimal)row["Misc Sales"] != 0)
+                                    {
+                                        <td colspan="4">&nbsp;</td>
+                                        <td class="lGreen">@String.Format(numformatdashed, (decimal)row["Misc Sales"])</td>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="5">&nbsp;</td>
+                                    }
+                                </tr>
+                                <tr class="daily">
+                                    <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Kayak Shack Sales: </td>
+                                    <td colspan="4">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Kayaks and Boards"] + (decimal)row["Pedal Boats"] + (decimal)row["Misc Sales"])</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr class="daily">
+                                    <td colspan="6">14. Kayak Shack - CLOSED</td>
+                                </tr>
+                            }
+                        }
+                        @if(accID != "4")
+                        {
+                            <tr class="daily">
+                                <td>15. Activities/Events Income</td>
+                                <td>&nbsp;</td>
+                                <td class="center">359</td>
+                                @if((decimal)row["Store Events"] + (decimal)row["Activities"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["Store Events"] + (decimal)row["Activities"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                        }
+                        @if(accID != "4" && accID != "5")
+                        {
+                            <tr class="daily">
+                                <td>16. Commissions-CATV</td>
+                                <td>&nbsp;</td>
+                                <td class="center">384</td>
+                                @if((decimal)row["CATV"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["CATV"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                        }
+                        @if(accID != "5")
+                        {
+                            <tr class="daily">
+                                @if(!storeClosed)
+                                {
+                                    <td>17. Commissions-Guest Services</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">392</td>
+                                    @if((decimal)row["Guest Services"] != 0)
+                                    {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="gray">@String.Format(numformatdashed, (decimal)row["Guest Services"])</td>
+                                    }
+                                    else
+                                    {
+                                        <td colspan="3">&nbsp;</td>
+                                    }
+                                }
+                                else
+                                {
+                                    <td>17. Commissions-Guest Services - CLOSED</td>
+                                }
+                            </tr>
+                        }
+                        @if(accID != "4" && accID != "5")
+                        {
+                            <tr class="daily">
+                                <td>18. Commissions-Other</td>
+                                <td>&nbsp;</td>
+                                <td class="center">393</td>
+                                @if((decimal)row["Other"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["Other"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                            <tr class="daily">
+                                <td>19. Miscellaneous Income</td>
+                                <td>&nbsp;</td>
+                                <td class="center">925</td>
+                                @if((decimal)row["Activities"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["Activities"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        @if(accID == "1" || accID == "6")
+        {
+            <p></p>
+            <div class="table-wrapper">
+                <table>
+                <tbody> @foreach (DataRow row in Model.Tables[1].Rows)
+                        {
+                            <tr class="top">
+                                <td colspan="6" style=text-align:center>Deductions</td>
+                            </tr>
+                            <tr class="daily">
+                                <td colspan="6">1. Credit Card Deposits</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">1a. Arcade (Heartland Retail)</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed,(decimal)Convert.ToDecimal(row["ArcadeCC"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                <td class="tableHead">1b. Store (Heartland Register)</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["StoreCC"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                <td class="tableHead">1c. Kayak Shack/Events (Heartland Register)</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["KayakCC"]))</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">1d. Beachy Bean Cafe (Heartland Register)</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["CoffeeCC"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                <td class="tableHead">1e. Guest Services (Clover)</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["GuestCC"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Credit Card Deposits:</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">102</td>
+                                    <td colspan="2">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["ArcadeCC"]) + (decimal)Convert.ToDecimal(row["StoreCC"]) + (decimal)Convert.ToDecimal(row["KayakCC"]) + (decimal)Convert.ToDecimal(row["CoffeeCC"]) + (decimal)Convert.ToDecimal(row["GuestCC"]))</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6">&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td>2. Arcade Vouchers Taken</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">289</td>
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["ArcadeVouchers"]))</td>
+                            </tr>
+                            <tr>
+                                <td colspan="6">&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td colspan="6">3. Expected Cash Deposit</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">3a. Arcade</td>
+                                    <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed,(decimal)Convert.ToDecimal(row["ArcadeCash"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                <td class="tableHead">3b. General Store</td>
+                                    <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed,(decimal)Convert.ToDecimal(row["StoreCash"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                <td class="tableHead">3c. Special Additions</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["SpecialCash"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                <td class="tableHead">3d. Kayak Shack/Events </td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["KayakCash"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                        <td class="tableHead">3e. Beachy Bean Cafe</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["CoffeeCash"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                        <td class="tableHead">3f. Guest Services</td>
+                                    <td colspan="3">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["GuestCash"]))</td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            <tr class="daily">
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Expected Cash Deposit:</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">103</td>
+                                    <td colspan="2">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["ArcadeCash"]) + (decimal)Convert.ToDecimal(row["StoreCash"]) + (decimal)Convert.ToDecimal(row["SpecialCash"]) + (decimal)Convert.ToDecimal(row["KayakCash"]) + (decimal)Convert.ToDecimal(row["CoffeeCash"]) + (decimal)Convert.ToDecimal(row["GuestCash"]))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <h1>No Data Found For This Date</h1>
+}
+@section Scripts 
+{
+    <script>
+        document.getElementById('fetchDataButton').addEventListener('click', function ()
+        {
+            var selectedDate = document.getElementById('datePicker').value;
+            if(selectedDate){
+                 var url = '@Url.Action("Daily","FDB")'+'?date=' + selectedDate;
+                 window.location.href = url;
+            }
+        });
+        document.getElementById('opsButton').addEventListener('click', function (){
+            var currentUrl = new URL(window.location.href);
+            var dateParam = currentUrl.searchParams.get("date");
+            if (dateParam)
+                {
+                    window.location.href = '@Url.Action("DailyReservation", "FDB")' + '?date=' + dateParam;
+                }
+                else
+                {
+                    window.location.href = '@Url.Action("DailyReservation", "FDB")';
+                }
+        });
+        document.getElementById('generatePdfButton').addEventListener('click', function () 
+        {
+            var currentUrl = new URL(window.location.href);
+            var dateParam = currentUrl.searchParams.get("date");
+            if (dateParam)
+            {
+                window.location.href = '@Url.Action("GeneratePDF", "FDB")' + '?date=' + dateParam;
+            } 
+            else
+            {
+                window.location.href = '@Url.Action("GeneratePDF", "FDB")';
+            }
+        });
+        $(document).ready(function () {
+            var currentUrl = new URL(window.location.href); 
+            var dateParam = currentUrl.searchParams.get("date"); 
+            if (dateParam) 
+            { 
+                document.getElementById('datePicker').value = dateParam; 
+                document.querySelector('h1').innerText = "Daily Operations Overview: " + dateParam;
+            }
+            var cells = document.querySelectorAll('tbody td.right, tbody td.blue, tbody td.green, tbody td.bYellow, tbody td.yellow,  tbody td.yellow2'); 
+            cells.forEach(function (cell) { 
+                var amount = parseFloat(cell.textContent); 
+                if (!isNaN(amount)) 
+                { 
+                    cell.textContent = formatNumberWithCommas(amount.toFixed(2)); 
+                } 
+            });
+        });
+    </script>
+}

@@ -1,0 +1,237 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@{
+    DateTime startDate = (DateTime)ViewBag.FiscalYearStartDate;
+    var yearName = startDate.ToString("yyyy");
+    DateTime currentDate = DateTime.Now;
+    var accID = User.FindFirst("AccID")?.Value;
+    int monthIndex = 0;
+
+    decimal totalCATV = 0;
+    decimal totalGuestServices = 0;
+    decimal totalLeasedConcessions = 0;
+    decimal totalOtherM = 0;
+    decimal totalAtSitePropane = 0;
+    decimal totalPropaneStation = 0;
+    decimal totalLaundry = 0;
+    decimal totalStoreEvents = 0;
+    decimal totalFrontEvents = 0;
+    decimal totalSupplementalO = 0;
+    decimal totalSupplementalS = 0;
+    decimal totalTotals = 0;
+}
+<div class='head-container'>
+    <h1>Month-By-Month Information for Fiscal Year @yearName</h1>
+    <p>&nbsp;</p>
+    <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
+    <p>&nbsp;</p>
+    <p>single click a specific month for its daily breakdown</p>
+</div>
+
+<body>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+    <table id="monthly-table" class="breakdown clickable-tableM" style="width:240px">
+        <tr>
+            @if(accID == "4")
+            {
+                <td class="breakdownBigTitle" colspan="6">Miscellaneous Income</td>
+            }
+            else
+            {
+                <td class="breakdownBigTitle" colspan="13">Miscellaneous Income</td>
+            }
+        </tr>
+        <tr>
+            <th class="breakdownMonth" rowspan="3">Month</th>
+            @if(accID == "4")
+            {
+                <td class="breakdownTaxBig">Commissions</td>
+                <td class="breakdownTaxBig" colspan="3">Other</td>
+            }
+            else
+            {
+                <td class="breakdownTaxBig" colspan="4">Commissions</td>
+                <td class="breakdownTaxBig" colspan="7">Other</td>
+            }
+            <th class="breakdownTotalsHead" rowspan="3">Total</th> 
+        </tr>
+        <tr>
+            @if(accID != "4")
+            {
+                <th class="breakdownTitle">384</th>
+            }
+            <th class="breakdownTitle">392</th>
+            @if(accID != "4")
+            {
+                <th class="breakdownTitle">352</th>
+                <th class="breakdownTitle">393</th>
+            }
+            <th class="breakdownTitle">320</th>
+            <th class="breakdownTitle">321</th>
+            <th class="breakdownTitle">328</th>
+            @if(accID != "4")
+            {
+                <th class="breakdownTitle" colspan="2">359</th>
+                <th class="breakdownTitle" rowspan="2">Other Office Income</th>
+                <th class="breakdownTitle" rowspan="2">Supplemental Income</th>
+            }
+        </tr>
+        <tr>
+            @if(accID != "4")
+            {
+                <th class="breakdownTitle">CATV</th>
+            }
+            <th class="breakdownTitle">Guest Services</th>
+            @if(accID != "4")
+            {
+                <th class="breakdownTitle">Leased Concessions</th>
+                <th class="breakdownTitle">Other</th>
+            }
+            <th class="breakdownTitle">At-Site Propane</th>
+            <th class="breakdownTitle">Propane Station</th>
+            <th class="breakdownTitle">Laundry</th>
+            @if(accID != "4")
+            {
+                <th class="breakdownTitle">Store Events</th>
+                <th class="breakdownTitle">Office Events</th>
+            }
+        </tr>
+        @foreach (DataRow row in Model!.Tables[0].Rows)
+        {
+            var monthDate = startDate.AddMonths(monthIndex);
+            var month = startDate.AddMonths(monthIndex).ToString("MMMM");
+            var CATV = (decimal)row["CATV"];
+            var GuestServices = (decimal)row["GuestServices"];
+            var LeasedConcessions = (decimal)row["LeasedConcessions"];
+            var OtherM = (decimal)row["OtherM"];
+            var AtSitePropane = (decimal)row["AtSitePropane"];
+            var PropaneStation = (decimal)row["PropaneStation"];
+            var Laundry = (decimal)row["Laundry"];
+            var StoreEvents = (decimal)row["StoreEvents"];
+            var FrontEvents = (decimal)row["FrontEvents"];
+            var SupplementalO = (decimal)row["SupplementalO"];
+            var SupplementalS = (decimal)row["SupplementalS"];
+            decimal totals = 0.0m;
+            @if(accID == "4")
+            {
+                totals = (decimal)row["GuestServices"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"];
+            }
+            else
+            {
+                totals = (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"];
+            }
+            totalCATV += CATV;
+            totalGuestServices += GuestServices;
+            totalLeasedConcessions += LeasedConcessions;
+            totalOtherM += OtherM;
+            totalAtSitePropane += AtSitePropane;
+            totalPropaneStation += PropaneStation;
+            totalLaundry += Laundry;
+            totalStoreEvents += StoreEvents;
+            totalFrontEvents += FrontEvents;
+            totalSupplementalO += SupplementalO;
+            totalSupplementalS += SupplementalS;
+            totalTotals += totals;
+            <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
+                <td class="breakdownData">@month</td>
+                @if(accID != "4")
+                {
+                    <td class="breakdownData">@row["CATV"]</td>
+                }
+                    <td class="breakdownData">@row["GuestServices"]</td>
+                @if(accID != "4")
+                {
+                    <td class="breakdownData">@row["LeasedConcessions"]</td>
+                    <td class="breakdownData">@row["OtherM"]</td>
+                }
+                    <td class="breakdownData">@row["AtSitePropane"]</td>
+                    <td class="breakdownData">@row["PropaneStation"]</td>
+                    <td class="breakdownData">@row["Laundry"]</td>
+                @if(accID != "4")
+                {
+                    <td class="breakdownData">@row["StoreEvents"]</td>
+                    <td class="breakdownData">@row["FrontEvents"]</td>
+                    <td class="breakdownData">@row["SupplementalO"]</td>
+                    <td class="breakdownData">@row["SupplementalS"]</td>
+                }
+                @if(accID == "4")
+                {
+                    <td class="breakdownTotals">@String.Format("{0:F2}",(decimal)row["GuestServices"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"])</td>
+                }
+                else
+                {
+                    <td class="breakdownTotals">@String.Format("{0:F2}",(decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
+                }
+            </tr>
+            monthIndex ++;
+        }
+        <tr>
+            <td class="breakdownMonth">Totals:</td>
+            @if(accID != "4")
+            {
+                <td class="breakdownTotals2">@String.Format("{0:F2}", totalCATV)</td>
+            }
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalGuestServices)</td>
+            @if(accID != "4")
+            {
+                <td class="breakdownTotals2">@String.Format("{0:F2}", totalLeasedConcessions)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", totalOtherM)</td>
+            }
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalAtSitePropane)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalPropaneStation)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalLaundry)</td>
+            @if(accID != "4")
+            {
+                <td class="breakdownTotals2">@String.Format("{0:F2}", totalStoreEvents)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", totalFrontEvents)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalO)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalS)</td>
+            }
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalTotals)</td>     
+        </tr>
+    </table>
+}
+</body>
+
+<script>
+$(document).ready(function () {
+    $("#monthly-table").on("click", "tr", function () {
+        var year = $(this).data("year");
+        var month = $(this).data("month");
+        var date = new Date(year, month - 1, 1); // JavaScript months are 0-based
+        var url = `/FDB/DailyBreakdownM?date=${date.toISOString()}&whichMonth=None`;
+        console.log('single-click detected on table row. URL:', url);
+        if (url) {
+            console.log('Navigating to:', url);
+            window.location.href = url;
+        } else {
+            console.error('URL is undefined');
+        }
+    });
+
+    var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
+    cells.forEach(function (cell) { 
+        var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
+        if (!isNaN(amount)) { 
+            if (amount == 0){
+                cell.textContent = ' ';
+            } else {
+                if (amount < 0){
+                    cell.classList.add('negative-value');
+                    cell.textContent = '(' + formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
+                } else{
+                    cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
+                }
+            }
+        } 
+    });
+
+    function formatNumberWithCommas(x) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+});
+</script>

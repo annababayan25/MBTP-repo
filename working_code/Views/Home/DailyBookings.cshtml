@@ -1,0 +1,295 @@
+@using System.Text
+@using System.Data
+
+
+@{
+    ViewData["Title"] = "Daily Bookings";
+    var selectedMonth = ViewBag.SelectedMonth as DateTime?;
+    var daysInMonth = DateTime.DaysInMonth(selectedMonth.Value.Year, selectedMonth.Value.Month);
+    var firstDayOfMonth = new DateTime(selectedMonth.Value.Year, selectedMonth.Value.Month, 1).DayOfWeek;
+    var emptyCells = (int)firstDayOfMonth; // Calculate empty cells before the first day of the month
+    var daysOfWeek = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    var previousMonth = selectedMonth?.AddMonths(-1);
+    var nextMonth = selectedMonth?.AddMonths(1).ToString("yyyy-MM-dd");
+    int daysToProcess = 0;
+    @if(DateTime.Now.Month == ((DateTime)selectedMonth).Month)
+    {
+        daysToProcess = DateTime.Now.Day;
+    }
+    else
+    {
+        daysToProcess = daysInMonth;
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Daily Bookings Report</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" href="https://npmcdn.com/flatpickr@4.6.3/dist/plugins/monthSelect/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .calendar-day, .calendar-header {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .empty-cell {
+            background: #f0f0f0;
+        }
+        .booked-high {
+            background-color: #b0e57c; 
+        }
+        .booked-medium-high {
+            background-color: #fff9b0; 
+        }
+        .booked-medium {
+            background-color: #ffd9b0; 
+        }
+        .booked-low {
+            background-color: #ffb0b0;
+        }
+        .zero-or-loss {
+            background: #696969; 
+            color:white;
+        }
+        .flatpickr-monthSelect-months {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+        .flatpickr-monthSelect-month {
+            flex: 1 0 21%;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .flatpickr-monthSelect-month:hover, .flatpickr-monthSelect-month.selected {
+            border-color: #ccc;
+        }
+        .flatpickr-current-month {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .spinner {
+            font-size: 3rem;
+        }
+        .navigation-arrows {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .navigation-arrows button {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            padding: 0 15px;
+        }
+        .navigation-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .label-input-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+    <i class="fas fa-spinner fa-spin spinner"></i>
+</div>
+
+<h1>Daily Bookings Report for @selectedMonth?.ToString("MMMM yyyy")</h1>
+
+<form method="get" asp-action="DailyBookings">
+    <div class="navigation-container">
+        <button class="pdfButton" type="submit" name="month" value="@previousMonth?.ToString("yyyy-MM-dd")">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        @if(DateTime.Now.Month != ((DateTime)selectedMonth).Month)
+        {
+            <button class="pdfButton" type="submit" name="month" value="@nextMonth">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        }
+        <div class="label-input-container">
+            <label for="monthPicker">Select Month:</label>
+            <input type="text" id="monthPicker" name="month" value="@selectedMonth?.ToString("yyyy-MM-dd")">
+        </div>
+        <button type="submit" style="display: none;"></button>
+    </div>
+</form>
+
+@if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+{
+    <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+<div class="calendar">
+    @foreach (var dayOfWeek in daysOfWeek)
+    {
+        <div class="calendar-header">@dayOfWeek</div>
+    }
+
+    @for (int i = 0; i < emptyCells; i++)
+    {
+        <div class="calendar-day empty-cell"></div>
+    }
+    @{
+        int TotalPlaced = 0, TotalPlacedU = 0, TotalCancelled = 0, TotalCancelledU = 0, TotalNetGain = 0, day = 1;
+    }
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+    @foreach (DataRow row in Model!.Tables[0].Rows)
+    {
+        int dayOfMonth = ((DateTime)row["Transdate"]).Day;
+        if(day < dayOfMonth)
+        {
+            while (day < dayOfMonth)
+            {
+                <div class="calendar-day">
+                    <div>@day</div>
+                </div>
+                day ++;
+            }
+        }
+        var placedCount = (int)row["placed"];
+        var placedUCount = (int)row["placedU"];
+        var cancelledCount = (int)row["cancelled"];
+        var cancelledUCount = (int)row["cancelledU"];
+        var netGain = placedCount - placedUCount - cancelledCount - cancelledUCount;
+        TotalPlaced += placedCount;
+        TotalPlacedU += placedUCount;
+        TotalCancelled += cancelledCount;
+        TotalCancelledU += cancelledUCount;
+        TotalNetGain += netGain;
+        var cssClass = netGain > 90 ? "booked-high" :
+                       netGain > 60 ? "booked-medium-high" :
+                       netGain > 30 ? "booked-medium" :
+                       netGain > 0 ? "booked-low" : "zero-or-loss";
+
+        @if(day <= daysInMonth)
+        {
+            var placedU = placedUCount > 0 ? " (" + placedUCount.ToString() + ")" : "";
+            var cancelledU = cancelledUCount > 0 ? " (" + cancelledUCount.ToString() + ")" : "";
+            <div class="calendar-day @cssClass">
+                <div>@dayOfMonth</div>
+                <div>Placed: @placedCount @placedU</div>
+                <div>Cancelled: @cancelledCount</div>
+                <div>Confirmed +/-: @netGain</div>
+            </div>
+        }
+        else
+        {
+            <div class="calendar-day">
+                <div>@dayOfMonth</div>
+            </div>
+        }
+        day ++;
+    }
+}
+</div>
+@{
+    double AvgNetGain = (double)(TotalPlaced - TotalCancelled) / (double)daysToProcess;
+    var cssClassSummary = AvgNetGain > 90 ? "booked-high" :
+                        AvgNetGain > 60 ? "booked-medium-high" :
+                        AvgNetGain > 30 ? "booked-medium" :
+                        AvgNetGain > 0 ? "booked-low" : "zero-or-loss";
+}
+<div>&nbsp;</div>
+<div class="calendar-day @cssClassSummary">
+    <div>Monthly Summary</div>
+    @{
+        <div>Total Confirmed Bookings Placed: @(TotalPlaced - TotalPlacedU)</div>
+        <div>Total Confirmed Bookings Cancelled: @(TotalCancelled - TotalCancelledU)</div>
+        <div>Total Confirmed Bookings Gain/Loss: @TotalNetGain</div>
+        <div>Average Daily Confirmed Bookings Gain/Loss: @Convert.ToInt32(AvgNetGain)</div>
+        <div style="text-align: left;"><sup>(&nbsp;)</sup>Numbers in parentheses represent Unconfirmed bookings.</div>
+    }
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr@4.6.3/dist/plugins/monthSelect/index.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Show loading overlay when form is submitted
+    document.querySelector('form').addEventListener('submit', function() {
+        sessionStorage.setItem('loading', 'true');
+        loadingOverlay.style.display = 'flex';
+    });
+
+    // Set up the date picker with Flatpickr
+    flatpickr("#monthPicker", {
+        dateFormat: "Y-m",
+        maxDate: "today",
+        defaultDate: "@selectedMonth?.ToString("yyyy-MM-dd")",
+        onChange: function(selectedDates, dateStr, instance) {
+            var selectedDate = new Date(selectedDates[0]);
+            var month = selectedDate.getMonth() + 1; // Months are zero-indexed
+            var year = selectedDate.getFullYear();
+            var newUrl = new URL(window.location.href);
+            newUrl.searchParams.set("month", `${year}-${month < 10 ? '0' : ''}${month}-01`);
+            sessionStorage.setItem('loading', 'true'); // Set loading state
+            loadingOverlay.style.display = 'flex'; // Show loading overlay
+            window.location.href = newUrl.toString();
+        },
+        plugins: [
+            new monthSelectPlugin({
+                shorthand: true,
+                dateFormat: "Y-m",
+                altFormat: "F Y"
+            })
+        ]
+    });
+
+    // Hide loading overlay when content is fully loaded
+    window.addEventListener('load', function() {
+        loadingOverlay.style.display = 'none';
+        sessionStorage.removeItem('loading'); // Remove loading state
+    });
+
+    // Check session storage for loading state
+    if (sessionStorage.getItem('loading') === 'true') {
+        loadingOverlay.style.display = 'flex';
+    }
+});
+</script>
+
+</body>
+</html>

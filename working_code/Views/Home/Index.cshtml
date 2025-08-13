@@ -1,0 +1,287 @@
+﻿@using System.Data;
+@{
+    ViewData["Title"] = "Home Page";
+    var accID = User.FindFirst("AccID")?.Value;
+    int accIDInt = 0;
+    int.TryParse(accID, out accIDInt);
+}
+
+<style>
+.pdfButton {
+    background-color: #b4dfff;
+    border: none;
+    color: white;
+    padding: 15px; /* Adjust padding as needed */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%; /* Make buttons take full width of the container */
+    max-width: 250px; /* Set a maximum width */
+    margin: 0 auto; /* Center the button */
+}
+
+.beach-image {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.container {
+    margin-top: 20px;
+}
+
+.centered-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px; /* Add space between buttons */
+}
+.errorText{
+  text-align: left;
+  border: 1px black solid;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: black;
+</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" href="~/images/favicon.png" type="image/png" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+
+<body class="homePage bg-dark text-white">
+    <div class="container">
+        <h1 class="display-4 text-center" style="text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000">
+            Myrtle Beach Travel Park Dashboard
+        </h1>
+        @if(accIDInt != 0)
+        {
+        <div class="centered-buttons my-4">
+            @if (accIDInt < 8)
+            {
+                <a class="pdfButton" asp-area="" asp-controller="Home" asp-action="FDB">Financial <br> Database</a>
+            }
+            @if (accIDInt != 6)
+            {
+                <a class="pdfButton" asp-area="" asp-controller="Home" asp-action="Newbook">NewBook <br> Reports</a>
+            }
+            @if (accIDInt == 1)
+            {
+                <a class="pdfButton" asp-area="" asp-controller="Home" asp-action="Administration">Administration</a>
+            }
+            @if (accIDInt < 4)
+            {
+                <a class="pdfButton" asp-area="" asp-controller="Home" asp-action="Cameras">Cameras</a>
+            }
+       </div>
+       }
+    </div>
+    @if(accIDInt != 0)
+    {
+        <p>&nbsp;</p>
+        <table id="external-wrapper-table">
+            <tr>
+                <td>
+                <table id="alerts-table"  class="breakdown" style="width:600px">
+                    <thead>
+                        <tr class="dashboardTableHeader">
+                            <td colspan="7">Data Errors From Last 30 Days</td>
+                        </tr>
+                    </thead>
+                    <tr>
+                        <th class="dashboardHead">Date</th>
+                        <th class="dashboardHead">Location</th>
+                        <th class="dashboardHead">Error Description</th>
+                    </tr>
+                    @if (Model is not null && Model.Tables["Alerts"].Rows.Count > 0)
+                    {
+                        @foreach (DataRow row in Model!.Tables["Alerts"].Rows)
+                        {
+                            DateTime transDate = (DateTime) row["TransDate"];
+                            int pcID = (int) row["PCID"];
+                            string location;
+                            if(pcID == 100)
+                            {
+                                location = "Front Office";
+                            }
+                            else
+                            {
+                                location = (string)row["Location"];
+                            }
+                            <tr class="dashboardAlt">
+                                <td class="dashboardDate">@transDate.ToShortDateString()</td>
+                                @if(pcID == 100)
+                                {
+                                    <td class="dashboardData"><b>@location</b></td>
+                                    <td class="errorText"><b>&nbsp;@row["AlertText"]</b></td>
+                                }
+                                else
+                                {
+                                    <td class="dashboardData">@location</td>
+                                    <td class="errorText">&nbsp;@row["AlertText"]</td>
+                                }
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3">NO ERRORS IN THIS PERIOD</td>
+                        </tr>
+                    }
+                </table>
+                </td>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td>&nbsp;</td>
+            </tr>
+            <tr>
+                <td>
+                    @if (Model is not null && Model.Tables[0].Rows.Count > 0)
+                    {
+                        <table id="dashboard-table" class="breakdown" style="width:240px">
+                            <thead>
+                                <tr class="dashboardTableHeader">
+                                    <td colspan="7">Front Office 10-Day Outlook</td>
+                                </tr>
+                            </thead>
+                            <tr>
+                                <th class="dashboardHead" rowspan="2">Date</th>
+                                <th class="dashboardHead" colspan="2">Arriving</th>
+                                <th class="dashboardHead" rowspan="2">Carts Rented</th>
+                                <th class="dashboardHead" colspan="2">Departing</th>
+                                <th class="dashboardHead" rowspan="2">Carts Returning</th>
+                            </tr>
+                            <tr>
+                                <th class="dashboardHead">Sites</th>
+                                <th class="dashboardHead">Rentals</th>
+                                <th class="dashboardHead">Sites</th>
+                                <th class="dashboardHead">Rentals</th>
+                            </tr>
+                            @{
+                                int totExpress = 0, totStoredMBTPA = 0, totStoredOutsideA = 0, totStoredMBTPD = 0, totStoredOutsideD = 0;
+                            }
+                            @foreach (DataRow row in Model!.Tables[0].Rows)
+                            {
+                                DateTime rowDate = (DateTime)row["DashDate"];
+                                int intDay = rowDate.Day;
+                                string dashDayName = rowDate.ToString("ddd");
+                                string dashMon = rowDate.ToString("MMM");
+                                string dashDay = intDay.ToString();
+                                string daySuffix = intDay == 1 || intDay == 21 || intDay == 31 ? "st" : intDay == 2 || intDay == 22 ? "nd" : intDay == 3 || intDay == 23 ? "rd" : "th";
+                                string? arrivals = row["RigsA"].ToString();
+                                string? departures = row["RigsD"].ToString();
+                                int express = (int)row["Express"];
+                                int storedMBTPA = (int)row["StoredMBTPA"];
+                                int storedOutsideA = (int)row["StoredOutsideA"];
+                                int storedMBTPD = (int)row["StoredMBTPD"];
+                                int storedOutsideD = (int)row["StoredOutsideD"];
+                                totExpress += express;
+                                totStoredMBTPA += storedMBTPA;
+                                totStoredOutsideA += storedOutsideA;
+                                totStoredMBTPD += storedMBTPD;
+                                totStoredOutsideD += totStoredOutsideD;
+                                if(express > 0 || storedMBTPA > 0 || storedOutsideA > 0)
+                                {
+                                    arrivals = arrivals + (express > 0 ? " (" + express.ToString() + "E)" : "") + (storedMBTPA > 0 ? " (" + storedMBTPA.ToString() + "S)" : "") + (storedOutsideA > 0 ? " (" + storedOutsideA.ToString() + "T)" : "");
+                                }
+                                if(storedMBTPD > 0 || storedOutsideD > 0)
+                                {
+                                    departures = departures + (storedMBTPD > 0 ? " (" + storedMBTPD.ToString() + "S)" : "") + (storedOutsideD > 0 ? " (" + storedOutsideD.ToString() + "T)" : "");
+                                }
+                                <tr class="dashboardAlt">
+                                    <td class="dashboardDate">@dashDayName&nbsp;@dashMon&nbsp;@dashDay@daySuffix</td>
+                                    <td class="dashboardData">@arrivals</td>
+                                    <td class="dashboardData">@row["RentalsA"]</td>
+                                    <td class="dashboardData">@row["GolfA"]</td>
+                                    <td class="dashboardData">@departures</td>
+                                    <td class="dashboardData">@row["RentalsD"]</td>
+                                    <td class="dashboardData">@row["GolfD"]</td>
+                                </tr>
+                            }
+                            @if(totExpress != 0 || totStoredMBTPA != 0 || totStoredOutsideA != 0)
+                            {
+                                <tr class="dashboardFooter">
+                                    <td colspan="7">(xE) = Express Checkins  (xS) = MBTP Storage  (xT) = 3rd Party Tow Company  </td>
+                                </tr>
+                            }
+                        </table>
+                    }
+                </td>
+                <td style="vertical-align: top;">
+                    @if (Model is not null && Model.Tables[1].Rows.Count > 0 && (accIDInt < 3 || accIDInt == 4 || accIDInt == 7 || accIDInt == 10))
+                    {
+                        <table id="dashboard-store-table" class="breakdown" style="width:240px">
+                            @{
+                                decimal netSales = 0;
+                                DateTime rightnow = DateTime.Now;
+                                string lastrun;
+                                int minuteDiff;
+                                if(rightnow.Minute >= 45)
+                                {
+                                    minuteDiff = rightnow.Minute - 45;
+                                }
+                                else if(rightnow.Minute >= 30)
+                                {
+                                    minuteDiff = rightnow.Minute - 30;
+                                }
+                                else if(rightnow.Minute >= 15)
+                                {
+                                    minuteDiff = rightnow.Minute - 15;
+                                }
+                                else
+                                {
+                                    minuteDiff = rightnow.Minute;
+                                }
+                                lastrun = rightnow.AddMinutes(minuteDiff*-1).ToString("t");
+                            }
+                            <thead>
+                                <tr class="dashboardTableHeader">
+                                    <td colspan="2">Today's Activity</td>
+                                </tr>
+                                <tr class="dashboardTableHeader">
+                                    <td colspan="2">As Of @lastrun</td>
+                                </tr>
+                            </thead>
+                            <tr>
+                                <th class="dashboardHead" colspan="2">General Store</th>
+                            </tr>
+                            <tr>
+                                <th class="dashboardHead">Gross Sales</th>
+                                <th class="dashboardHead">Net Sales</th>
+                            </tr>
+                            @foreach (DataRow row in Model!.Tables[1].Rows)
+                            {
+                                netSales = (decimal)@row["Gross"] - (decimal)@row["Tax"];
+                                <tr class="dashboardAlt">
+                                    <td class="dashboardDate">@String.Format("{0:F2}",row["Gross"])</td>
+                                    <td class="dashboardData">@String.Format("{0:F2}",netSales)</td>
+                                </tr>
+                            }
+                        </table>
+                    }
+                </td>
+            </tr>
+        </table>
+    }
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+</body>

@@ -1,0 +1,157 @@
+﻿@using IronPdf
+<!DOCTYPE html>
+<html lang="en">
+@{
+    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    var accID = User.FindFirst("AccID")?.Value;
+    var currentAction = ViewContext.RouteData.Values["action"].ToString();
+}
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MBTP Dashboard</title>
+    <link rel="icon" href="~/images/favicon.png" type="image/png" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <script src="https://link.edgepilot.com/s/51b6db46/SdOHDddfAkOw0VAQh-H8rw?u=https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container-fluid">
+                @if (!isPdf)
+                {
+                    <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">MBTP Dashboard</a>
+                }
+                @if (!isPdf)
+                {
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                }
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        @if (currentAction == "FDB" || currentAction == "Daily" || currentAction == "Monthly"|| currentAction == "Yearly" || currentAction == "Snapshot"|| currentAction == "DailyReservation" || currentAction == "DailyBreakdownA"|| currentAction == "DailyBreakdownC"|| currentAction == "DailyBreakdownG"|| currentAction == "DailyBreakdownF"|| currentAction == "DailyBreakdownK"|| currentAction == "DailyBreakdownM"|| currentAction == "DailyBreakdownR"|| currentAction == "MonthlyBreakdownA"|| currentAction == "MonthlyBreakdownC"|| currentAction == "MonthlyBreakdownG"|| currentAction == "MonthlyBreakdownF"|| currentAction == "MonthlyBreakdownG"|| currentAction == "MonthlyBreakdownK"|| currentAction == "MonthlyBreakdownM"|| currentAction == "MonthlyBreakdownR")
+                        {
+                            @if(accID =="1"|| accID == "2" || accID == "3" || accID == "4" || accID == "5" || accID == "6" || accID == "7")
+                            {
+                                @if (!isPdf)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Yearly">Yearly Report</a>
+                                    </li>
+                                }
+                                @if (!isPdf)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Monthly" asp-route-whichMonth="Current">Monthly Report</a>
+                                    </li>
+                                }
+                            }
+                            @if(accID == "1" || accID == "2" || accID == "3" || accID == "6" || accID == "7")
+                            {
+                                @if (!isPdf)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="DailyReservation">Daily Reservations Report</a>
+                                    </li>
+                                }
+                            }
+                            @if(accID != "3")
+                            {
+                                @if (!isPdf)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Daily">Daily Operations Report</a>
+                                    </li>
+                                }
+                            }
+                            @if(accID =="1"|| accID == "2" || accID == "3" || accID == "4" || accID == "5" || accID == "7")
+                            {
+                                @if (!isPdf)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Snapshot">Snapshots</a>
+                                    </li>
+                                }
+                            }
+                        }
+                        else if(currentAction == "Newbook" || currentAction == "Occupancy" || currentAction == "OccupancyAges" || currentAction == "DailyBookings" || currentAction == "BookingsDem" || currentAction == "TrailerMoves" || currentAction == "ExpressCheckins")
+                        {
+                            @if(accID != "6")
+                            {
+                                @if (!isPdf)
+                                {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark loadingButton" asp-area="" asp-controller="Home" asp-action="Occupancy">Occupancy</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark loadingButton2" asp-area="" asp-controller="Home" asp-action="OccupancyAges">Occupancy W/Ages</a>
+                                    </li>
+                                    @if (accID == "1" || accID == "2" || accID == "3" || accID == "7" || accID == "8")
+                                    {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark loadingButton" asp-area="" asp-controller="Home" asp-action="DailyBookings">Daily Bookings</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="BookingsDem">Booking Demographics</a>
+                                    </li>
+                                    }
+                                    if(accID == "1" || accID == "2" || accID == "3" || accID == "4" || accID == "8")
+                                    {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="TrailerMoves">Trailer Move List</a>
+                                    </li>
+                                    }
+                                    if(accID == "1" || accID == "2" || accID == "3" || accID == "4" || accID == "8")
+                                    {
+                                    <li class="nav-item">
+                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="ExpressCheckins">Express Check-in List</a>
+                                    </li>
+                                    }
+                                }
+                            }
+                        }
+                    </ul>
+                    @if (!isPdf)
+                    {
+                        <ul class="navbar-nav ms-auto">
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Sign out</a>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="nav-item sign-in">
+                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Sign in</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        @if (!isPdf)
+        {
+            <div class="container">
+                &copy; 2025 - Myrtle Beach Travel Park - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </div>
+        }
+    </footer>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,273 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@{
+   DateTime startDate = (DateTime)ViewBag.FiscalYearStartDate;
+   var yearName = startDate.ToString("yyyy");
+   DateTime currentDate = DateTime.Now;
+   int monthIndex = 0;
+
+   decimal totalSites = 0;
+   decimal totalRentals = 0;
+   decimal totalLockFees = 0;
+   decimal totalExVeh = 0;
+   decimal totalDamageFees = 0;
+   decimal totalLate = 0;
+   decimal totalManRef = 0;
+   decimal totalVisit = 0;
+   decimal totalTaxLi = 0;
+   decimal totalGolf = 0;
+   decimal totalManRefGolf = 0;
+   decimal totalGross = 0;
+   decimal totalNetRevSub = 0;
+   decimal totalAnnual = 0;
+   decimal totalEmployee = 0;
+   decimal totalLTS = 0;
+   decimal totalLTR = 0;
+   decimal totalMHP = 0;
+   decimal totalManRef2 = 0;
+   decimal totalNonTaxSub = 0;
+   decimal totalStorage = 0;
+   decimal totalTransf = 0;
+   decimal totalMisc = 0;
+   decimal totalManRef3 = 0;
+   decimal totalNonTax = 0;
+   decimal totalNetRevenue1 = 0;
+}
+<div class='head-container'>
+    <h1>Month-By-Month Information for Fiscal Year @yearName</h1>
+    <p>&nbsp;</p>
+    <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
+    <p>&nbsp;</p>
+    <p>single click a specific month for its daily breakdown</p>
+</div>
+
+<body>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+<table id="monthly-table" class="breakdown clickable-tableF" style="width:240px">
+   <tr>
+       <th class="breakdownBigTitle" colspan="28">Front Office</th>
+   </tr>
+   <tr>
+       <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Month</th>
+       <th class="breakdownTaxBig" colspan="7">Taxable Transactions: 12% (Tax Inclusive)</th>
+       <th class="breakdownTaxBig" colspan="1">Tax: 5% (Tax Inclusive)</th>
+       <th class="breakdownTaxBig" colspan="2">Tax: 8% (Tax Inclusive)</th>
+       <th class="breakdownTaxBig" colspan="3">Taxable Transactions Summary:</th>
+       <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Month</th>
+       <th class="breakdownTaxBig" colspan="12">No Tax Transactions:</th>
+       <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
+   </tr>
+   <tr>
+       <th class="breakdownTitle">304</th>
+       <th class="breakdownTitle">307</th>
+       <th class="breakdownTitle">309</th>
+       <th class="breakdownTitle">361</th>
+       <th class="breakdownTitle">310</th>
+       <th class="breakdownTitle">311</th>
+       <th class="breakdownRefTitle" rowspan="2">Manual Refunds Generated</th>
+       <th class="breakdownTitle">360</th>
+       <th class="breakdownTitle" colspan="2">362</th>
+       <th class="breakdownTotalsHead" rowspan="2">Gross Revenue</th>
+       <th class="breakdownTotalsHead" rowspan="2">Total Tax Liability</th>
+       <th class="breakdownTotalsHead" rowspan="2">Net Revenue Subtotal</th>
+       <th class="breakdownTitle" colspan="4">302</th>
+       <th class="breakdownTitle">306</th>
+       <th class="breakdownRefTitle" rowspan="2">Manual Refunds Generated</th>
+       <th class="breakdownTotalsHead" rowspan="2">Non-Taxable Stays Subtotal</th>
+       <th class="breakdownTitle">356</th>
+       <th class="breakdownTitle">358</th>
+       <th class="breakdownTitle">925</th>
+       <th class="breakdownRefTitle" rowspan="2">Manual Refunds Generated</th>
+       <th class="breakdownTotalsHead" rowspan="2">Other Non-Taxable Subtotal</th>
+   </tr>
+   <tr>
+       <th class="breakdownTitle">Sites</th>
+       <th class="breakdownTitle">Rentals</th>
+       <th class="breakdownTitle">Lock Fees</th>
+       <th class="breakdownTitle">Extra Vehicle Fees</th>
+       <th class="breakdownTitle">Damage Fees</th>
+       <th class="breakdownTitle">Late Fees</th>
+       <th class="breakdownTitle">Visitor Fees</th>
+       <th class="breakdownTitle">Golf Cart Rentals</th>
+       <th class="breakdownRefTitle">Manual Refunds Generated</th>
+       <th class="breakdownTitle">Annual Leases</th>
+       <th class="breakdownTitle">Employee</th>
+       <th class="breakdownTitle">LT Sites</th>
+       <th class="breakdownTitle">LT Rentals</th>
+       <th class="breakdownTitle">MH Park</th>
+       <th class="breakdownTitle">Storage</th>
+       <th class="breakdownTitle">Transfer Fees</th>
+       <th class="breakdownTitle">Misc</th>
+   </tr>
+   @foreach (DataRow row in Model!.Tables[0].Rows)
+   {
+       var monthDate = startDate.AddMonths(monthIndex);
+       var month = startDate.AddMonths(monthIndex).ToString("MMMM");
+       var TwelveP = 1.12m;
+       var FiveP = 1.05m;
+       var EightP = 1.08m;
+
+       var sites = (decimal)row["SiteTotal"];
+       var rentals = (decimal)row["RentalsTotal"];
+       var locks = (decimal)row["LockTotal"];
+       var exVeh = (decimal)row["ExVeh"];
+       var damages = (decimal)row["DamageFees"];
+       var late = (decimal)row["LateFees"];
+       var visit = (decimal)row["VisitorFees"];
+       var manRef = (decimal)row["ManRefunds"];
+       var golf = (decimal)row["GolfRentals"];
+       var manRefGolf = (decimal)row["ManRefundsGolf"];
+       var annual = (decimal)row["AnnualTotal"];
+       var employee = (decimal)row["Employee"];
+       var lts = (decimal)row["LTSites"];
+       var ltr = (decimal)row["LTRentals"];
+       var mhp = (decimal)row["MHPark"];
+       var manRefnt = (decimal)row["ManRefundsNT"];
+       var storage = (decimal)row["Storage"];
+       var transfers = (decimal)row["TransferFees"];
+       var misc = (decimal)row["Misc"];
+       var manRefnt2 = (decimal)row["ManRefundsNT2"];
+       var grossRevenue1 = (sites + rentals + locks + exVeh + damages + visit + golf - manRef - manRefGolf);
+       var new1 = ((grossRevenue1 - visit - golf) / TwelveP) + (visit / FiveP) + (golf / EightP);
+       var taxLi = grossRevenue1 - new1;
+       var netRevSub = grossRevenue1 - taxLi;
+       var noTaxSub = annual + employee + lts + ltr + mhp - manRefnt;
+       var nonTax = storage + transfers + misc - manRefnt2;
+       var netRevenue1 = netRevSub + noTaxSub + nonTax;
+
+       totalSites += sites;
+       totalRentals += rentals;
+       totalLockFees += locks;
+       totalExVeh += exVeh;
+       totalDamageFees += damages;
+       totalLate += late;
+       totalManRef += manRef;
+       totalVisit += visit;
+       totalGolf += golf;
+       totalManRefGolf += manRefGolf;
+       totalGross += grossRevenue1;
+       totalTaxLi += taxLi;
+       totalNetRevSub += netRevSub;
+       totalAnnual += annual;
+       totalEmployee += employee;
+       totalLTS += lts;
+       totalLTR += ltr;
+       totalMHP += mhp;
+       totalManRef2 += manRefnt;
+       totalNonTaxSub += noTaxSub;
+       totalStorage += storage;
+       totalTransf += transfers;
+       totalMisc += misc;
+       totalManRef3 += manRefnt2;
+       totalNonTax += nonTax;
+       totalNetRevenue1 += netRevenue1;
+
+       <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
+           <td class="breakdownData">@month</td>
+           <td class="breakdownData">@sites</td>
+           <td class="breakdownData">@rentals</td>
+           <td class="breakdownData">@locks</td>
+           <td class="breakdownData">@exVeh</td>
+           <td class="breakdownData">@damages</td>
+           <td class="breakdownData">@late</td>
+           <td class="breakdownRef">@manRef</td>
+           <td class="breakdownData">@visit</td>
+           <td class="breakdownData">@golf</td>
+           <td class="breakdownRef">@manRefGolf</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", grossRevenue1)</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", taxLi)</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", netRevSub)</td>
+           <td class="breakdownData">@month</td>
+           <td class="breakdownData">@annual</td>
+           <td class="breakdownData">@employee</td>
+           <td class="breakdownData">@lts</td>
+           <td class="breakdownData">@ltr</td>
+           <td class="breakdownData">@mhp</td>
+           <td class="breakdownRef">@manRefnt</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", noTaxSub)</td>
+           <td class="breakdownData">@storage</td>
+           <td class="breakdownData">@transfers</td>
+           <td class="breakdownData">@misc</td>
+           <td class="breakdownRef">@String.Format("{0:F2}", manRefnt2)</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", nonTax)</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", netRevenue1)</td>
+       </tr>
+       monthIndex++;
+   }
+   <tr>
+       <td class="breakdownMonth">Totals:</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalSites)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalRentals)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalLockFees)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalExVeh)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalDamageFees)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalLate)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalVisit)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalGolf)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRefGolf)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalGross)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxLi)</td>      
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevSub)</td>
+       <td class="breakdownMonth">&nbsp;</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalAnnual)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalEmployee)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalLTS)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalLTR)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalMHP)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef2)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTaxSub)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalStorage)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalTransf)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalMisc)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef3)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTax)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevenue1)</td>
+   </tr>
+</table>
+}
+</body>
+
+<script>
+$(document).ready(function () {
+    $("#monthly-table").on("click", "tr", function () {
+        var year = $(this).data("year");
+        var month = $(this).data("month");
+        var date = new Date(year, month - 1, 1); // JavaScript months are 0-based
+        var url = `/FDB/DailyBreakdownF?date=${date.toISOString()}&whichMonth=None`;
+        console.log('single-click detected on table row. URL:', url);
+        if (url) {
+            console.log('Navigating to:', url);
+            window.location.href = url;
+        } else {
+            console.error('URL is undefined');
+        }
+    });
+
+    var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
+    cells.forEach(function (cell) { 
+        var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
+        if (!isNaN(amount)) { 
+            if (amount == 0){
+                cell.textContent = ' ';
+            } else {
+                if (amount < 0){
+                    cell.classList.add('negative-value');
+                    cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
+                } else{
+                    cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
+                }
+            }
+        } 
+    });
+
+    function formatNumberWithCommas(number) {
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+});
+</script>
+</html>

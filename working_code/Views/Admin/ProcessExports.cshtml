@@ -1,0 +1,83 @@
+﻿@using GenericSupport;
+@using FinancialC_;
+@using System;
+
+<head>
+<link rel="stylesheet" href="~/css/site.css" />
+   <script type="text/javascript" src="~/js/datepicker.js"></script>
+ </head>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var hostMachine = ViewBag.Host;
+    }
+<body >
+    <label for="datePicker" id="startLabel">Start Date:</label>
+    <input type="date" id="datePicker" placeholder="Select a date" onchange="changefunc()" />
+    &nbsp;&nbsp;
+    <label for="datePicker2" id="startLabel2">End Date:</label>
+    <input type="date" id="datePicker2" placeholder="Select a date" />
+    &nbsp;&nbsp;
+    <input class = "dataButton" type="button" id="fetchDataButton" value="Fetch Data" />
+    <p>&nbsp;</p>
+    <label for="newbook" id="label1">Newbook:</label>
+    <input type="checkBox" id="newbook"/>
+    &nbsp;&nbsp;
+    <label for="heartland" id="label2">Heartland:</label>
+    <input type="checkBox" id="heartland"/>
+    &nbsp;&nbsp;
+    <label for="arcade" id="label3">Arcade:</label>
+    <input type="checkBox" id="arcade"/>
+    <p>&nbsp;</p>
+    <label for="coffee" id="label4">Beachy Bean:</label>
+    <input type="checkBox" id="coffee"/>
+    &nbsp;&nbsp;
+    <label for="kayak" id="label5">Kayak Shack:</label>
+    <input type="checkBox" id="kayak"/>
+    &nbsp;&nbsp;
+    <label for="guest" id="label6">Guest Services:</label>
+    <input type="checkBox" id="guest"/>
+    &nbsp;&nbsp;
+    <form method="post">
+        <input type="hidden" name="hiddenDateInput" value="@ViewData["hiddenDateInput"]" />
+        <input type="hidden" name="hiddenDateInput2" value="@ViewData["hiddenDateInput2"]" />
+  </form>
+    
+</body>
+ @section Scripts { 
+<script type="text/javascript">
+    let yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    var yesterdayStr = yesterday.toISOString().split('T')[0];
+    document.getElementById('datePicker').setAttribute('max', yesterdayStr);
+    document.getElementById("fetchDataButton").addEventListener("click", function () {
+        var startingDate = document.getElementById('datePicker');
+        var selectedDate = document.getElementById('datePicker').value;
+        var selectedDate2 = document.getElementById('datePicker2').value;
+        var boxString = '';
+        if(document.getElementById('newbook').checked){boxString += 'F';}
+        if(document.getElementById('heartland').checked){boxString += 'S';}
+        if(document.getElementById('arcade').checked){boxString += 'A';}
+        if(document.getElementById('coffee').checked){boxString += 'C';}
+        if(document.getElementById('kayak').checked){boxString += 'K';}
+        if(document.getElementById('guest').checked){boxString += 'G';}
+        if (selectedDate) 
+        {
+           var url = '@Url.Action("ProcessExports","Admin")' + '?startDate=' + selectedDate + "&endDate=" + selectedDate2 + "&opts=" + boxString;
+            window.location.href = url;
+        }
+    });
+    function changefunc() {
+        var selectedDateVal = document.getElementById('datePicker').value;
+        var selectedDate2 = document.getElementById('datePicker2');
+        selectedDate2.value = selectedDateVal;
+        selectedDate2.min = selectedDateVal;
+        var maxDateVal = new Date();
+    //   alert(maxDateVal);
+        maxDateVal.setDate(maxDateVal.getDate() - 1);
+    //   alert(maxDateVal);
+        var maxDateStr = maxDateVal.toISOString().split("T")[0];
+    //   alert(maxDateStr);
+        selectedDate2.max = maxDateStr;
+    }
+</script>
+}

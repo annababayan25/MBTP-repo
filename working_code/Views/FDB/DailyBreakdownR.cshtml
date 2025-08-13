@@ -1,0 +1,482 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@{
+    DateTime startDate = ViewBag.date != null ? (DateTime)ViewBag.date : DateTime.Now.AddDays(-4);
+    DateTime fiscalYearStartDate = ViewBag.fiscalYearStartDate;
+    var whichMonth = ViewBag.WhichMonth;    
+    var yearName = startDate.ToString("yyyy");
+    DateTime currentDate = DateTime.Now;
+    DateTime monthStart = new DateTime(startDate.Year, startDate.Month, 1);
+    DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
+    int daysThisMonth = DateTime.DaysInMonth(startDate.Year, startDate.Month);
+    TimeSpan daysDiff = monthStart - fiscalYearStartDate;
+    int fiscalDays = daysDiff.Days - 1; // number of days elapsed in fiscal year prior to start of report month
+
+    decimal totalSDTaken = 0;
+    decimal totalSDApplied = 0;
+    decimal totalSDMR = 0;
+    decimal totalNetChange1 = 0;
+    decimal totalRDTaken = 0;
+    decimal totalRDApplied = 0;
+    decimal totalRDMR = 0;
+    decimal totalNetChange2 = 0;
+    decimal totalGDTaken = 0;
+    decimal totalGDApplied = 0;
+    decimal totalGDMR = 0;
+    decimal totalNetChange3 = 0;
+    decimal totalPurchased = 0;
+    decimal totalRedeemedSite = 0;
+    decimal totalRedeemedRent = 0;
+    decimal totalRedeemedSto = 0;
+    decimal totalNetChange4 = 0;
+    decimal ptotalSDTaken = 0;
+    decimal ptotalSDApplied = 0;
+    decimal ptotalSDMR = 0;
+    decimal ptotalNetChange1 = 0;
+    decimal ptotalRDTaken = 0;
+    decimal ptotalRDApplied = 0;
+    decimal ptotalRDMR = 0;
+    decimal ptotalNetChange2 = 0;
+    decimal ptotalGDTaken = 0;
+    decimal ptotalGDApplied = 0;
+    decimal ptotalGDMR = 0;
+    decimal ptotalNetChange3 = 0;
+    decimal ptotalPurchased = 0;
+    decimal ptotalRedeemedSite = 0;
+    decimal ptotalRedeemedRent = 0;
+    decimal ptotalRedeemedSto = 0;
+    decimal ptotalNetChange4 = 0;
+    decimal p2totalSDTaken = 0;
+    decimal p2totalSDApplied = 0;
+    decimal p2totalSDMR = 0;
+    decimal p2totalNetChange1 = 0;
+    decimal p2totalRDTaken = 0;
+    decimal p2totalRDApplied = 0;
+    decimal p2totalRDMR = 0;
+    decimal p2totalNetChange2 = 0;
+    decimal p2totalGDTaken = 0;
+    decimal p2totalGDApplied = 0;
+    decimal p2totalGDMR = 0;
+    decimal p2totalNetChange3 = 0;
+    decimal p2totalPurchased = 0;
+    decimal p2totalRedeemedSite = 0;
+    decimal p2totalRedeemedRent = 0;
+    decimal p2totalRedeemedSto = 0;
+    decimal p2totalNetChange4 = 0;
+    decimal projSDTaken = 0;
+    decimal projSDApplied = 0;
+    decimal projSDMR = 0;
+    decimal projNetChange1 = 0;
+    decimal projRDTaken = 0;
+    decimal projRDApplied = 0;
+    decimal projRDMR = 0;
+    decimal projNetChange2 = 0;
+    decimal projGDTaken = 0;
+    decimal projGDApplied = 0;
+    decimal projGDMR = 0;
+    decimal projNetChange3 = 0;
+    decimal projPurchased = 0;
+    decimal projRedeemedSite = 0;
+    decimal projRedeemedRent = 0;
+    decimal projRedeemedSto = 0;
+    decimal projNetChange4 = 0;
+}
+<div class='head-container'>
+   <h1>Day-To-Day Information for @startDate.ToString("MMMM yyyy")</h1>
+    <p>&nbsp;</p>
+    @if(whichMonth != "None")
+    {
+        <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Monthly" asp-route-whichMonth=@whichMonth>Back to selected month</a>
+        <p>&nbsp;</p>
+    }
+   <p>Single click the table to jump to the month-by-month breakdown</p>
+</div>
+
+<body>
+@if (Model is not null && Model!.Tables[0].Rows.Count > 0)
+{
+<table id="daily-table" class="breakdown clickable-tableR"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownR" style="width:240px">
+    <tr>
+        <th class="breakdownMonth" rowspan="4"><br><br>Day</th>
+        <th class="breakdownBigTitle" colspan="17">Reservations Deposits</th>
+    </tr>
+    <tr>
+        <th class="breakdownTaxBig" colspan="4">Campsites</th>
+        <th class="breakdownTaxBig" colspan="4">Rentals</th>
+        <th class="breakdownTaxBig" colspan="4">Golf Carts</th>
+        <th class="breakdownMonth" rowspan="3"><br><br>Day</th>
+        <th class="breakdownTaxBig" colspan="5">Gift Vouchers</th>
+    </tr>
+    <tr>
+        <th class="breakdownTitle" colspan="3">281</th>
+        <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
+        <th class="breakdownTitle" colspan="3">283</th>
+        <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
+        <th class="breakdownTitle" colspan="3">262</th>
+        <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
+        <th class="breakdownTitle" colspan="4">287</th>
+        <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
+    </tr>
+    <tr>
+        <th class="breakdownTitle">Deposits Taken</th>
+        <th class="breakdownTitle">Deposits Applied</th>
+        <th class="breakdownRefTitle">Manual Refunds Generated</th>
+        <th class="breakdownTitle">Rentals Taken</th>
+        <th class="breakdownTitle">Rentals Applied</th>
+        <th class="breakdownRefTitle">Manual Refunds Generated</th>
+        <th class="breakdownTitle">Deposits Taken</th>
+        <th class="breakdownTitle">Deposits Applied</th>
+        <th class="breakdownRefTitle">Manual Refunds Generated</th>
+        <th class="breakdownTitle">Purchased</th>
+        <th class="breakdownTitle">Redeemed For Sites</th>
+        <th class="breakdownTitle">Redeemed For Rentals</th>
+        <th class="breakdownTitle">Redeemed For Storage</th>
+    </tr>
+    @foreach (DataRow row in Model!.Tables[0].Rows)
+    {
+        var transDate = (DateTime)row["TransDate"];
+        var SDT = (decimal)row["SiteDepositsTaken"] + (decimal)row["SiteDepositsTakenFuture"];
+        var SDA = (decimal)row["SiteDepApplied"];
+        var SDMRG = (decimal)row["SiteDepMRG"];
+        var RDT = (decimal)row["RentalDepTaken"] + (decimal)row["RentalDepTakenFuture"];
+        var RDA = (decimal)row["RentalDepApplied"];
+        var RDMRG = (decimal)row["RentalDepMRG"];
+        var GDT = (decimal)row["GolfDepTaken"] + (decimal)row["GolfDepTakenFuture"];
+        var GDA = (decimal)row["GolfDepApplied"];
+        var GDMRG = (decimal)row["GolfDepMRG"];
+        var VP = (decimal)row["VouchersPurchased"];
+        var VRS = (decimal)row["VouchersRedeemedSites"];
+        var VRR = (decimal)row["VouchersRedeemedRentals"];
+        var VRSto = (decimal)row["VouchersRedeemedStorage"];
+        var netChange1 = SDT - (SDA + SDMRG);
+        var netChange2 = RDT - (RDA + RDMRG);
+        var netChange3 = GDT - (GDA + GDMRG);
+        var netChange4 = VP - VRS - VRR - VRSto;
+
+        totalSDTaken += SDT;
+        totalSDApplied += SDA;
+        totalSDMR += SDMRG;
+        totalNetChange1 += netChange1;
+        totalRDTaken += RDT;
+        totalRDApplied += RDA;
+        totalRDMR += RDMRG;
+        totalNetChange2 += netChange2 ;
+        totalGDTaken += GDT;
+        totalGDApplied += GDA;
+        totalGDMR += GDMRG;
+        totalNetChange3 += netChange3 ;
+        totalPurchased += VP;
+        totalRedeemedSite += VRS;
+        totalRedeemedRent += VRR;
+        totalRedeemedSto += VRSto;
+        totalNetChange4 += netChange4;
+        <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
+            <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
+            <td class="breakdownData">@SDT</td>
+            <td class="breakdownData">@SDA</td>
+            <td class="breakdownRef">@SDMRG</td>
+            <td class="breakdownTotals">@netChange1</td>
+            <td class="breakdownData">@RDT</td>
+            <td class="breakdownData">@RDA</td>
+            <td class="breakdownRef">@RDMRG</td>
+            <td class="breakdownTotals">@netChange2</td>
+            <td class="breakdownData">@GDT</td>
+            <td class="breakdownData">@GDA</td>
+            <td class="breakdownRef">@GDMRG</td>
+            <td class="breakdownTotals">@netChange3</td>
+            <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
+            <td class="breakdownData">@VP</td>
+            <td class="breakdownData">@VRS</td>
+            <td class="breakdownData">@VRR</td>
+            <td class="breakdownData">@VRSto</td>
+            <td class="breakdownTotals">@netChange4</td>
+        </tr>
+    }
+    <tr>
+        <td class="breakdownMonthSmallText">Month-to-Date Totals:</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange3)</td>
+        <td class="breakdownMonthSmallText">Month-to-Date Totals:</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalPurchased)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSite)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedRent)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSto)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange4)</td>
+    </tr>
+    @if (startDate.Month == currentDate.Month)
+    {
+        int totalFiscalDays = fiscalDays + Model.Tables[0].Rows.Count;
+        int monthDaysRemaining = daysThisMonth - Model.Tables[0].Rows.Count;
+        projSDTaken = totalSDTaken + ((((decimal)Model.Tables["YTD"].Rows[0]["SitesTaken"] + (decimal)Model.Tables["YTD"].Rows[0]["SitesTakenFuture"]) / totalFiscalDays) * monthDaysRemaining);
+        projSDApplied = totalSDApplied + (((decimal)Model.Tables["YTD"].Rows[0]["SitesApplied"] / totalFiscalDays) * monthDaysRemaining);
+        projSDMR = totalSDMR + (((decimal)Model.Tables["YTD"].Rows[0]["SiteDepMRG"] / totalFiscalDays) * monthDaysRemaining);
+        projNetChange1 = projSDTaken - (projSDApplied + projSDMR);
+        projRDTaken = totalRDTaken + ((((decimal)Model.Tables["YTD"].Rows[0]["RentalTaken"] + (decimal)Model.Tables["YTD"].Rows[0]["RentalTakenFuture"]) / totalFiscalDays) * monthDaysRemaining);
+        projRDApplied = totalRDApplied + (((decimal)Model.Tables["YTD"].Rows[0]["RentalApplied"] / totalFiscalDays) * monthDaysRemaining);
+        projRDMR = totalRDMR + (((decimal)Model.Tables["YTD"].Rows[0]["RentalDerpMRG"] / totalFiscalDays) * monthDaysRemaining);
+        projNetChange2 = projRDTaken - (projRDApplied + projRDMR) ;
+        projGDTaken = totalGDTaken + ((((decimal)Model.Tables["YTD"].Rows[0]["GolfTaken"] + (decimal)Model.Tables["YTD"].Rows[0]["GolfTakenFuture"]) / totalFiscalDays) * monthDaysRemaining);
+        projGDApplied = totalGDApplied + (((decimal)Model.Tables["YTD"].Rows[0]["GolfApplied"] / totalFiscalDays) * monthDaysRemaining);
+        projGDMR = totalGDMR + (((decimal)Model.Tables["YTD"].Rows[0]["GolfDepMRG"] / totalFiscalDays) * monthDaysRemaining);
+        projNetChange3 = projRDTaken - (projRDApplied + projRDMR) ;
+        projPurchased = totalPurchased + (((decimal)Model.Tables["YTD"].Rows[0]["VouchersPurch"] / totalFiscalDays) * monthDaysRemaining);
+        projRedeemedSite = totalRedeemedSite + (((decimal)Model.Tables["YTD"].Rows[0]["VouchersRedSite"] / totalFiscalDays) * monthDaysRemaining);
+        projRedeemedRent = totalRedeemedRent + (((decimal)Model.Tables["YTD"].Rows[0]["VouchersRedRental"] / totalFiscalDays) * monthDaysRemaining);
+        projRedeemedSto = totalRedeemedSto + (((decimal)Model.Tables["YTD"].Rows[0]["VouchersRedStorage"] / totalFiscalDays) * monthDaysRemaining);
+        projNetChange4 = projPurchased - projRedeemedSite - projRedeemedRent - projRedeemedSto;
+        <tr>
+            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projSDTaken)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projSDApplied)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projSDMR)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange1)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projRDTaken)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projRDApplied)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projRDMR)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange2)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projGDTaken)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projGDApplied)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projGDMR)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange3)</td>
+            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projPurchased)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projRedeemedSite)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projRedeemedRent)</td>      
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projRedeemedSto)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange4)</td>
+        </tr>
+    }
+    @foreach (DataRow row in Model.Tables["prior"].Rows)
+    {
+        ptotalSDTaken += (decimal)row["SiteDepositsTaken"] + (decimal)row["SiteDepositsTakenFuture"];;
+        ptotalSDApplied += (decimal)row["SiteDepApplied"];
+        ptotalSDMR += (decimal)row["SiteDepMRG"];;
+        ptotalNetChange1 = ptotalSDTaken - ptotalSDApplied - ptotalSDMR;
+        ptotalRDTaken += (decimal)row["RentalDepTaken"] + (decimal)row["RentalDepTakenFuture"];
+        ptotalRDApplied += (decimal)row["RentalDepApplied"];
+        ptotalRDMR += (decimal)row["RentalDepMRG"];
+        ptotalNetChange2 = ptotalRDTaken - ptotalRDApplied - ptotalRDMR;
+        ptotalGDTaken += (decimal)row["GolfDepTaken"] + (decimal)row["GolfDepTakenFuture"];
+        ptotalGDApplied += (decimal)row["GolfDepApplied"];
+        ptotalGDMR += (decimal)row["GolfDepMRG"];
+        ptotalNetChange3 = ptotalGDTaken - ptotalGDApplied - ptotalGDMR;
+        ptotalPurchased += (decimal)row["VouchersPurchased"];
+        ptotalRedeemedSite += (decimal)row["VouchersRedeemedSites"];
+        ptotalRedeemedRent += (decimal)row["VouchersRedeemedRentals"];
+        ptotalRedeemedSto += (decimal)row["VouchersRedeemedStorage"];
+        ptotalNetChange4 = ptotalPurchased - ptotalRedeemedSite - ptotalRedeemedRent - ptotalRedeemedSto;
+    }
+    <tr>
+        <td class="breakdownMonthSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange3)</td>
+        <td class="breakdownMonthSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPurchased)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRedeemedSite)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRedeemedRent)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRedeemedSto)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange4)</td>
+    </tr>
+    @foreach (DataRow row in Model.Tables["prior2"].Rows)
+    {
+        p2totalSDTaken += (decimal)row["SiteDepositsTaken"] + (decimal)row["SiteDepositsTakenFuture"];;
+        p2totalSDApplied += (decimal)row["SiteDepApplied"];
+        p2totalSDMR += (decimal)row["SiteDepMRG"];;
+        p2totalNetChange1 = p2totalSDTaken - p2totalSDApplied - p2totalSDMR;
+        p2totalRDTaken += (decimal)row["RentalDepTaken"] + (decimal)row["RentalDepTakenFuture"];
+        p2totalRDApplied += (decimal)row["RentalDepApplied"];
+        p2totalRDMR += (decimal)row["RentalDepMRG"];
+        p2totalNetChange2 = p2totalRDTaken - p2totalRDApplied - p2totalRDMR;
+        p2totalGDTaken += (decimal)row["GolfDepTaken"] + (decimal)row["GolfDepTakenFuture"];
+        p2totalGDApplied += (decimal)row["GolfDepApplied"];
+        p2totalGDMR += (decimal)row["GolfDepMRG"];
+        p2totalNetChange3 = p2totalGDTaken - p2totalGDApplied - p2totalGDMR;
+        p2totalPurchased += (decimal)row["VouchersPurchased"];
+        p2totalRedeemedSite += (decimal)row["VouchersRedeemedSites"];
+        p2totalRedeemedRent += (decimal)row["VouchersRedeemedRentals"];
+        p2totalRedeemedSto += (decimal)row["VouchersRedeemedStorage"];
+        p2totalNetChange4 = p2totalPurchased - p2totalRedeemedSite - p2totalRedeemedRent - p2totalRedeemedSto;
+    }
+    <tr>
+        <td class="breakdownMonthSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange3)</td>
+        <td class="breakdownMonthSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPurchased)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRedeemedSite)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRedeemedRent)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRedeemedSto)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange4)</td>
+    </tr>
+    @{
+    decimal deltaSDTaken = 0;
+    decimal deltaSDApplied = 0;
+    decimal deltaSDMR = 0;
+    decimal deltaNetChange1 = 0;
+    decimal deltaRDTaken = 0;
+    decimal deltaRDApplied = 0;
+    decimal deltaRDMR = 0;
+    decimal deltaNetChange2 = 0;
+    decimal deltaGDTaken = 0;
+    decimal deltaGDApplied = 0;
+    decimal deltaGDMR = 0;
+    decimal deltaNetChange3 = 0;
+    decimal deltaPurchased = 0;
+    decimal deltaRedeemedSite = 0;
+    decimal deltaRedeemedRent = 0;
+    decimal deltaRedeemedSto = 0;
+    decimal deltaNetChange4 = 0;
+    }
+    @if (startDate.Month == currentDate.Month)
+    {
+        deltaSDTaken = projSDTaken - ptotalSDTaken;
+        deltaSDApplied = projSDApplied - ptotalSDApplied; 
+        deltaSDMR = projSDMR - ptotalSDMR;
+        deltaNetChange1 = projNetChange1 - ptotalNetChange1;
+        deltaRDTaken = projRDTaken - ptotalRDTaken;
+        deltaRDApplied = projRDApplied - ptotalRDApplied;
+        deltaRDMR = projRDMR - ptotalRDMR;
+        deltaNetChange2 = projNetChange2 - ptotalNetChange2;
+        deltaGDTaken = projGDTaken - ptotalGDTaken;
+        deltaGDApplied = projGDApplied - ptotalGDApplied;
+        deltaGDMR = projGDMR - ptotalGDMR;
+        deltaNetChange3 = projNetChange3 - ptotalNetChange3;
+        deltaPurchased = projPurchased - ptotalPurchased;
+        deltaRedeemedSite = projRedeemedSite - ptotalRedeemedSite;
+        deltaRedeemedRent = projRedeemedRent - ptotalRedeemedRent;
+        deltaRedeemedSto = projRedeemedSto - ptotalRedeemedSto;
+        deltaNetChange4 = projNetChange4 - ptotalNetChange4;
+     }
+    else
+    {
+        deltaSDTaken = totalSDTaken - ptotalSDTaken;
+        deltaSDApplied = totalSDApplied - ptotalSDApplied; 
+        deltaSDMR = totalSDMR - ptotalSDMR;
+        deltaNetChange1 = totalNetChange1 - ptotalNetChange1;
+        deltaRDTaken = totalRDTaken - ptotalRDTaken;
+        deltaRDApplied = totalRDApplied - ptotalRDApplied;
+        deltaRDMR = totalRDMR - ptotalRDMR;
+        deltaNetChange2 = totalNetChange2 - ptotalNetChange2;
+        deltaGDTaken = totalGDTaken - ptotalGDTaken;
+        deltaGDApplied = totalGDApplied - ptotalGDApplied;
+        deltaGDMR = totalGDMR - ptotalGDMR;
+        deltaNetChange3 = totalNetChange3 - ptotalNetChange3;
+        deltaPurchased = totalPurchased - ptotalPurchased;
+        deltaRedeemedSite = totalRedeemedSite - ptotalRedeemedSite;
+        deltaRedeemedRent = totalRedeemedRent - ptotalRedeemedRent;
+        deltaRedeemedSto = totalRedeemedSto - ptotalRedeemedSto;
+        deltaNetChange4 = totalNetChange4 - ptotalNetChange4;
+    }
+    <tr>
+        @if (startDate.Month == currentDate.Month)
+        {
+            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM yyyy") Over/Under:</td>
+        }
+        else
+        {
+            <td class="breakdownMonthSmallText">@startDate.ToString("MMM yyyy") Over/Under:</td>
+        }
+        <td class="@(deltaSDTaken < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSDTaken)</td>
+        <td class="@(deltaSDApplied < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSDApplied)</td>
+        <td class="@(deltaSDMR < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSDMR)</td>
+        <td class="@(deltaNetChange1 < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaNetChange1)</td>
+        <td class="@(deltaRDTaken < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaRDTaken)</td>
+        <td class="@(deltaRDApplied < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaRDApplied)</td>
+        <td class="@(deltaRDMR < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaRDMR)</td>
+        <td class="@(deltaNetChange2 < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaNetChange2)</td>
+        <td class="@(deltaGDTaken < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaGDTaken)</td>
+        <td class="@(deltaGDApplied < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaGDApplied)</td>
+        <td class="@(deltaGDMR < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaGDMR)</td>
+        <td class="@(deltaNetChange3 < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaNetChange3)</td>
+        @if (startDate.Month == currentDate.Month)
+        {
+            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM yyyy") Over/Under:</td>
+        }
+        else
+        {
+            <td class="breakdownMonthSmallText">@startDate.ToString("MMM yyyy") Over/Under:</td>
+        }
+        <td class="breakdownTotals2">@String.Format("{0:c2}", deltaPurchased)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", deltaRedeemedSite)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", deltaRedeemedRent)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:c2}", deltaRedeemedSto)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", deltaNetChange4)</td>
+    </tr>
+    @if (startDate.Month == currentDate.Month)
+    {
+        <tr>
+            <td class="breakdownLegend" colspan="20"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+        </tr>
+    }
+</table>
+}
+</body>
+
+@section Scripts { 
+<script> 
+var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
+cells.forEach(function (cell) { 
+    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
+    if (!isNaN(amount)) { 
+        if (amount == 0){
+            cell.textContent = ' ';
+        } else {
+            if (amount < 0){
+                cell.classList.add('negative-value');
+                cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
+            } else{
+            cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
+            }
+        }
+    } 
+});
+    $(document).ready(function () { 
+            $(".clickable-tableR").on("click", function () { 
+                var url = $(this).data("monthlybreakdown");
+                console.log('single-click detected on table. URL:', url); 
+                if (url) { 
+                    console.log('Navigating to:', url); 
+                    window.location.href = url; 
+                } else { 
+                    console.error('URL is undefined'); 
+                } 
+        }); 
+});
+function formatNumberWithCommas(number) {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+</script> 
+}
