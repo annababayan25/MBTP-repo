@@ -5,16 +5,17 @@ using MBTP.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
+using MBTP.Interfaces;
+
 
 namespace MBTP.Retrieval
 {
     public class ExpressCheckinsReport
     {
-        private readonly IConfiguration _configuration;
-
-        public ExpressCheckinsReport(IConfiguration configuration)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+        public ExpressCheckinsReport(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
 
         public DataSet RetrieveExpressCheckinsData(DateTime checkinDate)
@@ -23,7 +24,7 @@ namespace MBTP.Retrieval
 
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.RetrieveUnclaimedCheckins", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -56,7 +57,7 @@ namespace MBTP.Retrieval
         {
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.UpdateClaimedCheckins", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;

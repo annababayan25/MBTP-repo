@@ -8,23 +8,25 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
 using MBTP.Logins;
+using MBTP.Interfaces;
+
 
 namespace MBTP.Services
 {
     public class SpecialAddonsService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IDatabaseConnectionService _dbConnectionService;
 
-        public SpecialAddonsService(IConfiguration configuration)
+        public SpecialAddonsService(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
 
         public async Task<string> UpdateAddons(int addIDin, DateTime dateIn, string glIn, string descIn, decimal amountIn)
         {
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.UpdateSpecialAddons", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -57,7 +59,7 @@ namespace MBTP.Services
         {
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.UpdateMiscTableFromAddons", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
