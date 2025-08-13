@@ -1,91 +1,114 @@
-using GenericSupport;
 using System;
-using System.Collections.Generic;
-using Microsoft.Data.SqlClient;
 using System.Data;
-using System.Linq;
-using System.Web;
-using System.Configuration;
+using Microsoft.Data.SqlClient;
+using MBTP.Interfaces;
+using GenericSupport;
 
 namespace SQLStuff
 {
     public class SQLSupport
     {
-            static readonly SqlConnection sqlConn = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"]);
-#nullable enable
-        static SqlCommand? cmd;
-#nullable disable
-        public static bool PrepareForImport(string procName)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+        private SqlCommand _cmd;
+        private SqlConnection _sqlConn;
+
+        public SQLSupport(IDatabaseConnectionService dbConnectionService)
         {
-            // This method defines a connection to the SQL database and then defines the two parameters that are used by all update stored procedures
+            _dbConnectionService = dbConnectionService;
+        }
+
+        public bool PrepareForImport(string procName)
+        {
             try
             {
-                cmd = new SqlCommand(procName, sqlConn)
+                _sqlConn = _dbConnectionService.CreateConnection();
+                _cmd = new SqlCommand(procName, _sqlConn)
                 {
-                    CommandType = System.Data.CommandType.StoredProcedure
+                    CommandType = CommandType.StoredProcedure
                 };
-                // add input parameter for transaction date
-                cmd.Parameters.Add("@TransDate", SqlDbType.Date);
-                cmd.Parameters["@TransDate"].Value = GenericRoutines.repDateStr;
-                // add an output parameter to check if stored procedures executed cleanly
-                cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
-                cmd.Parameters["@status"].Direction = ParameterDirection.Output;
+                _cmd.Parameters.Add("@TransDate", SqlDbType.Date).Value = GenericRoutines.repDateStr;
+                _cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
+
                 return true;
             }
             catch (Exception e)
             {
-                GenericRoutines.UpdateAlerts(0, "FATAL ERROR", "Problem encountered preparing " + procName + ":" + e.ToString());
+                GenericRoutines.UpdateAlerts(0, "FATAL ERROR",
+                    $"Problem encountered preparing {procName}: {e}");
                 return false;
             }
         }
-        public static void AddSQLParameter(string paramName, SqlDbType sqltype, double val, bool updateExisting = false)
+
+        public void AddSQLParameter(string paramName, SqlDbType sqlType, double val, bool updateExisting = false)
         {
-            if (updateExisting == false)
+            if (!updateExisting)
             {
-                cmd.Parameters.Add(paramName, sqltype);
-                cmd.Parameters[cmd.Parameters.Count - 1].Value = val;
+                _cmd.Parameters.Add(paramName, sqlType).Value = val;
             }
             else
             {
-                double tempVal = (double)cmd.Parameters[paramName].Value + val;
-                cmd.Parameters[paramName].Value = tempVal;
+                double currentVal = Convert.ToDouble(_cmd.Parameters[paramName].Value);
+                _cmd.Parameters[paramName].Value = currentVal + val;
             }
         }
-        public static void AddSQLParameterString(string paramName, SqlDbType sqltype, string val)
+
+        public void AddSQLParameterString(string paramName, SqlDbType sqlType, string val)
         {
-            cmd.Parameters.Add(paramName, sqltype);
-            cmd.Parameters[cmd.Parameters.Count - 1].Value = val;
+            _cmd.Parameters.Add(paramName, sqlType).Value = val;
         }
-        public static string ExecuteStoredProcedure(byte pcIDIn)
-        // Open the SQL connection, execute the procedure, act on result, close and delete the SQL variables
+
+        public string ExecuteStoredProcedure(byte pcIDIn)
         {
             string returnVal = "Failure";
-            sqlConn.Open();
-            //for (int ip = 0; ip < cmd.Parameters.Count; ip++)
-            //{
-            //    System.Diagnostics.Debug.WriteLine(cmd.Parameters[ip].ParameterName + " " + cmd.Parameters[ip].TypeName.GetType().ToString() + " " + cmd.Parameters[ip].Value);
-            //}
-            cmd.ExecuteNonQuery();
-            if (cmd.Parameters["@status"].Value.ToString() == "SUCCESS") // Successful execution, clear previous alerts for this date for the store
+
+            _sqlConn.Open();
+            _cmd.ExecuteNonQuery();
+
+            if (_cmd.Parameters["@status"].Value?.ToString() == "SUCCESS")
             {
                 GenericRoutines.UpdateAlerts(pcIDIn, "SUCCESS", "");
                 returnVal = "SUCCESS";
             }
-            else // record error in alerts table
+            else
             {
-                GenericRoutines.UpdateAlerts(pcIDIn, "FATAL ERROR", cmd.CommandText + " failed: " + cmd.Parameters["@status"].Value.ToString());
+                GenericRoutines.UpdateAlerts(pcIDIn, "FATAL ERROR",
+                    $"{_cmd.CommandText} failed: {_cmd.Parameters["@status"].Value}");
             }
-            if (sqlConn.State == ConnectionState.Open) // should never get here without the connection being open, but...
-            {
-                sqlConn.Close();
-            }
+
+            _sqlConn.Close();
             return returnVal;
         }
-        public static void RemoveParameters() 
-        { 
-            for (int i = cmd.Parameters.Count - 1; i >= 2; i--)  // Remove from the end backwards, but do not delete @TransDate or @Status
+
+        public void RemoveParameters()
+        {
+            // Keep TransDate and @status (usually first 2 parameters)
+            while (_cmd.Parameters.Count > 2)
             {
-                cmd.Parameters.RemoveAt(i);
+                _cmd.Parameters.RemoveAt(2);
+            }
+        }
+
+        public static void UpdateAlertsTable(byte pcidIn, string severityIn, string textIn)
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            var connStr = configuration.GetConnectionString("DefaultConnection");
+
+            using (var conn = new SqlConnection(connStr))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("dbo.UpdateAlerts", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@TransDate", SqlDbType.Date).Value = GenericRoutines.repDateStr;
+                    cmd.Parameters.Add("@PCID", SqlDbType.TinyInt).Value = pcidIn;
+                    cmd.Parameters.Add("@Severity", SqlDbType.VarChar, 50).Value = severityIn;
+                    cmd.Parameters.Add("@AlertText", SqlDbType.VarChar, 4000).Value = textIn;
+                    cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
+                    cmd.ExecuteNonQuery();
+                }
             }
         }
     }

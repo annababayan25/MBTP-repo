@@ -1,0 +1,16 @@
+<button id="toggle-db" class="btn btn-secondary">Switch DB</button>
+
+<script>
+    $("#toggle-db").click(function () {
+        $.post("/Home/ToggleSqlConnection", function (data) {
+            if (data.success) {
+                alert("Now using " + data.mode + " database");
+                location.reload();
+            } else {
+                alert("Error switching database");
+            }
+        }).fail(function () {
+            alert("Server error while toggling database.");
+        });
+    });
+</script>

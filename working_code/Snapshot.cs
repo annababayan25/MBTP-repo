@@ -2,25 +2,31 @@ using System;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using MBTP.Interfaces;
+
 namespace MBTP.Retrieval
 {
     public class SnapshotReport
     {
-        private readonly IConfiguration _configuration;
-        public SnapshotReport(IConfiguration configuration)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+
+        public SnapshotReport(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
-        public DataSet SnapshotRetrieve()
+
+        public DataSet SnapshotRetrieve(DateTime startDate, DateTime endDate)
         {
             DataSet myDS = new DataSet();
             //actualDate = startDate;
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.RetrieveIncomeSnapshot", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@StartDate", startDate);
+                    cmd.Parameters.AddWithValue("@EndDate", endDate);
                     SqlDataAdapter myDA = new SqlDataAdapter(cmd);
                     sqlConn.Open();
                     myDA.Fill(myDS);

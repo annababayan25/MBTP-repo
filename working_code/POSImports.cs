@@ -5,203 +5,19 @@ using ClosedXML.Excel;
 using Spire.Xls.Core;
 using GenericSupport;
 using SQLStuff;
+using MBTP.Interfaces;
+
 namespace FinancialC_
 {
     public class POSImports
     {
-        public static void ReadStoreFiles()
+        private readonly IDatabaseConnectionService _dbConnectionService;
+
+        public POSImports(IDatabaseConnectionService dbConnectionService)
         {
-            // declare constants
-            const int salesCol = 3;
-            const int catCol = 1;
-            const int subcatCol = 2;
-            const int taxCol = 3;
-            const int payCol = 5;
-
-            // Verify that all files exist.  If any are missing there is no point in processing further.
-            if (!GenericRoutines.AllFilesPresent(2)) { return; }
-
-            // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
-            if (!SQLSupport.PrepareForImport("UpdateStoreTable")) { return; }
-
-            // define the category, tax rate multiplier, and sales accumulator arrays
-            string[] catArray = {"Alcohol","Grocery - Hard Goods", "RV Parts", "Seasonal - Store Merch",
-                                 "Apparel","Seasonal - Novelty","Novelty","Food Counter",
-                                 "Grocery - Edible","Grocery - Ice","Propane Service",
-                                 "Non-Revenue","Propane Station", "Events"};
-            string[] paramArray = {"@Alcohol","@HardGoods","@RVParts","@SeasonalMerch","@Apparel","@SeasonalNovelty","@OtherNovelty",
-                                    "@FoodCounter","@Food","@Ice","@AtSitePropane","@Stamps","@PropaneStation", "@Events", "@TotalTaxCollected"};
-            double[] taxArray = { 1.08D, 1.08D, 1.08D, 1.08D, 1.08D, 1.08D, 1.08D, 1.105D, 1D, 1D, 1D, 1D, 1D, 1.105D };
-            double[] catSum = new double[catArray.Length];    // double type defaults to 0.0 so don't need to initialize
-
-            try
-            {
-                XLWorkbook workBook = new XLWorkbook(GenericRoutines.storeFiles.Sales);
-                IXLWorksheet workSheet = workBook.Worksheet(1);
-                IXLCell workCell;
-                // grab the sales report header to verify that it's not the wrong report with the right name
-                workCell = workSheet.Row(1).Cell(1);
-                if (workCell is null || !workCell.Value.ToString().Contains("Export - Daily Report"))
-                {
-                    GenericRoutines.UpdateAlerts(2, "FATAL ERROR", GenericRoutines.storeFiles.Sales + " Is Not The Correct Report, IMPORT ABORTED");
-                    return;
-                }
-                int rowCount = workSheet.LastRowUsed()!.RowNumber();
-                double cellVal;
-                string str;
-                string subcatstr;
-                // Added 1/30/25 to compensate for Heartland's change to report layout
-                int salesStartRow = 1;
-                try
-                {
-                    while (workSheet.Row(salesStartRow).Cell(catCol).Value.ToString() != "Item: Category")
-                    {
-                        salesStartRow++;
-                    }
-                }
-                catch
-                {
-                    GenericRoutines.UpdateAlerts(2, "FATAL ERROR", "Incorrect File Contents in " + GenericRoutines.storeFiles.Sales + ", IMPORT ABORTED");
-                    workBook.Dispose();
-                    return;
-                }
-                //iterate over the worksheet rows to accumulate the sales data by category
-                for (int i = salesStartRow + 1; i < rowCount; i++) // Stop 1 row short of the end, that's the Grand Total row
-                {
-                    workCell = workSheet.Row(i).Cell(catCol);
-                    if (workCell != null)
-                    {
-                        str = workCell.Value.ToString(); // grab spreadsheet category
-                        subcatstr = workSheet.Row(i).Cell(subcatCol).Value.ToString(); // grab spreadsheet subcategory
-                        if (str == "Propane Service" && subcatstr == "Propane Station")
-                        {
-                            str = subcatstr;
-                        }
-                        else if (str == "Steak Dinner" || str == "Thanksgiving Feast" || str == "Breakfast With Santa")
-                        {
-                            str = "Events";
-                        }
-                        int j = 0;
-                        do
-                        {
-                            if (catArray[j] == str || catArray[j] == subcatstr)
-                            {
-                                str = workSheet.Row(i).Cell(salesCol).Value.ToString(); // grab sales value as string
-                                if (double.TryParse(str, out cellVal)) // attempt conversion to double, ignore if false (cellVal will = 0)
-                                {
-                                    catSum[j] += cellVal;
-                                }
-                                break;
-                            }
-                            j += 1; // iterate to next category in the array
-                        }
-                        while (j < catArray.Length);
-                        if (j == catArray.Length)
-                        {
-                            GenericRoutines.UpdateAlerts(2, "FATAL ERROR", "Unknown Category/Subcategory " + str + "/" + subcatstr + " found in " + GenericRoutines.storeFiles.Sales + ", IMPORT ABORTED");
-                            workBook.Dispose();
-                            return;
-                        }
-                    }
-                }
-                workBook.Dispose();
-                // loop through the parameter array to add the parameters for the sales categories and their values needed for the stored procedure
-                for (int i = 0; i < paramArray.GetUpperBound(0); i++)
-                {
-                    SQLSupport.AddSQLParameter((string)paramArray[i], SqlDbType.SmallMoney, Math.Round(taxArray[i] * catSum[i], 2));
-                }
-                // Next read the tax file
-                workBook = new XLWorkbook(GenericRoutines.storeFiles.Tax);
-                workSheet = workBook.Worksheet(1);
-                // grab the tax report header to verify that it's not the wrong report with the right name
-                workCell = workSheet.Row(1).Cell(1);
-                if (workCell is null || !workCell.Value.ToString().Contains("Export - Sales Tax Collected"))
-                {
-                    GenericRoutines.UpdateAlerts(2, "FATAL ERROR", GenericRoutines.storeFiles.Tax + " Is Not The Correct Report, IMPORT ABORTED");
-                    return;
-                }
-                rowCount = workSheet.LastRowUsed()!.RowNumber();
-                // Added 1/30/25 to compensate for Heartland's change to report layout
-                int taxStartRow = 1;
-                try
-                {
-                    while (workSheet.Row(taxStartRow).Cell(1).Value.ToString() != "Date: Date")
-                    {
-                        taxStartRow++;
-                    }
-                }
-                catch
-                {
-                    GenericRoutines.UpdateAlerts(2, "FATAL ERROR", "Incorrect File Contents in " + GenericRoutines.storeFiles.Tax + ", IMPORT ABORTED");
-                    workBook.Dispose();
-                    return;
-                }
-                //read the worksheet rows until the Grand Total line is reached
-                for (int i = taxStartRow + 1; i <= rowCount; i++) // 
-                {
-                    workCell = workSheet.Row(i).Cell(1);
-                    if (workCell != null && workCell.Value.ToString() == "Grand total:")// grab the row descriptor is cell isn't null, we only want the grand total row
-                    {
-                        double.TryParse(workSheet.Row(i).Cell(taxCol).Value.ToString(), out cellVal); // attempt conversion to double, ignore if false (cellVal will = 0)
-                        SQLSupport.AddSQLParameter("@TotalTaxCollected", SqlDbType.SmallMoney, cellVal);
-                    }
-                }
-                workBook.Dispose();
-                // Next read the CC file
-                double ccSum = 0;
-                double cashSum = 0;
-                workBook = new XLWorkbook(GenericRoutines.storeFiles.Payments);
-                workSheet = workBook.Worksheet(1);
-                rowCount = workSheet.LastRowUsed()!.RowNumber();
-                // grab the credit card report header to verify that it's not the wrong report with the right name
-                workCell = workSheet.Row(1).Cell(1);
-                if (workCell is null || !workCell.Value.ToString().Contains("Export - Credit Card Transaction Report"))
-                {
-                    GenericRoutines.UpdateAlerts(2, "FATAL ERROR", GenericRoutines.storeFiles.Payments  + " Is Not The Correct Report, IMPORT ABORTED");
-                    return;
-                }
-                IXLCell workCell2;
-                try
-                {
-                //read the worksheet rows until the column headers line is reached
-                    for (int i = 1; i < rowCount; i++) // skip the grand total line, don't need it
-                    {
-                        workCell = workSheet.Row(i).Cell(1);
-                        workCell2 = workSheet.Row(i).Cell(2);
-                        if ((workCell != null) || (workCell is null && workCell2 != null))
-                        {
-                            double.TryParse(workSheet.Row(i).Cell(payCol).Value.ToString(), out cellVal); // attempt conversion of payment value to double, ignore if false (cellVal will = 0)
-                            if (workCell!.Value.ToString() == "")
-                            {
-                                cashSum += cellVal;
-                            }
-                            else
-                            {
-                                ccSum += cellVal;
-                            }
-                        }
-                    }
-                    workBook.Dispose();
-                }
-                catch
-                {
-                    GenericRoutines.UpdateAlerts(2, "FATAL ERROR", "Incorrect File Contents in " + GenericRoutines.storeFiles.Payments + ", IMPORT ABORTED");
-                    workBook.Dispose();
-                    return;
-                }
-                // add the parameters needed for the payments table
-                SQLSupport.AddSQLParameter("@StoreCC", SqlDbType.SmallMoney, ccSum);
-                SQLSupport.AddSQLParameter("@StoreCash", SqlDbType.SmallMoney, cashSum);
-                // act on the transaction table
-            _ = SQLSupport.ExecuteStoredProcedure(2);
-            }
-            catch (Exception ex)
-            {
-                GenericRoutines.UpdateAlerts(5, "FATAL ERROR",  ex.ToString() + ", IMPORT ABORTED");
-                return;
-            }
+            _dbConnectionService = dbConnectionService;
         }
-        public static void ReadArcadeFiles()
+        public void ReadArcadeFiles()
         {
             const int taxCol = 6;
             const int payCol = 5;
@@ -214,7 +30,11 @@ namespace FinancialC_
             if (!GenericRoutines.AllFilesPresent(3)) { return; }
  
              // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
-            if (!SQLSupport.PrepareForImport("UpdateArcadeTable")) { return; }
+            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
+            if (!sqlSupport.PrepareForImport("UpdateArcadeTable"))
+            {
+                return;
+            }
 
             try
             {
@@ -236,10 +56,10 @@ namespace FinancialC_
                 {
                     workCell = workSheet.Row(totalRow).Cell(totalCol); // grab the total sales
                     double.TryParse(workCell.Value.ToString(), out double cellVal); // attempt conversion to double, ignore if false (cellVal will = 0)
-                    SQLSupport.AddSQLParameter("@PreparedFood", SqlDbType.SmallMoney, cellVal); // add parameter for stored procedure
+                    sqlSupport.AddSQLParameter("@PreparedFood", SqlDbType.SmallMoney, cellVal); // add parameter for stored procedure
                     workCell = workSheet.Row(totalRow).Cell(taxCol); // grab the total tax collected
                     double.TryParse(workCell.Value.ToString(), out cellVal); // attempt conversion to double, ignore if false (cellVal will = 0)
-                    SQLSupport.AddSQLParameter("@TotalTaxCollected", SqlDbType.SmallMoney, cellVal); // add parameter for stored procedure
+                    sqlSupport.AddSQLParameter("@TotalTaxCollected", SqlDbType.SmallMoney, cellVal); // add parameter for stored procedure
 
                     // Next read the Payments file
                     workBook = new XLWorkbook(GenericRoutines.registerFiles.Payments);
@@ -274,11 +94,11 @@ namespace FinancialC_
                             }
                         }
                     }
-                    SQLSupport.AddSQLParameter("@ArcadeCC", SqlDbType.SmallMoney, ccSum);
-                    SQLSupport.AddSQLParameter("@ArcadeCash", SqlDbType.SmallMoney, cashSum);
-                    SQLSupport.AddSQLParameter("@ArcadeVouchers", SqlDbType.SmallMoney, voucherSum);
+                    sqlSupport.AddSQLParameter("@ArcadeCC", SqlDbType.SmallMoney, ccSum);
+                    sqlSupport.AddSQLParameter("@ArcadeCash", SqlDbType.SmallMoney, cashSum);
+                    sqlSupport.AddSQLParameter("@ArcadeVouchers", SqlDbType.SmallMoney, voucherSum);
                     // act on the transaction table
-                    _ = SQLSupport.ExecuteStoredProcedure(3);
+                    _ = sqlSupport.ExecuteStoredProcedure(3);
                 }
                 else
                 {
@@ -292,7 +112,7 @@ namespace FinancialC_
                 return;
             }
         }
-        public static void ReadCoffeeFiles()
+        public void ReadCoffeeFiles()
         {
             // declare constants
             const int catCol = 3;
@@ -311,7 +131,8 @@ namespace FinancialC_
             if (!GenericRoutines.AllFilesPresent(4)) { return; }
 
             // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
-            if (!SQLSupport.PrepareForImport("UpdateCoffeeTable")) { return; }
+            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
+            if (!sqlSupport.PrepareForImport("UpdateCoffeeTable")) { return; }
 
             try
             {
@@ -437,15 +258,15 @@ namespace FinancialC_
                     }
                 }
                 workBook.Dispose();
-                SQLSupport.AddSQLParameter("@PreparedFood", SqlDbType.SmallMoney, preparedSum);
-                SQLSupport.AddSQLParameter("@Merchandise", SqlDbType.SmallMoney, otherSum);
-                SQLSupport.AddSQLParameter("@NonTaxableFood", SqlDbType.SmallMoney, foodSum);
-                SQLSupport.AddSQLParameter("@TotalTaxCollected", SqlDbType.SmallMoney, taxSum);
+                sqlSupport.AddSQLParameter("@PreparedFood", SqlDbType.SmallMoney, preparedSum);
+                sqlSupport.AddSQLParameter("@Merchandise", SqlDbType.SmallMoney, otherSum);
+                sqlSupport.AddSQLParameter("@NonTaxableFood", SqlDbType.SmallMoney, foodSum);
+                sqlSupport.AddSQLParameter("@TotalTaxCollected", SqlDbType.SmallMoney, taxSum);
                 // add the parameters needed for the payments table
-                SQLSupport.AddSQLParameter("@CoffeeCash", SqlDbType.SmallMoney, cashSum);
-                SQLSupport.AddSQLParameter("@CoffeeCC", SqlDbType.SmallMoney, ccSum);
+                sqlSupport.AddSQLParameter("@CoffeeCash", SqlDbType.SmallMoney, cashSum);
+                sqlSupport.AddSQLParameter("@CoffeeCC", SqlDbType.SmallMoney, ccSum);
                 // act on the transaction and payments tables
-                _ = SQLSupport.ExecuteStoredProcedure(4);
+                _ = sqlSupport.ExecuteStoredProcedure(4);
             }
             catch (Exception ex)
             {
@@ -453,7 +274,7 @@ namespace FinancialC_
                 return;
             }
         }
-        public static void ReadKayakFiles()
+        public void ReadKayakFiles()
         {
             // declare constants
             const int payCol = 5;
@@ -471,7 +292,8 @@ namespace FinancialC_
             if (!GenericRoutines.AllFilesPresent(5)) { return; }
 
             // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
-            if (!SQLSupport.PrepareForImport("UpdateKayakTable")) { return; }
+            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
+            if (!sqlSupport.PrepareForImport("UpdateKayakTable")) { return; }
 
             try
             {
@@ -587,16 +409,16 @@ namespace FinancialC_
                         }
                     }
                 }
-                SQLSupport.AddSQLParameter("@NonTaxableFood", SqlDbType.SmallMoney, foodSum);
-                SQLSupport.AddSQLParameter("@KayaksandBoards", SqlDbType.SmallMoney, kayakSum);
-                SQLSupport.AddSQLParameter("@PedalBoats", SqlDbType.SmallMoney, boatSum);
-                SQLSupport.AddSQLParameter("@MiscSales", SqlDbType.SmallMoney, otherSum);
-                SQLSupport.AddSQLParameter("@TotalTaxCollected", SqlDbType.SmallMoney, taxSum);
+                sqlSupport.AddSQLParameter("@NonTaxableFood", SqlDbType.SmallMoney, foodSum);
+                sqlSupport.AddSQLParameter("@KayaksandBoards", SqlDbType.SmallMoney, kayakSum);
+                sqlSupport.AddSQLParameter("@PedalBoats", SqlDbType.SmallMoney, boatSum);
+                sqlSupport.AddSQLParameter("@MiscSales", SqlDbType.SmallMoney, otherSum);
+                sqlSupport.AddSQLParameter("@TotalTaxCollected", SqlDbType.SmallMoney, taxSum);
                 // add the parameters needed for the payments table
-                SQLSupport.AddSQLParameter("@KayakCC", SqlDbType.SmallMoney, ccSum);
-                SQLSupport.AddSQLParameter("@KayakCash", SqlDbType.SmallMoney, cashSum);
+                sqlSupport.AddSQLParameter("@KayakCC", SqlDbType.SmallMoney, ccSum);
+                sqlSupport.AddSQLParameter("@KayakCash", SqlDbType.SmallMoney, cashSum);
                 // act on the transaction table
-                _ = SQLSupport.ExecuteStoredProcedure(5);
+                _ = sqlSupport.ExecuteStoredProcedure(5);
             }
             catch (Exception ex)
             {
@@ -604,7 +426,7 @@ namespace FinancialC_
                 return;
             }
         }
-        public static void ReadGuestFiles()
+        public void ReadGuestFiles()
         {
             // declare constants
             double netSum = 0;
@@ -615,7 +437,8 @@ namespace FinancialC_
             if (!GenericRoutines.AllFilesPresent(9)) { return; }
 
             // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
-            if (!SQLSupport.PrepareForImport("UpdateMiscTable")) { return; }
+            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
+            if (!sqlSupport.PrepareForImport("UpdateMiscTable")) { return; }
 
             try
             {
@@ -665,11 +488,11 @@ namespace FinancialC_
                         }
                     }
                 }
-                SQLSupport.AddSQLParameter("@GuestServices", SqlDbType.SmallMoney, netSum);
-                SQLSupport.AddSQLParameter("@GuestCC", SqlDbType.SmallMoney, ccSum);
-                SQLSupport.AddSQLParameter("@GuestCash", SqlDbType.SmallMoney, cashSum);
+                sqlSupport.AddSQLParameter("@GuestServices", SqlDbType.SmallMoney, netSum);
+                sqlSupport.AddSQLParameter("@GuestCC", SqlDbType.SmallMoney, ccSum);
+                sqlSupport.AddSQLParameter("@GuestCash", SqlDbType.SmallMoney, cashSum);
                 // act on the transaction and payments table
-                _ = SQLSupport.ExecuteStoredProcedure(9);
+                _ = sqlSupport.ExecuteStoredProcedure(9);
             }
             catch (Exception ex)
             {
@@ -677,13 +500,14 @@ namespace FinancialC_
                 return;
             }
         }
-        public static void ReadSpecialAddonsFile()
+        public void ReadSpecialAddonsFile()
         {
             // Verify that the file exists.  If not there is no point in processing further.
             if (!GenericRoutines.AllFilesPresent(6)) { return; }
 
             // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
-            if (!SQLSupport.PrepareForImport("UpdateMiscTable")) { return; }
+            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
+            if (!sqlSupport.PrepareForImport("UpdateMiscTable")) { return; }
 
             // define the category, tax rate multiplier, and sales accumulator arrays
             string[] glArray = { "0326", "0328", "0348", "0352", "0359", "0384", "0392", "0393", "0925" };
@@ -743,15 +567,15 @@ namespace FinancialC_
                 {
                     if (glSum[i] != 0)
                     {
-                        SQLSupport.AddSQLParameter((string)paramArray[i], SqlDbType.SmallMoney, glSum[i]);
+                        sqlSupport.AddSQLParameter((string)paramArray[i], SqlDbType.SmallMoney, glSum[i]);
                         if (paramArray[i] == "@Misc")
                         {
-                            SQLSupport.AddSQLParameterString((string)"@MiscDesc", SqlDbType.NChar, miscDesc);
+                            sqlSupport.AddSQLParameterString((string)"@MiscDesc", SqlDbType.NChar, miscDesc);
                         }
                     }
                 }
                 // act on the transaction table
-                _ = SQLSupport.ExecuteStoredProcedure(6);
+                _ = sqlSupport.ExecuteStoredProcedure(6);
             }
             catch (Exception ex)
             {

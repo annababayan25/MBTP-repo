@@ -8,16 +8,16 @@ using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
 using MBTP.Logins;
+using MBTP.Interfaces;
 
 namespace MBTP.Retrieval
 {
     public class AccessLevelsActions
     {
-        private readonly IConfiguration _configuration;
-
-        public AccessLevelsActions(IConfiguration configuration)
+         private readonly IDatabaseConnectionService _dbConnectionService;
+        public AccessLevelsActions(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
 
         public DataSet RetrieveAccessLevels()
@@ -25,8 +25,9 @@ namespace MBTP.Retrieval
             DataSet myDS = new DataSet();
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveAccessLevels", sqlConn))
+
+                using (var sqlConn = _dbConnectionService.CreateConnection())
+                using (var cmd = new SqlCommand("dbo.RetrieveAccessLevels", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     SqlDataAdapter myDA = new SqlDataAdapter(cmd);
@@ -53,7 +54,7 @@ namespace MBTP.Retrieval
         {
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.InsertLogin", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;

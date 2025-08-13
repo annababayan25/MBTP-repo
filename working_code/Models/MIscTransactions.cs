@@ -9,5 +9,6 @@ namespace MBTP.Models
         public decimal Laundry { get; set; }
         public decimal StoreEvents { get; set; }
         public decimal Activities { get; set; }
+        public decimal ParkModelSales { get; set; }
     }
 }

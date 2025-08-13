@@ -2,28 +2,33 @@ using System;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using MBTP.Interfaces;
+
 namespace MBTP.Retrieval
 {
     public class SnapshotDepReport
     {
-        private readonly IConfiguration _configuration;
-        public SnapshotDepReport(IConfiguration configuration)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+
+        public SnapshotDepReport(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
-        public DataSet SnapshotDepRetrieve()
+
+        public DataSet SnapshotDepRetrieve(DateTime startDate, DateTime endDate)
         {
             DataSet myDSD = new DataSet();
             //actualDate = startDate;
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-                using (SqlCommand cmd = new SqlCommand("dbo.FetchStoreTransactionsCount", sqlConn))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDepositsSnapshot", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@StartDate", startDate);
+                    cmd.Parameters.AddWithValue("@EndDate", endDate);
                     SqlDataAdapter myDA = new SqlDataAdapter(cmd);
                     sqlConn.Open();
-                    cmd.CommandText = "dbo.RetrieveDepositsSnapshot";
                     myDA.Fill(myDSD);
 
                     if (myDSD.Tables.Count > 0 && myDSD.Tables[0].Rows.Count > 0)

@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using MBTP.Retrieval;
 using MBTP.Models;
 using MBTP.Converter;
+using MBTP.Interfaces;
 using IronPdf;
 using IronPdf.Extensions.Mvc.Core;
-using MBTP.Interfaces;
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Extensions.Configuration;
@@ -39,6 +39,7 @@ namespace MBTP.Controllers
         private readonly WeatherService _weatherService = new WeatherService();
         private readonly ICompositeViewEngine _viewEngine;
         private readonly IConfiguration _configuration;
+        private readonly IDatabaseConnectionService _dbConnectionService;
         private readonly OccupancyService _occupancyService;
         private readonly DailyService _dailyService;
         private readonly DailyBookingsService _dailyBookingsService;
@@ -48,22 +49,24 @@ namespace MBTP.Controllers
         private readonly TrailerMovesReport _trailerMovesReport;
         private readonly ExpressCheckinsReport _expressCheckinsReport;
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, ICompositeViewEngine viewEngine, WeatherService weatherService,
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, IDatabaseConnectionService dbConnectionService, ICompositeViewEngine viewEngine, WeatherService weatherService,
                                 OccupancyService occupancyService, DailyService dailyService, DailyBookingsService dailyBookingsService,
                                 NewBookService newBookService, BookingRepository bookingRepository, TrailerMovesReport trailermovesReport,
                                 ExpressCheckinsReport expressCheckinsReport)
         {
             _viewEngine = viewEngine;
             _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
             _weatherService = weatherService;
             _occupancyService = occupancyService;
             _dailyService = dailyService;
             _dailyBookingsService = dailyBookingsService;
-            _loginClass = new LoginClass(configuration);
+            _loginClass = new LoginClass(_dbConnectionService);
             _newBookService = newBookService;
             _bookingRepository = bookingRepository;
             _trailerMovesReport = trailermovesReport;
             _expressCheckinsReport = expressCheckinsReport;
+
         }
         public IActionResult Privacy()
         {
@@ -77,17 +80,17 @@ namespace MBTP.Controllers
         {
             return View();
         }
-         public IActionResult Construction()
+        public IActionResult Construction()
         {
             return View();
         }
-    
+
         public async Task<IActionResult> DailyBookings(DateTime? month)
         {
             var selectedMonth = month ?? DateTime.Today;
             ViewBag.SelectedMonth = selectedMonth;
 
-            var periodFrom = new DateTime(selectedMonth.Year, selectedMonth.Month,1);
+            var periodFrom = new DateTime(selectedMonth.Year, selectedMonth.Month, 1);
             var periodTo = periodFrom.AddMonths(1).AddDays(-1);
 
             DataSet bookingsByDay = _dailyBookingsService.GetBookingsDataset(periodFrom, periodTo);
@@ -152,7 +155,7 @@ namespace MBTP.Controllers
             }
             return months;
         }
- [HttpGet]
+        [HttpGet]
         public IActionResult GetBookingCountsByStateYearMonth(string state, int year, int month)
         {
             //Console.WriteLine($"Request received for state: {state}, year: {year}, month: {month}");
@@ -166,7 +169,7 @@ namespace MBTP.Controllers
         {
             return View();
         }
-    [Authorize]
+        [Authorize]
         public IActionResult BookingsDem()
         {
             return View();
@@ -197,25 +200,7 @@ namespace MBTP.Controllers
             ViewBag.reportDate = selectedDate;
             return View(ExpressCheckinsByDay);
         }
-    [Authorize]
-    public async Task<IActionResult> DailyReservation(string date)
-        {
-            DateTime selectedDate;
-
-            if (!DateTime.TryParse(date, out selectedDate))
-            {
-                selectedDate = DateTime.Today.AddDays(-1);
-            }
-
-            //RetrievalReport report = new RetrievalReport(_configuration);
-            var retrievalReport = new RetrievalReport(_configuration);
-            DataSet dataSetter = await retrievalReport.RetrievalOfData(selectedDate);
-            DateTime finalDate = selectedDate;
-            ViewBag.FinalDate = finalDate;
-            return View(dataSetter);
-        }
-
-        [Authorize] 
+        [Authorize]
         public async Task<IActionResult> GenerateTrailerPDF(string moveDate)
         {
             DateTime selectedDate;
@@ -246,7 +231,7 @@ namespace MBTP.Controllers
             byte[] fileBytes = System.IO.File.ReadAllBytes(outputPath);
             return File(fileBytes, "application/pdf", $"TrailerMoves_{selectedDate.ToString("yyyy-MM-dd")}.pdf");
         }
-       public async Task<IActionResult> GenerateExpressPDF(string checkinDate)
+        public async Task<IActionResult> GenerateExpressPDF(string checkinDate)
         {
             DateTime selectedDate;
             if (!DateTime.TryParse(checkinDate, out selectedDate))
@@ -277,7 +262,7 @@ namespace MBTP.Controllers
             return File(fileBytes, "application/pdf", $"ExpressCheckins_{selectedDate.ToString("yyyy-MM-dd")}.pdf");
         }
 
-        [Authorize] 
+        [Authorize]
         private string RenderViewToString(string viewName, object model, bool isPdf)
         {
             ViewData.Model = model;
@@ -302,11 +287,11 @@ namespace MBTP.Controllers
             }
         }
         public IActionResult Index()
-            {
-                Dashboard report = new Dashboard(_configuration);
-                DataSet dashData = report.RetrieveDashboardData();
-                return View(dashData);
-            }
+        {
+            Dashboard report = new Dashboard(_dbConnectionService);
+            DataSet dashData = report.RetrieveDashboardData();
+            return View(dashData);
+        }
 
         private LoginModel GetLoginModel()
         {
@@ -322,12 +307,12 @@ namespace MBTP.Controllers
                 AccID = accID
             };
 
-            using (SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (var sqlConn = _dbConnectionService.CreateConnection())
             {
-                connection.Open();
+                sqlConn.Open();
 
                 // Example query to fetch tables based on AccID
-                SqlCommand command = new SqlCommand("SELECT * FROM LoginsHope WHERE AccID = @AccID", connection);
+                SqlCommand command = new SqlCommand("SELECT * FROM LoginsHope WHERE AccID = @AccID", sqlConn);
                 command.Parameters.Add(new SqlParameter("@AccID", SqlDbType.Int) { Value = accID });
 
                 SqlDataAdapter adapter = new SqlDataAdapter(command);
@@ -369,21 +354,31 @@ namespace MBTP.Controllers
                 {
                     new Claim(ClaimTypes.Name, username),
                     new Claim("AccID", accID),
-                    new Claim("LID", LID)
+                    new Claim("LID", LID),
                 };
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+                //Default environment is Live
+                HttpContext.Session.SetString("EnvironmentMode", "Live");
 
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
                 }
+
+                if (accID == "1")
+                {
+                    HttpContext.Session.SetString("ShowEnvModal", "true");
+                    return RedirectToAction("Index", "Home");
+                }
+
                 if (accID == "6")
                 {
                     return RedirectToAction("FDB", "Home");
                 }
+
                 else
                 {
                     return RedirectToAction("Index", "Home");
@@ -398,7 +393,7 @@ namespace MBTP.Controllers
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
-           
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }
@@ -414,7 +409,113 @@ namespace MBTP.Controllers
             bool updateResult = await _expressCheckinsReport.PostClaimedExpress(expressClaims);
             return Json(expressClaims);
         }
-    
+
+
+        [HttpPost]
+        public IActionResult ToggleSqlConnection()
+        {
+            var currentMode = HttpContext.Session.GetString("EnvironmentMode") ?? "Live";
+            var newMode = (currentMode == "Test") ? "Live" : "Test";
+
+            HttpContext.Session.SetString("EnvironmentMode", newMode);
+
+            return Json(new { success = true, mode = newMode });
+        }
+
+        public string GetCurrentConnection()
+        {
+            var currStringObject = HttpContext.Session.GetString("sqlConnString");
+            if (currStringObject != null)
+            {
+                return (string)currStringObject;
+            }
+            else
+            {
+                return "oops";
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetCurrentEnvironmentMode()
+        {
+            var mode = HttpContext.Session.GetString("EnvironmentMode") ?? "Live";
+            return Json(new { mode });
+        }
+        
+        [HttpGet]
+         public IActionResult CheckDatabase()
+        {
+             var mode = HttpContext.Session.GetString("EnvironmentMode") ?? "Live";
+             var connName = mode == "Test" ? "TestConnection" : "DefaultConnection";
+             var connString = _configuration.GetConnectionString(connName);
+             return Content($"Mode: {mode} \nConnection String: {connString}");
+        }
+
     }
-}
+        
+       
+
+
+
+        /*
+        public IActionResult ChooseEnvironment()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        [Authorize]
+        public IActionResult EnvironmentMode()
+        {
+            // If user tries to GET the page directly, just send them to the ChooseEnvironment screen
+            return RedirectToAction("ChooseEnvironment", "Home");
+        }
+
+
+        [HttpPost]
+        [Authorize]
+        public IActionResult EnvironmentMode(string mode)
+        {
+            if (mode != "Live" && mode != "Test")
+            {
+                mode = "Live";
+            }
+
+            HttpContext.Session.SetString("EnvironmentMode", mode);
+
+            // Redirect to Home/Index after setting mode
+            return RedirectToAction("Index", "Home");
+        }
+
+
+       
+        /*
+        [HttpPost]
+        public async Task<IActionResult> SetInitialConnection()
+        {
+            var currStringObject = HttpContext.Session.GetString("sqlConnString");
+            if (currStringObject == null || currStringObject.ToString().Contains("Daily"))
+            {
+                HttpContext.Session.SetString("sqlConnString", "Daily Report");
+                return Json(true);
+            }
+            else
+            {
+                return Json(false);
+            }
+        }
+        public string GetCurrentConnection()
+        {
+            var currStringObject = HttpContext.Session.GetString("sqlConnString");
+            if (currStringObject != null)
+            {
+                return (string)currStringObject;
+            }
+            else
+            {
+                return "oops";
+            }
+        }
+        */
+    }
 

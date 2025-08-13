@@ -5,12 +5,19 @@ using NewbookSupport;
 using SQLStuff;
 using System;
 using System.Data;
+using MBTP.Interfaces;
+
 
 namespace FinancialC_
 {
     public class NewbookImport
     {
-        public static void ReadNewbookFiles()
+        private readonly IDatabaseConnectionService _dbConnectionService;
+        public NewbookImport(IDatabaseConnectionService dbConnectionService)
+        {
+            _dbConnectionService = dbConnectionService;
+        }
+        public void ReadNewbookFiles()
         {
             string tmpAction, tmpDesc, tmpCat, tmpTrans, tmpID, tmpClient, tmpGen, flowStr;
             double tmpVal, totAmex = 0, totOtherCC = 0, totCash = 0, lockFee, siteDeposit = 100, rentalDeposit = 200, vehicleRateDayTax = 5.6;
@@ -39,8 +46,9 @@ namespace FinancialC_
             }
 
             // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
-            if (!SQLSupport.PrepareForImport("UpdateFrontOfficeTable")) 
-            { 
+            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
+            if (!sqlSupport.PrepareForImport("UpdateFrontOfficeTable"))
+            {
                 return;
             }
 
@@ -1175,11 +1183,11 @@ namespace FinancialC_
                 if(item.RevType == "Campsites" || item.RevType == "Rentals" || item.RevType == "Annual" || item.RevType == "LTSites" ||
                     item.RevType == "LTUnits" || item.RevType == "MHPark" || item.RevType == "Storage")
                 {
-                    SQLSupport.AddSQLParameter(item.RevType, SqlDbType.Money, item.Accum);
+                    sqlSupport.AddSQLParameter(item.RevType, SqlDbType.Money, item.Accum);
                 }
                 else
                 {
-                    SQLSupport.AddSQLParameter(item.RevType, SqlDbType.SmallMoney, item.Accum);
+                    sqlSupport.AddSQLParameter(item.RevType, SqlDbType.SmallMoney, item.Accum);
                 }
             }
             double WescAccum = 0, RentalAccum = 0, GolfAccum = 0;
@@ -1194,13 +1202,13 @@ namespace FinancialC_
                 }
                 else
                 {
-                    SQLSupport.AddSQLParameter("VouchersPurch", SqlDbType.SmallMoney, item.VouchersAccum);
-                    SQLSupport.AddSQLParameter("SiteDepTakenFuture", SqlDbType.SmallMoney, WescAccum);
-                    SQLSupport.AddSQLParameter("RentalDepTakenFuture", SqlDbType.SmallMoney, RentalAccum);
-                    SQLSupport.AddSQLParameter("GolfDepTakenFuture", SqlDbType.SmallMoney, GolfAccum);
-                    SQLSupport.AddSQLParameter("SiteDepTaken", SqlDbType.SmallMoney, item.WescAccum);
-                    SQLSupport.AddSQLParameter("RentalDepTaken", SqlDbType.SmallMoney, item.RentalAccum);
-                    SQLSupport.AddSQLParameter("GolfDepTaken", SqlDbType.SmallMoney, item.GolfAccum);
+                    sqlSupport.AddSQLParameter("VouchersPurch", SqlDbType.SmallMoney, item.VouchersAccum);
+                    sqlSupport.AddSQLParameter("SiteDepTakenFuture", SqlDbType.SmallMoney, WescAccum);
+                    sqlSupport.AddSQLParameter("RentalDepTakenFuture", SqlDbType.SmallMoney, RentalAccum);
+                    sqlSupport.AddSQLParameter("GolfDepTakenFuture", SqlDbType.SmallMoney, GolfAccum);
+                    sqlSupport.AddSQLParameter("SiteDepTaken", SqlDbType.SmallMoney, item.WescAccum);
+                    sqlSupport.AddSQLParameter("RentalDepTaken", SqlDbType.SmallMoney, item.RentalAccum);
+                    sqlSupport.AddSQLParameter("GolfDepTaken", SqlDbType.SmallMoney, item.GolfAccum);
                 }
                 id++;
                 //System.Diagnostics.Debug.WriteLine(item.Fy + ":" + item.WescAccum.ToString("C") + " " + item.RentalAccum.ToString("C") + " " + item.GolfAccum.ToString("C"));
@@ -1209,23 +1217,23 @@ namespace FinancialC_
             {
                 if(item.AppliedItem == "SiteDepApp" || item.AppliedItem == "RentalDepApp")
                 {
-                    SQLSupport.AddSQLParameter(item.AppliedItem, SqlDbType.Money, item.Accum);
+                    sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.Money, item.Accum);
                 }
                 else
                 {
-                    SQLSupport.AddSQLParameter(item.AppliedItem, SqlDbType.SmallMoney, item.Accum);
+                    sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.SmallMoney, item.Accum);
                 }
                 //System.Diagnostics.Debug.WriteLine(item.AppliedItem + " " + item.Accum.ToString("C"));
             }
             foreach (Transfers item in transferArray)
             {
-                SQLSupport.AddSQLParameter(item.TranItem, SqlDbType.SmallMoney, item.Accum);
+                sqlSupport.AddSQLParameter(item.TranItem, SqlDbType.SmallMoney, item.Accum);
                 //System.Diagnostics.Debug.WriteLine(item.TranItem + " " + item.Accum.ToString("C"));
             }
             double MRG1 = 0, MRG2 = 0, MRG3 = 0;
             foreach (Checks item in checkArray)
             {
-                SQLSupport.AddSQLParameter(item.CheckItem, SqlDbType.SmallMoney, item.Accum);
+                sqlSupport.AddSQLParameter(item.CheckItem, SqlDbType.SmallMoney, item.Accum);
                 if (item.CheckItem == "CampsitesC" || item.CheckItem == "RentalsC")
                 {
                     MRG1 += item.Accum;
@@ -1241,19 +1249,19 @@ namespace FinancialC_
                 }
                 else if (item.CheckItem == "SiteDepositsC")
                 {
-                    SQLSupport.AddSQLParameter("SiteDepMRG", SqlDbType.SmallMoney, item.Accum);
+                    sqlSupport.AddSQLParameter("SiteDepMRG", SqlDbType.SmallMoney, item.Accum);
                 }
                 else if (item.CheckItem == "RentalDepositsC")
                 {
-                    SQLSupport.AddSQLParameter("RentalDepMRG", SqlDbType.SmallMoney, item.Accum);
+                    sqlSupport.AddSQLParameter("RentalDepMRG", SqlDbType.SmallMoney, item.Accum);
                 }
                 else if (item.CheckItem == "GolfC")
                 {
-                    SQLSupport.AddSQLParameter("MRGGolf", SqlDbType.SmallMoney, item.Accum);
+                    sqlSupport.AddSQLParameter("MRGGolf", SqlDbType.SmallMoney, item.Accum);
                 }
                 else if (item.CheckItem == "GolfDepositsC")
                 {
-                    SQLSupport.AddSQLParameter("GolfDepMRG", SqlDbType.SmallMoney, item.Accum);
+                    sqlSupport.AddSQLParameter("GolfDepMRG", SqlDbType.SmallMoney, item.Accum);
                 }
                 else
                 {
@@ -1261,9 +1269,9 @@ namespace FinancialC_
                 }
                 //System.Diagnostics.Debug.WriteLine(item.CheckItem + " " + item.Accum.ToString("C"));
             }
-            SQLSupport.AddSQLParameter("MRG1", SqlDbType.SmallMoney, MRG1);
-            SQLSupport.AddSQLParameter("MRG2", SqlDbType.SmallMoney, MRG2);
-            SQLSupport.AddSQLParameter("MRG3", SqlDbType.SmallMoney, MRG3);
+            sqlSupport.AddSQLParameter("MRG1", SqlDbType.SmallMoney, MRG1);
+            sqlSupport.AddSQLParameter("MRG2", SqlDbType.SmallMoney, MRG2);
+            sqlSupport.AddSQLParameter("MRG3", SqlDbType.SmallMoney, MRG3);
             bool supplementalAdded = false;
             foreach (Recon item in reconArray)
             // NOTE: NEED TO WRITE MISC TRANSACTIONS TO SEPARATE TABLE TOO
@@ -1271,21 +1279,21 @@ namespace FinancialC_
                 if (item.ReconItem == "Storage" || item.ReconItem == "Misc" || item.ReconItem == "DamageFees" ||
                     item.ReconItem == "LateFees" || item.ReconItem == "LockFees")
                 {
-                    SQLSupport.AddSQLParameter(item.ReconItem, SqlDbType.SmallMoney, item.Accum, true);
+                    sqlSupport.AddSQLParameter(item.ReconItem, SqlDbType.SmallMoney, item.Accum, true);
                 }
                 else if (item.ReconItem == "TransferFees" || item.ReconItem == "Events" || item.ReconItem == "VisitorFees" ||
                          item.ReconItem == "ExtraVehicleFees" || item.ReconItem == "Propane")
                 {
-                    SQLSupport.AddSQLParameter(item.ReconItem, SqlDbType.SmallMoney, item.Accum);
+                    sqlSupport.AddSQLParameter(item.ReconItem, SqlDbType.SmallMoney, item.Accum);
                 }
                 else if (item.ReconItem == "Trailer Sales" || item.ReconItem == "Trash Pickup")
                 {
-                    SQLSupport.AddSQLParameter("Supplemental", SqlDbType.SmallMoney, item.Accum, supplementalAdded);
+                    sqlSupport.AddSQLParameter("Supplemental", SqlDbType.SmallMoney, item.Accum, supplementalAdded);
                     supplementalAdded = true;
                 }
                 else if (item.MiscTrans == true)
                 {
-                    SQLSupport.AddSQLParameter("Misc", SqlDbType.SmallMoney, item.Accum, true);
+                    sqlSupport.AddSQLParameter("Misc", SqlDbType.SmallMoney, item.Accum, true);
                 }
                 //System.Diagnostics.Debug.WriteLine(item.ReconItem + " " + item.Accum.ToString("C"));
             }
@@ -1293,13 +1301,13 @@ namespace FinancialC_
             // add the Supplemental parameter if it was not added in the previous loop
             if (supplementalAdded == false)
             {
-                SQLSupport.AddSQLParameter("Supplemental", SqlDbType.SmallMoney, 0);
+                sqlSupport.AddSQLParameter("Supplemental", SqlDbType.SmallMoney, 0);
             }
             // add the parameters needed for the payments table
-            SQLSupport.AddSQLParameter("OfficeCC", SqlDbType.Money, totAmex + totOtherCC);
-            SQLSupport.AddSQLParameter("OfficeCash", SqlDbType.Money, totCash);
+            sqlSupport.AddSQLParameter("OfficeCC", SqlDbType.Money, totAmex + totOtherCC);
+            sqlSupport.AddSQLParameter("OfficeCash", SqlDbType.Money, totCash);
             // act on the transaction table
-            string tmpReturned = SQLSupport.ExecuteStoredProcedure(1);
+            string tmpReturned = sqlSupport.ExecuteStoredProcedure(1);
             if (tmpReturned == "SUCCESS")
             {
                 string miscParamStr = "";
@@ -1312,10 +1320,10 @@ namespace FinancialC_
                     }
                 }
                 // Even if nothing is found we have to process the miscellaneous table in case any previous entries need to be deleted
-                SQLSupport.PrepareForImport("UpdateFrontOfficeMiscTable");
-                SQLSupport.AddSQLParameterString("ParamString", SqlDbType.NVarChar, miscParamStr);
+                sqlSupport.PrepareForImport("UpdateFrontOfficeMiscTable");
+                sqlSupport.AddSQLParameterString("ParamString", SqlDbType.NVarChar, miscParamStr);
                 // act on the misc table
-                _ = SQLSupport.ExecuteStoredProcedure(1);
+                _ = sqlSupport.ExecuteStoredProcedure(1);
             }
             SupportRoutines.specialReconArray.Clear(); // This is necessary so no values carry over from date to date
             //visCnt = visCnt;

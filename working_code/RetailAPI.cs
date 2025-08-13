@@ -14,11 +14,12 @@ namespace MBTP.Services
     public class RetailService
     {
         static SqlConnection sqlConn = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"]);
+        static SqlConnection sqlConnTest = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["TestConnection"]);
         static ConfigurationSection myConfig = (ConfigurationSection)new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Heartland");
         static string myKey = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Heartland")["ApiKey"]);
         static string myRptPrefix = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Heartland")["RptStrBase"]);
         //static 
-        public static async Task PopulateRetailData(DateTime dateIn)
+        public static async Task PopulateRetailData(DateTime dateIn, bool useTestDb = false)
         {
             string retailPeriod = "&start_date=" + dateIn.ToString("yyyy-MM-dd") + "&end_date=" + dateIn.ToString("yyyy-MM-dd");
             List<RetailGroup> salesEntries = await FetchRetailDataAsync(retailPeriod);
@@ -27,7 +28,7 @@ namespace MBTP.Services
 
             if (salesEntries.Count > 0 || paymentsEntries.Count > 0)
             {
-                InsertStoreData(dateIn, salesEntries, paymentsEntries, taxCollected);
+                InsertStoreData(dateIn, salesEntries, paymentsEntries, taxCollected, useTestDb);
             }
             else
             {
@@ -199,7 +200,7 @@ namespace MBTP.Services
             return 0;
 
         }
-        private static void InsertStoreData(DateTime transDate, List<RetailGroup> SalesEntries, List<PaymentsGroup> PaymentsEntries, decimal TaxCollected)
+        private static void InsertStoreData(DateTime transDate, List<RetailGroup> SalesEntries, List<PaymentsGroup> PaymentsEntries, decimal TaxCollected, bool useTestDb)
         {
             decimal Apparel = 0, SeasonalNovelty = 0, OtherNovelty = 0, Alcohol = 0, HardGoods = 0, RVParts = 0, SeasonalMerch = 0, FoodCounter = 0, Food = 0,
             Ice = 0, Stamps = 0, AtSite = 0, PropaneStation = 0, Events = 0, Cash = 0, CC = 0;
@@ -261,8 +262,15 @@ namespace MBTP.Services
                     CC += paymentsEntry.net_payments;
                 }
             }
-            sqlConn.Open();
-            using (SqlCommand command = new SqlCommand("dbo.UpdateStoreTable", sqlConn))
+            if (useTestDb)
+            {
+                sqlConnTest.Open();
+            }
+            else
+            {
+                sqlConn.Open();
+            }
+            using (SqlCommand command = new SqlCommand("dbo.UpdateStoreTable", useTestDb ? sqlConnTest : sqlConn))
             {
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("@TransDate", rptDate);
@@ -288,7 +296,14 @@ namespace MBTP.Services
                 command.ExecuteNonQuery();
                 Console.WriteLine(command.Parameters["@status"].Value.ToString());
             }
-            sqlConn.Close();
+            if (useTestDb)
+            {
+                sqlConnTest.Close();
+            }
+            else
+            {
+                sqlConn.Close();
+            }
         }
     }
 }
