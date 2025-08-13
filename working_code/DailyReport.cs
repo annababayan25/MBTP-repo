@@ -4,16 +4,16 @@ using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
+using MBTP.Interfaces;
 
 namespace MBTP.Retrieval
 {
     public class DailyReport
     {
-        private readonly IConfiguration _configuration;
-
-        public DailyReport(IConfiguration configuration)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+        public DailyReport(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
 
        public async Task<DataSet> RetrieveData(DateTime startDate)
@@ -22,7 +22,7 @@ namespace MBTP.Retrieval
 
     try
     {
-        using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+        using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
         using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDailyReportAdditions", sqlConn))
         {
             cmd.CommandType = CommandType.StoredProcedure;

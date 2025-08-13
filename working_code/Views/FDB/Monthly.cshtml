@@ -580,22 +580,24 @@
                                         <td class="name">Supplemental:</td>
                                         <td class="data">@String.Format("{0:F2}", (decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
                                     }
-                            </tr>
-                                <tr class="@dataBackground">
-                                    @if(accID != "4")
-                                    {
+                                </tr>
+                                @if(accID != "4")
+                                {
+                                    <tr class="@dataBackground">
                                         <td class="nameL">Other Commissions:</td>
                                         <td class="dataL">@String.Format("{0:F2}", (decimal)row["OtherM"])</td>
                                         <td colspan="4">&nbsp;&nbsp;&nbsp;</td>
-                                    }
-                                    else
-                                    {
-                                        <td>&nbsp;&nbsp;&nbsp;</td>
-                                    }
+                                        <td class="nameL">Park Model Sales:</td>
+                                        <td class="dataL">@String.Format("{0:F2}", (decimal)row["ParkModelSales"])</td>
+                                        <td colspan="3">&nbsp;&nbsp;&nbsp;</td>
+                                    </tr>
+                                }
+                                <tr class="dataBackground">
+                                    <td colspan="6">&nbsp;</td>
                                     <td class="tots" colspan="4">Total Net Miscellaneous Revenue:</td>
                                     @if(accID != "4")
                                     {
-                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["FrontEvents"]+(decimal)row["StoreEvents"]+(decimal)row["Laundry"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
+                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["FrontEvents"]+(decimal)row["StoreEvents"]+(decimal)row["Laundry"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"]+(decimal)row["ParkModelSales"])</td>
                                     }
                                     else
                                     {

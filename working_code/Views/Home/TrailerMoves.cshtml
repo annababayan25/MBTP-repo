@@ -121,7 +121,28 @@ td{
                                         offAndOn = true;
                                         backColor = "background-color: lightgreen";
                                     }
-                                    <td class="centered" style="@backColor">@cachedRow["StorageNum"]</td>
+                                    @{
+                                        double acctBal;
+                                        bool isNullDbval = System.Convert.IsDBNull((object)cachedRow["AccountBalance"]);
+                                    }
+                                    @if(isNullDbval)
+                                    {
+                                        <td class="centered" style="@backColor">@cachedRow["StorageNum"]</td>
+                                    }
+                                    else
+                                    {
+                                        double.TryParse(cachedRow["AccountBalance"].ToString(), out acctBal);
+                                        if(acctBal == 0)
+                                        {
+                                            <td class="centered" style="@backColor">@cachedRow["StorageNum"]</td>
+                                        }
+                                        else
+                                        {
+                                            string flagString = "$$ " + (string)cachedRow["StorageNum"] + " $$";
+                                            string cellStyle = "color: red; font-weight: bold";
+                                            <td class="centered" style="@cellStyle">@flagString</td>
+                                        }
+                                    }
                                     @if(sameSiteMove)
                                     {
                                         <td colspan="5" class="centered" style="@colorString ; @backColor"><b><i>SITE MOVE:&nbsp;@cachedRow["SiteNum"]&nbsp;to&nbsp;@cachedRow["NewSite"]</i></b></td>
@@ -200,7 +221,16 @@ td{
                         @if(rowIndex == Model!.Tables[0].Rows.Count && !sameSiteMove && (string)cachedRow["Ignore"] != "Yes")
                         {
                             <tr>
-                                <td class="centered" style="@backColor">@cachedRow["StorageNum"]</td>
+                                @if(cachedRow["AccountBalance"] != null || (int)cachedRow["AccountBalance"] == 0)
+                                {
+                                    <td class="centered" style="@backColor">@cachedRow["StorageNum"]</td>
+                                }
+                                else
+                                {
+                                    string flagString = "$$ " + cachedRow["StorageNum"] + " $$";
+                                    string cellStyle = "color: yellow; font-weight: bold";
+                                    <td class="centered" style="@cellStyle">@flagString</td>
+                                }
                                 @if((string)cachedRow["Action"] == "A")
                                 {
                                     <td class="centered">X</td>

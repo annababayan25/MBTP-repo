@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using MBTP.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using MBTP.Interfaces;
 
 namespace MBTP.Services
 {
@@ -19,11 +20,10 @@ namespace MBTP.Services
         private readonly string region = "us";
         private readonly string username = "myrtle_beach";
         private readonly string password = "Gemb$np(QqEnB9V3";
-        private readonly IConfiguration _configuration;
-    
-        public NewBookService(IConfiguration configuration)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+        public NewBookService(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
 
        public async Task PopulateBookings(DateTime startDate, DateTime endDate)
@@ -41,7 +41,7 @@ namespace MBTP.Services
 //            bookings.AddRange(bookingsD);
             if (bookings.Count > 0)
             {
-                SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+                SqlConnection sqlConn = _dbConnectionService.CreateConnection();
                 sqlConn.Open();
                 foreach (var booking in bookings)
                 {
@@ -64,6 +64,7 @@ namespace MBTP.Services
             {
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("@BookingID", booking.BookingID);
+                command.Parameters.AddWithValue("@SiteName", booking.SiteName);
                 command.Parameters.AddWithValue("@BookingArrival", booking.BookingArrival);
                 command.Parameters.AddWithValue("@BookingDeparture", booking.BookingDeparture);
                 command.Parameters.AddWithValue("@BookingStatus", booking.BookingStatus ?? (object)DBNull.Value);
@@ -80,9 +81,18 @@ namespace MBTP.Services
                 command.Parameters.AddWithValue("@CategoryName", booking.CategoryName ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@BookingCancelled", booking.BookingCancelled ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@ExpressCheckin", booking.ExpressCheckin);
+                command.Parameters.AddWithValue("@StoredMBTP", booking.StoredMBTP ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@StoredOutside", booking.StoredOutside ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@EquipmentMake", booking.EquipmentMake ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@EquipmentModel", booking.EquipmentModel ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@EquipmentLength", booking.EquipmentLength ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@FirstName", booking.Firstname ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@LastName", booking.Lastname ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Wristbands", booking.Wristbands);
                 command.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
                 command.Parameters["@status"].Direction = ParameterDirection.Output;
                 await command.ExecuteNonQueryAsync();
+                //Console.WriteLine(command.Parameters["@status"].Value.ToString());
             }
         }
 
@@ -240,6 +250,7 @@ namespace MBTP.Services
                     var booking = new Booking
                     {
                         BookingID = item.booking_id,
+                        SiteName = item.site_name,
                         BookingArrival = item.booking_arrival,
                         BookingDeparture = item.booking_departure,
                         BookingStatus = item.booking_status,
@@ -256,16 +267,52 @@ namespace MBTP.Services
                         BookingCancelled = item.booking_cancelled,
                         ExpressCheckin = item.booking_demographic_name,
                         Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests.ToString()), // Deserialize the guests list
-                        CustomFields = JsonConvert.DeserializeObject<List<CustomFields>>(item.custom_fields.ToString()) // Deserialize the custom fields list
+                        CustomFields = JsonConvert.DeserializeObject<List<CustomFields>>(item.custom_fields.ToString()), // Deserialize the custom fields list
+                        Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()) // Deserialize the equipment fields list
                     };
                     // Assign the state property from the first guest in the list (if any)
                     if (booking.Guests != null && booking.Guests.Count > 0)
                     {
                         booking.StateName = booking.Guests[0].State;
+                        booking.Firstname = booking.Guests[0].Firstname;
+                        booking.Lastname = booking.Guests[0].Lastname;
                     }
                     else
                     {
                         booking.StateName = "Unknown";
+                    }
+
+                    if (booking.CustomFields != null && booking.CustomFields.Count > 0)
+                    {
+                        for (int cField = 0; cField <= booking.CustomFields.Count - 1; cField++)
+                        {
+                            if (booking.CustomFields[cField].Label == "Camper stored with MBTP? (if yes, enter ID number)")
+                            {
+                                booking.StoredMBTP = booking.CustomFields[cField].Value;
+                                if (booking.Equipment != null && booking.Equipment.Count > 0)
+                                {
+                                    if (booking.Equipment[0].equipment_make is not null) { booking.EquipmentMake = booking.Equipment[0].equipment_make; }
+                                    if (booking.Equipment[0].equipment_model is not null) { booking.EquipmentModel = booking.Equipment[0].equipment_model; }
+                                    if (booking.Equipment[0].equipment_length is not null) { booking.EquipmentLength = booking.Equipment[0].equipment_length; }
+                                }
+                            }
+                            else if (booking.CustomFields[cField].Label == "Camper being delivered by outside company? (if yes, enter company name)")
+                            {
+                                booking.StoredOutside = booking.CustomFields[cField].Value;
+                            }
+                            else if (booking.CustomFields[cField].Label == "Wristbands")
+                            {
+                                int wristbands;
+                                if (int.TryParse(booking.CustomFields[cField].Value, out wristbands))
+                                {
+                                    booking.Wristbands = wristbands;
+                                }
+                                else
+                                {
+                                    booking.Wristbands = 0;
+                                 }
+                            }
+                        }
                     }
                     if (booking.BookingAdults + booking.BookingChildren + booking.BookingInfants != 0)
                     {

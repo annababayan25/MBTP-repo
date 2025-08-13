@@ -58,23 +58,8 @@ namespace GenericSupport
         public static NewbookFiles nbfiles = new NewbookFiles();
         public static void UpdateAlerts(byte pcidIn, string severityIn, string textIn)
         {
-            var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
-            SqlConnection alertSqlConn = new SqlConnection(connStr);
-            SqlCommand alterCmd = new SqlCommand("dbo.UpdateAlerts", alertSqlConn)
-            {
-                CommandType = System.Data.CommandType.StoredProcedure
-            };
-            // add input parameter for transaction date
-            alterCmd.Parameters.Add("@TransDate", SqlDbType.Date).Value = GenericRoutines.repDateStr;
-            alterCmd.Parameters.Add("@PCID", SqlDbType.TinyInt).Value = pcidIn;
-            alterCmd.Parameters.Add("@Severity", SqlDbType.VarChar, 50).Value = severityIn;
-            alterCmd.Parameters.Add("@AlertText", SqlDbType.VarChar, 4000).Value = textIn;
-            // add an output parameter to check if stored procedures executed cleanly
-            alterCmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
-            alterCmd.Parameters["@status"].Direction = ParameterDirection.Output;
-            alertSqlConn.Open();
-            alterCmd.ExecuteNonQuery();
-            alertSqlConn.Close();
+            SQLSupport.UpdateAlertsTable(pcidIn, severityIn, textIn);
+            
         }
         public static string DoesFileExist(string subDirectoryIn, string fileNameIn, string suffixIn, bool modifyCheck = false)
         {
@@ -198,9 +183,11 @@ namespace GenericSupport
             }
         return false;
         }
+        
+        /*
         public static bool BlackedOutDate(string dateIn, byte pcidIn)
         {
-//            SqlConnection sqlConn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
+            //            SqlConnection sqlConn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
             var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
             SqlConnection sqlConn = new SqlConnection(connStr);
             SqlCommand cmd = new SqlCommand("dbo.F_BlackoutDate", sqlConn)
@@ -218,6 +205,7 @@ namespace GenericSupport
 
             return (bool)cmd.Parameters["@Result"].Value;
         }
+        */
         public static bool AllFilesPresent(int pcIDIn)
         {
             string subDirName;

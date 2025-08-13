@@ -20,14 +20,21 @@
     bool isPdf = ViewData["IsPdf"] is not null && (bool)ViewData["IsPdf"];
 
     // Dynamic date calculations
-    var currentMonth = DateTime.Now.ToString("MMM yyyy");
-    //var lastMonth = DateTime.Now.AddMonths(-1).ToString("MMM yyyy");
-    var lastMonth = DateTime.Now.AddYears(-1).ToString("MMM yyyy");
-    var lastYear = DateTime.Now.AddYears(-1).ToString("MMM yyyy");
-    var twoYearsAgo = DateTime.Now.AddYears(-2).ToString("MMM yyyy");
-    var fiscalYear = DateTime.Now.Year;
+    var currentMonth = ViewBag.StartDate.ToString("MMM yyyy");
+    var lastMonth = ViewBag.StartDate.AddYears(-1).ToString("MMM yyyy");
+    var lastYear = ViewBag.StartDate.AddYears(-1).ToString("MMM yyyy");
+    var twoYearsAgo = ViewBag.StartDate.AddYears(-2).ToString("MMM yyyy");
+    //var currentMonth = DateTime.Now.ToString("MMM yyyy");
+    //var lastMonth = DateTime.Now.AddYears(-1).ToString("MMM yyyy");
+    //var lastYear = DateTime.Now.AddYears(-1).ToString("MMM yyyy");
+    //var twoYearsAgo = DateTime.Now.AddYears(-2).ToString("MMM yyyy");
+    //var fiscalYear = DateTime.Now.Year;
+    var fiscalYear = ViewBag.StartDate.Year;
     var lastFiscalYear = fiscalYear - 1;
     var twoFiscalYearsAgo = fiscalYear - 2;
+    var whichMonth = ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current" ? "Prior" : "Current";
+    var monthText = ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current" ? "View Previous Month" : "View Current Month";
+    var fyChangeHdr = "FY"+ lastFiscalYear.ToString().Substring(2) + "/FY" + twoFiscalYearsAgo.ToString().Substring(2) + " +/-";
 }
 <script>
     var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -103,19 +110,23 @@
 <body>
 @if(accID != "8")
 {
+    <div class="button-container">
+        <div>&nbsp;</div>
+        <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Snapshot" asp-route-whichMonth=@whichMonth>@monthText</a>
+    </div>
     <div class="tables-wrapper">
         <div class="table-container">
             <div class="myContainer">
                 @if (curMonthIncomeList is not null && curMonthIncomeList.Count > 0)
                 {
                     <div class="table-wrapper">
-                        <h1 style="text-align:center" class="inc">Income Snapshot</h1>
+                        <h1 style="text-align:center" class="inc">Income Snapshot (Net Revenue)</h1>
                         <table id="income-snapshot-table" class="data-table inc">
                             <thead>
                                 <tr>
-                                    <th style="background-color:rgb(63, 62, 62)" class="snapshot" colspan="1" rowspan="2">Income <br> Snapshot</th>
-                                    <th style="background-color:rgb(63, 62, 62)" class="snapHEAD" colspan="3" class="snap1"> Month-Over-Month <br> To Date</th>
-                                    <th style="background-color:rgb(63, 62, 62)" class="snapHEAD" colspan="3" class="snap1"> Year-Over-Year <br> To Date</th>
+                                    <th style="background-color:rgb(63, 62, 62)" class="snapshot" colspan="1" rowspan="2">Revenue<br>Source</th>
+                                    <th style="background-color:rgb(63, 62, 62)" class="snapHEAD" colspan="3" class="snap1"> Month-Over-Month To Date</th>
+                                    <th style="background-color:rgb(63, 62, 62)" class="snapHEAD" colspan="3" class="snap1"> Year-Over-Year To Date</th>
                                 </tr>
                                 <tr>
                                     <th class="snap1">@currentMonth</th>
@@ -123,7 +134,7 @@
                                     <th class="snap1">@currentMonth +/-</th>
                                     <th class="snap1"> FY @lastFiscalYear</th>
                                     <th class="snap1"> FY @twoFiscalYearsAgo</th>
-                                    <th class="snap1"> FY @lastFiscalYear / FY @twoFiscalYearsAgo +/-</th>
+                                    <th class="snap1"> @fyChangeHdr</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -136,7 +147,7 @@
                                     @if(accID != "4" && accID != "5")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Taxable <br> Reservations <br> Net Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Taxable <br> Reservations:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.TaxableReservationsNetRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.ResTaxIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.TaxableReservationsNetRevenue - priorMonthIncome.ResTaxIncome))</td>
@@ -145,7 +156,7 @@
                                             <td class="snap2">@String.Format("{0:F2}", (curYearIncome.ResTaxIncome - priorYearIncome.ResTaxIncome))</td>
                                         </tr>
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">No-Tax <br> Reservations <br> Net Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">No-Tax <br> Reservations:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.NoTaxReservationsNetRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.ResNoTaxIncome)</td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.NoTaxReservationsNetRevenue - priorMonthIncome.ResNoTaxIncome))</td>
@@ -157,7 +168,7 @@
                                     @if(accID != "3" && accID != "5")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Store<br> Net Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">General Store:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.StoreNetRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.StoreIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.StoreNetRevenue - priorMonthIncome.StoreIncome))</td>
@@ -169,7 +180,7 @@
                                     @if(accID != "3" && accID != "4")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Snack Bar<br> Net Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Snack Bar:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.SnackBarNetRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.SnackIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.SnackBarNetRevenue - priorMonthIncome.SnackIncome))</td>
@@ -178,7 +189,7 @@
                                             <td class="snap2">@String.Format("{0:F2}", (curYearIncome.SnackIncome - priorYearIncome.SnackIncome))</td>
                                         </tr>
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Arcade Games<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Arcade Games:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.ArcadeGamesRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.ArcadeIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.ArcadeGamesRevenue - priorMonthIncome.ArcadeIncome))</td>
@@ -190,7 +201,7 @@
                                     @if(accID != "3" && accID != "4" && accID != "5")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Kayak Shack<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Kayak Shack:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.KayakShackRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.KayakIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.KayakShackRevenue - priorMonthIncome.KayakIncome))</td>
@@ -202,7 +213,7 @@
                                     @if(accID != "3" && accID != "4")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Coffee Trailer<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Coffee Trailer:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.CoffeeTrailerRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.CoffeeIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.CoffeeTrailerRevenue - priorMonthIncome.CoffeeIncome))</td>
@@ -214,7 +225,7 @@
                                     @if(accID != "3" && accID != "5")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Propane Sales<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Propane Sales:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.PropaneSalesRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.PropaneIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.PropaneSalesRevenue - priorMonthIncome.PropaneIncome))</td>
@@ -223,7 +234,7 @@
                                             <td class="snap2">@String.Format("{0:F2}", (curYearIncome.PropaneIncome - priorYearIncome.PropaneIncome))</td>
                                         </tr>
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Laundry<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Laundry:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.LaundryRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.LaundryIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.LaundryRevenue - priorMonthIncome.LaundryIncome))</td>
@@ -235,7 +246,7 @@
                                     @if(accID != "3" && accID != "4")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Activities/Events<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Activities/Events:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.ActivitiesEventsRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.EventsIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.ActivitiesEventsRevenue -priorMonthIncome.EventsIncome))</td>
@@ -247,7 +258,7 @@
                                     @if(accID != "3" && accID != "5")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Guest Services<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Guest Services:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.GuestServicesRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.GuestServicesIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.GuestServicesRevenue - priorMonthIncome.GuestServicesIncome))</td>
@@ -259,7 +270,7 @@
                                     @if(accID != "3" && accID != "4" && accID != "5")
                                     {
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Commissions<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Commissions:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.CommissionsRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.CommisionsIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.CommissionsRevenue - priorMonthIncome.CommisionsIncome))</td>
@@ -268,7 +279,16 @@
                                             <td class="snap2">@String.Format("{0:F2}", (curYearIncome.CommisionsIncome - priorYearIncome.CommisionsIncome)) </td>
                                         </tr>
                                         <tr class="alt">
-                                            <td style="background-color: rgb(151, 213, 249)">Miscellaneous<br> Revenue:</td>
+                                            <td style="background-color: rgb(151, 213, 249)">Park&nbsp;Model&nbsp;Sales:</td>
+                                            <td class="snap2">@String.Format("{0:F2}", curMonthIncome.ParkModelSalesRevenue + curMonthIncome.Addons0319)</td>
+                                            <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.ParkModelSalesIncome + priorMonthIncome.Addons0319) </td>
+                                            <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.ParkModelSalesRevenue + curMonthIncome.Addons0319 - priorMonthIncome.ParkModelSalesIncome - priorMonthIncome.Addons0319))</td>
+                                            <td class="snap2">@String.Format("{0:F2}", curYearIncome.ParkModelSalesIncome + curYearIncome.Addons0319) </td>
+                                            <td class="snap2">@String.Format("{0:F2}", priorYearIncome.ParkModelSalesIncome + priorYearIncome.Addons0319) </td>
+                                            <td class="snap2">@String.Format("{0:F2}", (curYearIncome.ParkModelSalesIncome + curYearIncome.Addons0319 - priorYearIncome.ParkModelSalesIncome - priorYearIncome.Addons0319)) </td>
+                                        </tr>
+                                        <tr class="alt">
+                                            <td style="background-color: rgb(151, 213, 249)">Miscellaneous:</td>
                                             <td class="snap2">@String.Format("{0:F2}", curMonthIncome.MiscellaneousRevenue)</td>
                                             <td class="snap2">@String.Format("{0:F2}", priorMonthIncome.OtherIncome) </td>
                                             <td class="snap2">@String.Format("{0:F2}", (curMonthIncome.MiscellaneousRevenue - priorMonthIncome.OtherIncome))</td>
@@ -343,9 +363,9 @@
 
                             <tr>
                                 <h4>
-                                    <th style="background-color:rgb(63, 62, 62)" class="snapshot" colspan="1" rowspan="2">Deposits <br> Snapshot</th>
-                                    <th style="background-color:rgb(63, 62, 62)" class="snapHEAD" colspan="3" class="snap1"> Month-Over-Month <br> To Date</th>
-                                    <th style="background-color:rgb(63, 62, 62)" class="snapHEAD" colspan="3" class="snap1"> Year-Over-Year <br> To Date</th>
+                                    <th style="background-color:rgb(63, 62, 62)" class="snapshot" colspan="1" rowspan="2">Deposits <br> Type</th>
+                                    <th style="background-color:rgb(63, 62, 62)" class="snapHEAD" colspan="3" class="snap1"> Month-Over-Month To Date</th>
+                                    <th style="background-color:rgb(63, 62, 62)" class="snapHEAD" colspan="3" class="snap1"> Year-Over-Year To Date</th>
                                 </h4>
                             </tr>
                             <tr>
@@ -359,7 +379,7 @@
                                 </th>
                                 <th class="snap1"> FY @twoFiscalYearsAgo
                                 </th>
-                                <th class="snap1"> FY @lastFiscalYear / FY @twoFiscalYearsAgo +/-</th>
+                                <th class="snap1"> @fyChangeHdr</th>
                             </tr>
                         </thead>
                         <tbody>@for (int j = 0; j < taxableReservationsListD.Count; j++)
@@ -369,7 +389,7 @@
                                 var lastYearIncomeD = j < lastYearIncomeListD.Count ? lastYearIncomeListD[j] : null;
                                 var twoYearIncomeD = j < twoYearIncomeListD.Count ? twoYearIncomeListD[j] : null;
                                 <tr class="alt">
-                                    <td style="background-color: rgb(151, 213, 249)">Site <br> Deposits <br> Taken:
+                                    <td style="background-color: rgb(151, 213, 249)">Site <br> Taken:
                                     </td>
                                     <td class="snap2">@String.Format("{0:F2}", taxableReservationD.SiteDepositsTaken)</td>
                                     <td class="snap2">@String.Format("{0:F2}", lastMonthIncomeD.SiteDepositsTaken) </td>
@@ -384,7 +404,7 @@
                                     </td>
                                 </tr>
                                 <tr class="alt">
-                                    <td style="background-color: rgb(151, 213, 249)">Site <br> Deposits <br> Applied:
+                                    <td style="background-color: rgb(151, 213, 249)">Site <br> Applied:
                                     </td>
                                     <td class="snap2">@String.Format("{0:F2}", taxableReservationD.SiteDepositsApplied)</td>
                                     <td class="snap2">@String.Format("{0:F2}", lastMonthIncomeD.SiteDepositsApplied) </td>
@@ -399,7 +419,7 @@
                                                     twoYearIncomeD.SiteDepositsApplied)) </td>
                                 </tr>
                                 <tr class="alt">
-                                    <td style="background-color: rgb(151, 213, 249)">Rental <br> Deposits<br> Taken:</td>
+                                    <td style="background-color: rgb(151, 213, 249)">Rental <br> Taken:</td>
                                     <td class="snap2">@String.Format("{0:F2}", taxableReservationD.RentalDepositsTaken)</td>
                                     <td class="snap2">@String.Format("{0:F2}", lastMonthIncomeD.RentalDepositsTaken) </td>
                                     <td class="snap2">
@@ -412,7 +432,7 @@
                                     </td>
                                 </tr>
                                 <tr class="alt">
-                                    <td style="background-color: rgb(151, 213, 249)">Rental <br> Deposits <br> Applied:</td>
+                                    <td style="background-color: rgb(151, 213, 249)">Rental <br> Applied:</td>
                                     <td class="snap2">@String.Format("{0:F2}", taxableReservationD.RentalDepositsApplied)</td>
                                     <td class="snap2">@String.Format("{0:F2}", lastMonthIncomeD.RentalDepositsApplied) </td>
                                     <td class="snap2">
@@ -426,7 +446,7 @@
                                     </td>
                                 </tr>
                                 <tr class="alt">
-                                    <td style="background-color: rgb(151, 213, 249)">Golf <br> Deposits<br> Taken:</td>
+                                    <td style="background-color: rgb(151, 213, 249)">Golf <br> Taken:</td>
                                     <td class="snap2">@String.Format("{0:F2}", taxableReservationD.GolfDepositsTaken)</td>
                                     <td class="snap2">@String.Format("{0:F2}", lastMonthIncomeD.GolfDepositsTaken) </td>
                                     <td class="snap2">
@@ -440,7 +460,7 @@
                                     </td>
                                 </tr>
                                 <tr class="alt">
-                                    <td style="background-color: rgb(151, 213, 249)">Golf <br> Deposits <br> Applied:</td>
+                                    <td style="background-color: rgb(151, 213, 249)">Golf <br> Applied:</td>
                                     <td class="snap2">@String.Format("{0:F2}", taxableReservationD.GolfDepositsApplied)</td>
                                     <td class="snap2">@String.Format("{0:F2}", lastMonthIncomeD.GolfDepositsApplied) </td>
                                     <td class="snap2">
@@ -485,40 +505,40 @@
                                     <td style="background-color: rgb(151, 213, 249)">Total:</td>
                                     <td class="snap2" style="background-color:yellow">
                                         @String.Format("{0:F2}",
-                                                    (taxableReservationD.SiteDepositsTaken + taxableReservationD.SiteDepositsApplied + taxableReservationD.RentalDepositsTaken + taxableReservationD.RentalDepositsApplied + taxableReservationD.GolfDepositsTaken + taxableReservationD.GolfDepositsApplied + taxableReservationD.VouchersPurchased + taxableReservationD.VouchersRedeemed))
+                                                    (taxableReservationD.SiteDepositsTaken - taxableReservationD.SiteDepositsApplied + taxableReservationD.RentalDepositsTaken - taxableReservationD.RentalDepositsApplied + taxableReservationD.GolfDepositsTaken - taxableReservationD.GolfDepositsApplied + taxableReservationD.VouchersPurchased - taxableReservationD.VouchersRedeemed))
                                     </td>
                                     <td class="snap2">
                                         @String.Format("{0:F2}",
-                                                    (lastMonthIncomeD.SiteDepositsTaken + lastMonthIncomeD.SiteDepositsApplied + lastMonthIncomeD.RentalDepositsTaken + lastMonthIncomeD.RentalDepositsApplied + lastMonthIncomeD.GolfDepositsTaken + lastMonthIncomeD.GolfDepositsApplied + lastMonthIncomeD.VouchersPurchased + lastMonthIncomeD.VouchersRedeemed))
+                                                    (lastMonthIncomeD.SiteDepositsTaken - lastMonthIncomeD.SiteDepositsApplied + lastMonthIncomeD.RentalDepositsTaken - lastMonthIncomeD.RentalDepositsApplied + lastMonthIncomeD.GolfDepositsTaken - lastMonthIncomeD.GolfDepositsApplied + lastMonthIncomeD.VouchersPurchased - lastMonthIncomeD.VouchersRedeemed))
                                     </td>
                                     <td class="snap2">
                                         @String.Format("{0:F2}", ((taxableReservationD.SiteDepositsTaken -
-                                                    lastMonthIncomeD.SiteDepositsTaken) + (taxableReservationD.SiteDepositsApplied -
+                                                    lastMonthIncomeD.SiteDepositsTaken) - (taxableReservationD.SiteDepositsApplied -
                                                     lastMonthIncomeD.SiteDepositsApplied) + (taxableReservationD.RentalDepositsTaken -
-                                                    lastMonthIncomeD.RentalDepositsTaken) + (taxableReservationD.RentalDepositsApplied -
+                                                    lastMonthIncomeD.RentalDepositsTaken) - (taxableReservationD.RentalDepositsApplied -
                                                     lastMonthIncomeD.RentalDepositsApplied) + (taxableReservationD.GolfDepositsTaken -
-                                                    lastMonthIncomeD.GolfDepositsTaken) + (taxableReservationD.GolfDepositsApplied -
+                                                    lastMonthIncomeD.GolfDepositsTaken) - (taxableReservationD.GolfDepositsApplied -
                                                     lastMonthIncomeD.GolfDepositsApplied) + (taxableReservationD.VouchersPurchased -
-                                                    lastMonthIncomeD.VouchersPurchased) + (taxableReservationD.VouchersRedeemed -
+                                                    lastMonthIncomeD.VouchersPurchased) - (taxableReservationD.VouchersRedeemed -
                                                     lastMonthIncomeD.VouchersRedeemed)))
                                     </td>
                                     <td class="snap2" style="background-color:yellow">
                                         @String.Format("{0:F2}",
-                                                    (lastYearIncomeD.SiteDepositsTaken + lastYearIncomeD.SiteDepositsApplied + lastYearIncomeD.RentalDepositsTaken + lastYearIncomeD.RentalDepositsApplied + lastYearIncomeD.GolfDepositsTaken + lastYearIncomeD.GolfDepositsApplied + lastYearIncomeD.VouchersPurchased + lastYearIncomeD.VouchersRedeemed))
+                                                    (lastYearIncomeD.SiteDepositsTaken - lastYearIncomeD.SiteDepositsApplied + lastYearIncomeD.RentalDepositsTaken - lastYearIncomeD.RentalDepositsApplied + lastYearIncomeD.GolfDepositsTaken - lastYearIncomeD.GolfDepositsApplied + lastYearIncomeD.VouchersPurchased - lastYearIncomeD.VouchersRedeemed))
                                     </td>
                                     <td class="snap2">
                                         @String.Format("{0:F2}",
-                                                    (twoYearIncomeD.SiteDepositsTaken + twoYearIncomeD.SiteDepositsApplied + twoYearIncomeD.RentalDepositsTaken + twoYearIncomeD.RentalDepositsApplied + twoYearIncomeD.GolfDepositsTaken + twoYearIncomeD.GolfDepositsApplied + twoYearIncomeD.VouchersPurchased + twoYearIncomeD.VouchersRedeemed))
+                                                    (twoYearIncomeD.SiteDepositsTaken - twoYearIncomeD.SiteDepositsApplied + twoYearIncomeD.RentalDepositsTaken - twoYearIncomeD.RentalDepositsApplied + twoYearIncomeD.GolfDepositsTaken - twoYearIncomeD.GolfDepositsApplied + twoYearIncomeD.VouchersPurchased - twoYearIncomeD.VouchersRedeemed))
                                     </td>
                                     <td class="snap2" style="background-color:lightgreen">
                                         @String.Format("{0:F2}", ((lastYearIncomeD.SiteDepositsTaken -
-                                                    twoYearIncomeD.SiteDepositsTaken) + (lastYearIncomeD.SiteDepositsApplied -
+                                                    twoYearIncomeD.SiteDepositsTaken) - (lastYearIncomeD.SiteDepositsApplied -
                                                     twoYearIncomeD.SiteDepositsApplied) + (lastYearIncomeD.RentalDepositsTaken -
-                                                    twoYearIncomeD.RentalDepositsTaken) + (lastYearIncomeD.RentalDepositsApplied -
+                                                    twoYearIncomeD.RentalDepositsTaken) - (lastYearIncomeD.RentalDepositsApplied -
                                                     twoYearIncomeD.RentalDepositsApplied) + (lastYearIncomeD.GolfDepositsTaken -
-                                                    twoYearIncomeD.GolfDepositsTaken) + (lastYearIncomeD.GolfDepositsApplied -
+                                                    twoYearIncomeD.GolfDepositsTaken) - (lastYearIncomeD.GolfDepositsApplied -
                                                     twoYearIncomeD.GolfDepositsApplied) + (lastYearIncomeD.VouchersPurchased -
-                                                    twoYearIncomeD.VouchersPurchased) + (lastYearIncomeD.VouchersRedeemed -
+                                                    twoYearIncomeD.VouchersPurchased) - (lastYearIncomeD.VouchersRedeemed -
                                                     twoYearIncomeD.VouchersRedeemed)))
                                     </td>
 

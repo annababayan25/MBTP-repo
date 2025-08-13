@@ -9,6 +9,7 @@
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
     var hostMachine = ViewBag.Host;
+    var accID = User.FindFirst("AccID")?.Value;
     }
 <body >
     <label for="datePicker" id="startLabel">Start Date:</label>

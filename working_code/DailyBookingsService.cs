@@ -8,15 +8,16 @@ using System.Linq;
 using System.Data;
 using Microsoft.Data.SqlClient;
 using MBTP.Models;
+using MBTP.Interfaces;
 
 namespace MBTP.Retrieval
 {
     public class DailyBookingsService
     {
-        private readonly IConfiguration _configuration;
-        public DailyBookingsService(IConfiguration configuration)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+        public DailyBookingsService(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
         public DataSet GetBookingsDataset(DateTime periodFrom, DateTime periodTo)
         {
@@ -25,7 +26,7 @@ namespace MBTP.Retrieval
 
             try
             {
-                using (SqlConnection sqlConn = new(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new("dbo.RetrieveDailyBookings", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
