@@ -1,0 +1,311 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+
+<script src="~/js/site.js"></script>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var titleDate = ViewBag.reportDate != null ? ViewBag.reportDate.ToString("dddd, MMMM dd, yyyy"): "No Data Selected";
+    var rptDay = ViewBag.reportDate != null ? ViewBag.reportDate.ToString("ddd"): "Any";
+    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    string rightnow = DateTime.Now.ToString("MM/dd/yyyy h:mm tt");
+    var remVal = "1.0rem";
+    int xtraRows = 0;
+}
+@if(isPdf)
+{
+    <h4 style="text-align: right;">@rightnow</h4>
+}
+<h2 style="text-align: center;">Trailer Move List For @titleDate</h2>
+@if (!isPdf)
+{
+    <input type="date" id="datePicker" placeholder="Select a date" />
+    <input class = "dataButton" type="button" id="fetchDataButton" value="Fetch Data" />
+    <input class="pdfButton" type="button" id="generatePdfButton" value="Generate PDF" />
+    <p></p>
+}
+@if(isPdf){
+    remVal = "1.4rem";
+    xtraRows = 10;
+}
+<style>
+    .yellow2{
+    text-align: right;
+    }
+    .gray{
+    text-align: right;
+    }
+    .centered{
+        text-align: center;
+    }
+    .tables-wrapper{
+    display: flex;
+    justify-content: space-between;
+    using DocumentFormat.OpenXml.Office2016.Drawing.Command;
+#line default
+margin:10px;
+    }
+td{
+        border-color: black;
+        border-width: 1px;
+        border-style: solid;
+        font-size: @remVal;
+    }
+    @@media (max-width: 400px) {
+        .ded {
+            display: none;
+        }
+
+        .tots {
+            display: none;
+        }
+
+        .widget {
+            width: 100%;
+            background: #f1f1f1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            align-items: center;
+        }
+    }
+
+    @@media (min-width: 401px) {
+        .tot {
+            display: none;
+        }
+    }
+</style>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+    <div class="tables-wrapper">
+        <div class="table-wrapper"> 
+            <table>
+                <thead>
+                    <tr>
+                        <td>&nbsp;Storage ID&nbsp;</td>
+                        <td>&nbsp;ON&nbsp;</td>
+                        <td>&nbsp;OFF&nbsp;</td>
+                        <td style="text-align: center;">MAKE / MODEL</td>
+                        <td>&nbsp;SIZE&nbsp;</td>
+                        <td>&nbsp;SITE NUM&nbsp;</td>
+                        <td>&nbsp;SITE READY?&nbsp;</td>
+                        <td>&nbsp;INITIALS&nbsp;</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        DataRow cachedRow = null;
+                        bool sameSiteMove = false;
+                        bool offAndOn = false;
+                        string colorString = "color: black";
+                        string backColor = "background-color: none";
+                        int rowIndex = 0;
+                    }
+                    @foreach (DataRow row in Model!.Tables[0].Rows)
+                    {
+                        @if(cachedRow != null)
+                        {
+                            @if((string)cachedRow["Ignore"] != "Yes")
+                            {
+                                <tr>
+                                    @if((string)cachedRow["NewSite"] != "")
+                                    {
+                                        sameSiteMove = true;
+                                        colorString = "color: red";
+                                        backColor = "background-color: lightblue";
+                                    }
+                                    else if((string)row["SiteNum"] == (string)cachedRow["SiteNum"])
+                                    {
+                                        offAndOn = true;
+                                        backColor = "background-color: lightgreen";
+                                    }
+                                    <td class="centered" style="@backColor">@cachedRow["StorageNum"]</td>
+                                    @if(sameSiteMove)
+                                    {
+                                        <td colspan="5" class="centered" style="@colorString ; @backColor"><b><i>SITE MOVE:&nbsp;@cachedRow["SiteNum"]&nbsp;to&nbsp;@cachedRow["NewSite"]</i></b></td>
+                                    }
+                                    else
+                                    {
+                                        @if((string)cachedRow["Action"] == "A")
+                                        {
+                                            <td class="centered" style="@backColor">X</td>
+                                            <td style="@backColor">&nbsp;</td>
+                                        }
+                                        else
+                                        {
+                                            <td style="@backColor">&nbsp;</td>
+                                            <td class="centered" style="@backColor">X</td>
+                                        }
+                                        <td style="@backColor">@cachedRow["EquipmentMake"]</td>
+                                        <td class="centered" style="@backColor">@cachedRow["EquipmentLength"]</td>
+                                        string siteNum = (string)cachedRow["SiteNum"];
+                                        if((string)cachedRow["Action"] == "D" && (int)cachedRow["Incoming"] != 0)
+                                        {
+                                            siteNum = siteNum + "*";
+                                        }
+                                        <td class="centered" style="@colorString ; @backColor">@siteNum</td>
+                                    }
+                                    @if(offAndOn)
+                                    {
+                                        <td class="centered" style="@backColor">&nbsp;</td>
+                                    }
+                                    else if((string)cachedRow["Action"] == "D" && !sameSiteMove)
+                                    {
+                                        <td style="background: grey">&nbsp;</td>
+                                    }
+                                    else if((int)cachedRow["NotClear"] == 0 && !sameSiteMove)
+                                    {
+                                        <td class="centered">YES</td>
+                                    }
+                                    else if (sameSiteMove)
+                                    {
+                                        if((int)row["NotClear"] == 0)
+                                        {
+                                            <td class="centered" style="@backColor">YES</td>
+                                        }
+                                        else
+                                        {
+                                            <td class="centered" style="@backColor">&nbsp;</td>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <td>&nbsp;</td>
+                                    }
+                                    <td>&nbsp;</td>
+                                    @if((string)row["SiteNum"] != (string)cachedRow["SiteNum"] && offAndOn)
+                                    {
+                                        offAndOn = false;
+                                        backColor = "background-color: none";
+                                    }
+                                </tr>
+                                @if(sameSiteMove)
+                                {
+                                    sameSiteMove = false;
+                                    colorString = "color: black";
+                                    backColor = "background-color: none";
+                                }
+                            }
+                            else
+                            {
+                                sameSiteMove = false;
+                                colorString = "color: black";
+                                backColor = "background-color: none";
+                            }
+                        }
+                        cachedRow = row;
+                        rowIndex ++;
+                        @if(rowIndex == Model!.Tables[0].Rows.Count && !sameSiteMove && (string)cachedRow["Ignore"] != "Yes")
+                        {
+                            <tr>
+                                <td class="centered" style="@backColor">@cachedRow["StorageNum"]</td>
+                                @if((string)cachedRow["Action"] == "A")
+                                {
+                                    <td class="centered">X</td>
+                                    <td>&nbsp;</td>
+                                }
+                                else
+                                {
+                                    <td>&nbsp;</td>
+                                    <td class="centered">X</td>
+                                }
+                                <td>@cachedRow["EquipmentMake"]</td>
+                                <td class="centered">@cachedRow["EquipmentLength"]</td>
+                                @{
+                                string siteNum = (string)cachedRow["SiteNum"];
+                                }
+                                @if((string)cachedRow["Action"] == "D" && (int)cachedRow["Incoming"] != 0)
+                                {
+                                    siteNum = siteNum + "*";
+                                }
+                                <td class="centered" style="@colorString">@siteNum</td>
+                                @if((string)cachedRow["Action"] == "D" && !sameSiteMove)
+                                {
+                                    <td style="background: grey">&nbsp;</td>
+                                }
+                                else if((int)cachedRow["NotClear"] == 0 && !sameSiteMove)
+                                {
+                                    <td class="centered">YES</td>
+                                }
+                                else if (sameSiteMove)
+                                {
+                                    if((int)row["NotClear"] == 0)
+                                    {
+                                        <td class="centered" style="@backColor">YES</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="centered" style="@backColor">&nbsp;</td>
+                                    }
+                                }
+                                else
+                                {
+                                    <td>&nbsp;</td>
+                                }
+                                <td>&nbsp;</td>
+                            </tr>
+                        }
+                    }
+                    @for(int brow=0; brow < xtraRows; brow++)   // add blank rows for PDF
+                    {
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                        </tr>
+                    }
+               </tbody>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <h1>No Data Found For This Date</h1>
+}
+@section Scripts 
+{
+    <script>
+        let tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        var tomorrowStr = tomorrow.toISOString().split('T')[0];
+        document.getElementById('datePicker').setAttribute('min', tomorrowStr);
+        document.getElementById('fetchDataButton').addEventListener('click', function ()
+        {
+            var selectedDate = document.getElementById('datePicker').value;
+            if(selectedDate){
+                 var url = '@Url.Action("TrailerMoves","Home")'+'?moveDate=' + selectedDate;
+                 window.location.href = url;
+            }
+        });
+        document.getElementById('generatePdfButton').addEventListener('click', function () 
+        {
+            var currentUrl = new URL(window.location.href);
+            var dateParam = currentUrl.searchParams.get("moveDate");
+            if (dateParam)
+            {
+                window.location.href = '@Url.Action("GenerateTrailerPDF", "Home")' + '?moveDate=' + dateParam;
+            } 
+            else
+            {
+                window.location.href = '@Url.Action("GenerateTrailerPDF", "Home")';
+            }
+        });
+        $(document).ready(function () {
+            var currentUrl = new URL(window.location.href); 
+            var dateParam = currentUrl.searchParams.get("moveDate"); 
+            if (dateParam) 
+            { 
+                document.getElementById('datePicker').value = dateParam; 
+                document.querySelector('h1').innerText = "Trailer Moves For " + dateParam;
+            }
+        });
+    </script>
+}

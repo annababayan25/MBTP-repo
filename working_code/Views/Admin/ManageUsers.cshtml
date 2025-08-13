@@ -1,0 +1,194 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+
+<script src="~/js/site.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+@{
+    ViewData["Title"] = "User Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" crossorigin="anonymous" />
+   <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<style>
+   .color {
+       background-color: #b4dfff;
+   }
+
+
+   .center {
+       margin: auto;
+       text-align: center;
+       height: auto;
+       width: 80%;
+       max-width: 500px;
+       border: 3px solid #b4dfff;
+       padding: 30px 20px;
+       border-radius: 10px;
+       background-color: #ffffff;
+   }
+
+
+   .container {
+       width: 100%;
+       margin: 0 auto;
+   }
+
+
+   .pdfButton {
+       background-color: #b4dfff;
+       border: none;
+       color: rgb(0, 0, 0);
+       padding: 10px 20px;
+       text-align: center;
+       text-decoration: none;
+       display: inline-block;
+       font-size: 16px;
+       margin: 4px 2px;
+       cursor: pointer;
+       border-radius: 5px;
+   }
+
+
+   .centered {
+       text-align: center;
+   }
+
+
+   @@media (max-width: 600px) {
+       .center {
+           width: 90%;
+           padding: 20px 10px;
+       }
+
+
+       .signOUT {
+           font-size: 24px;
+       }
+
+
+       .pdfButton {
+           padding: 8px 16px;
+           font-size: 14px;
+       }
+   }
+</style>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+
+<div class="color">
+    <h1 style="text-align: center">User Management</h1>
+    <div class="center">
+        <div class="centered">
+            <h3>Add New Users</h3>
+            <label for="uname"><b>Username:</b></label>
+            <input style="font-family: Garamond, serif" type="text" placeholder="Enter Username" name="uname" id="uname" required>
+            <p>&nbsp;</p>
+            <div class="centered">
+                <label for="psw"><b>Password:</b></label>
+                <input style="font-family: Garamond, serif" type="password" placeholder="Enter Password" name="psw" id="psw" required>
+            </div>
+            <p>&nbsp;</p>
+            <div class="centered">
+                <label for="confirm"><b>&nbsp;Confirm:</b></label>
+                <input style="font-family: Garamond, serif" type="password" placeholder="Confirm Password" name="confirm" id="confirm" required>
+            </div>
+            <p>&nbsp;</p>
+            <div class="centered">
+                <label for="level"><b>Access Level:</b></label>
+                <select style="font-family: Garamond, serif" name="level" id="level">
+                    <option value="0">No Access</option>
+                    @foreach (DataRow row in Model!.Tables[0].Rows)
+                    {
+                        <option value=@row["AccID"]>@row["Description"]</option>
+                    }
+                </select> 
+            </div>
+            <p>&nbsp;</p>
+            <div class="centered">
+                <button class="pdfButton" id="addStay">Add User</button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <button class="pdfButton" id="addExit">Add User & Exit</button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <button class="pdfButton" id="addCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+}
+@section Scripts 
+{
+<script>
+    $(document).ready(function () {
+        [ document.getElementById("addStay"), document.getElementById("addExit")].forEach(function(element){
+            element.addEventListener('click', function (event)
+            {
+                if(document.getElementById("uname").value === "")
+                {
+                    alert("A username has not been entered");
+                }
+                else if (document.getElementById("psw").value === "")
+                {
+                    alert("You must enter a value for the password");
+                }
+                else if (document.getElementById("confirm").value === "")
+                {
+                    alert("You must confirm the value entered for the password");
+                }
+                else if (document.getElementById("psw").value !== document.getElementById("confirm").value)
+                {
+                    alert("The password and confirm fields do not match")
+                }
+                else if (document.getElementById("level").value == 0)
+                {
+                    alert("You must select and access level for the user");
+                }
+                else
+                {
+                    $.ajax(
+                    {
+                        type: "POST", 
+                        url: "/Admin/AddNewUser",
+                        data: { "unameIn": document.getElementById("uname").value,
+                                "pwdIn": document.getElementById("psw").value,
+                                "accIDIn": document.getElementById("level").value},
+                        dataType: "text"
+                    })
+                    .done(function(data)
+                    {
+                        if(data == "SUCCESS")
+                        {
+                            if(event.target.id == "addExit")
+                            {
+                                var url = '@Url.Action("Administration","Home")';
+                                window.location.href = url;
+                            }
+                            else
+                            {
+                                document.getElementById("uname").value = "";
+                                document.getElementById("psw").value = "";
+                                document.getElementById("confirm").value = "";
+                                document.getElementById("level").value = 0;
+                            }
+                        };
+                    })
+                    .fail(function(errMsg){alert(errMsg);})
+                    ;
+                }
+            });
+        });
+        document.getElementById("addCancel").addEventListener('click', function()
+        {
+            var url = '@Url.Action("Administration","Home")';
+            window.location.href = url;
+        });
+    });
+</script>
+}

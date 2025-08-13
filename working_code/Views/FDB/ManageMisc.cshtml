@@ -1,0 +1,486 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+
+<script src="~/js/site.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2 style="text-align: center;">Special Income Entries</h2>
+<label for="datePicker">Retrieve Special Addons for Month Including:&nbsp;</label>
+<input type="date" id="datePicker" placeholder="Select a date" />
+<input class ="dataButton" type="button" id="fetchDataButton" value="Fetch Data" />
+<p></p>
+<style>
+    .yellow{
+    background-color: yellow;
+    }
+    .gray{
+    text-align: right;
+    }
+    .centered{
+        text-align: center;
+    }
+    .leftInput{
+        text-align: left;
+        border: none;
+    }
+    .centeredInput{
+        text-align: center;
+        border: none;
+    }
+    .hiddenSpan{
+        display: none;
+    }
+    .myEdit{}
+    .myDelete{}
+    .mySave{}
+    .myCancel{}
+    .alwaysVisible{
+        background-color: yellow;
+    }
+    .tables-wrapper{
+    display: flex;
+    justify-content: space-between;
+    using DocumentFormat.OpenXml.Office2016.Drawing.Command;
+#linusing Microsoft.Extensions.ObjectPool;
+#line default
+in:10px;
+    }
+td{
+        border-color: black;
+        border-width: 1px;
+        border-style: solid;
+    }
+    @@media (max-width: 400px) {
+        .ded {
+            display: none;
+        }
+
+        .tots {
+            display: none;
+        }
+
+        .widget {
+            width: 100%;
+            background: #f1f1f1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            align-items: center;
+        }
+    }
+
+    @@media (min-width: 401px) {
+        .tot {
+            display: none;
+        }
+    }
+.popup-overlay {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+  z-index: 1000; /* Ensure it's on top */
+}
+
+.popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 20px;
+}
+</style>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+    <div class="table-wrapper"> 
+        <table id="addonsTable">
+            <thead>
+                <tr>
+                    <td class="centered">&nbsp;Transaction Date&nbsp;</td>
+                    <td class="centered">&nbsp;GL&nbsp;Code&nbsp;</td>
+                    <td class="centered">&nbsp;Description&nbsp;</td>
+                    <td class="centered">&nbsp;Amount&nbsp;</td>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    string minViewDateStr = DateTime.Today.Month.ToString() + "/1/" + DateTime.Today.Year.ToString();
+                    DateTime viewFloor = DateTime.Parse(minViewDateStr);
+                }
+                <tr class="alwaysVisible">
+                    <td class="centered"><input class="centeredInput yellow" type="date" id="date00" value="@DateTime.Today.ToString("yyyy-MM-dd")" required></td>
+                    <td class="centered">
+                        @if(Model!.Tables["GLcodes"].Rows.Count > 0)
+                        {
+                            <select class="yellow" name="glSelect" id="gl00" value="0302" required>
+                                @foreach (DataRow glrow in Model!.Tables["GLcodes"].Rows)
+                                {
+                                    @if((string)glrow["GLcode"] == "0302")
+                                    {
+                                        <option selected="selected">@glrow["GLcode"]</option>
+                                    }
+                                    else
+                                    {
+                                        <option>@glrow["GLcode"]</option>
+                                    }
+                                }
+                                <option>Other</option>
+                            </select>
+                        }
+                    </td>
+                    <td class="centered">&nbsp;<input class="leftInput yellow" type="text" size="50" maxlength="50" id="desc00" value="" required></td>
+                    <td class="centered"><input class="centeredInput yellow" type="number" step="0.01" id="amount00" value="@String.Format("{0:F2}", 0)" required></td>
+                    <td class="centered" style="border: none">&nbsp;&nbsp;<span class="centered" id="span00"><button type="button" class="mySave yellow" id="buttonS00">Add</button>&nbsp;&nbsp;<button type="button" class="myClear yellow" id="buttonC00">Clear</button></span>&nbsp;&nbsp;</td>
+                    <td style="display: none">00</td>
+                </tr>
+                @foreach (DataRow row in Model!.Tables[0].Rows)
+                {
+                    DateTime transDate = (DateTime)row["TransDate"];
+                    decimal transAmount = (decimal)row["Amount"];
+                    var dateID = "date" + row["AddonID"];
+                    var GL_ID = "gl" + row["AddonID"];
+                    var descID = "desc" + row["AddonID"];
+                    var amountID = "amount" + row["AddonID"];
+                    var eID = "buttonE" + row["AddonID"];
+                    var dID = "buttonD" + row["AddonID"];
+                    var sID = "buttonS" + row["AddonID"];
+                    var cID = "buttonC" + row["AddonID"];
+                    var span1ID = "span1" + row["AddonID"];
+                    var span2ID = "span2" + row["AddonID"];
+                    var rowID = "row" + row["AddonID"];
+                    string trClass;
+                    @if(transDate < viewFloor)
+                    {
+                        trClass="hiddenSpan";
+                    }
+                    else
+                    {
+                        trClass = "";
+                    }
+                    <tr class="@trClass" id="@rowID">
+                        <td class="centered"><input class="centeredInput" type="date" id=@dateID value="@transDate.ToString("yyyy-MM-dd")" readonly required></td>
+                        <td class="centered">
+                            @if(Model!.Tables["GLcodes"].Rows.Count > 0)
+                            {
+                                <select name="glSelect" id=@GL_ID value="@row["GLcode"]" disabled required>
+                                    @foreach (DataRow glrow in Model!.Tables["GLcodes"].Rows)
+                                    {
+                                        @if((string)glrow["GLcode"] == (string)row["GLcode"])
+                                        {
+                                            <option selected="selected">@glrow["GLcode"]</option>
+                                        }
+                                        else
+                                        {
+                                            <option>@glrow["GLcode"]</option>
+                                        }
+                                    }
+                                </select>
+                            }
+                        </td>
+                        <td class="centered">&nbsp;<input class="leftInput" type="text" size="50" id=@descID value="@row["Description"]" readonly required></td>
+                        <td class="centered"><input class="centeredInput" type="number" step="0.01" id=@amountID value="@String.Format("{0:F2}", transAmount)" readonly required></td>
+                        <td class="centered" style="border: none">&nbsp;&nbsp;<span class="centered" id="@span1ID"><button type="button" class="myEdit" id="@eID">Edit</button>&nbsp;&nbsp;<button type="button" class="myDelete" id="@dID">Delete</button></span><span class="hiddenSpan" id="@span2ID"><button type="button" class="mySave" id="@sID">Save</button>&nbsp;&nbsp;<button type="button" class="myCancel" id=@cID>Cancel</button></span>&nbsp;&nbsp;</td>
+                        <!-- <td style="display: none">@row["AddonID"]</td> -->
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="popup-overlay" id="popupOverlay">
+    <div class="popup" id="popup">
+        <span class="close" id="closePopup">&times;</span>
+        <div class="popup-content">
+            <label for="newGL">GL Code to use:</label>
+            <input type="text" id="newGL" name="newGL" size="4">
+            <button type="button" onclick="closePopup(true);">Save</button>
+            <button type="button" onclick="closePopup(false);">Cancel</button>
+        </div>
+    </div>
+    </div>
+}
+@section Scripts 
+{
+    <script>
+        var activeDate;
+        var activeGL;
+        var activeDesc;
+        var activeAmount;
+        let workingDate = new Date();
+        workingDate.setDate(workingDate.getDate());
+        var workingStr = workingDate.toISOString().split('T')[0];
+        document.getElementById('datePicker').setAttribute('max', workingStr);
+        document.getElementById('fetchDataButton').addEventListener('click', function ()
+        {
+            selectedDate = new Date(document.getElementById('datePicker').value.replace(/-/g, '\/'));
+            if(selectedDate){
+                const addonsTable = document.getElementById("addonsTable");
+                var addonRows = addonsTable.rows;
+                for (var i = 2; i < addonRows.length; i++) 
+                {
+                    var row = addonRows[i];
+                    var transDate = new Date(document.getElementById("date"+row.id.replace("row","")).value.replace(/-/g, '\/'));
+                    var selectedMonth = selectedDate.getMonth() + 1;
+                    var selectedYear = selectedDate.getFullYear();
+                    var floorDate = new Date(selectedYear + '/' + selectedMonth + '/01');
+                    let ceilingDate = new Date(floorDate);
+                    ceilingDate.setMonth(ceilingDate.getMonth()+1);
+                    ceilingDate.setDate(ceilingDate.getDate() - 1);
+                    if(transDate >= floorDate && transDate <= ceilingDate)
+                    {
+                        row.classList.remove("hiddenSpan");
+                    }
+                    else if (!row.classList.contains("hiddenSpan"))
+                    {
+                        row.classList.add("hiddenSpan");
+                    }
+                }
+            }
+        });
+        function editClick(event) 
+        {
+            var identityid = event.target.id.replace("buttonE","");
+            document.getElementById("span1"+identityid).classList.replace("centered","hiddenSpan");
+            document.getElementById("span2"+identityid).classList.replace("hiddenSpan","centered");
+            activeDate = document.getElementById("date"+identityid).value;
+            document.getElementById("date"+identityid).readOnly = false;
+            activeGL = document.getElementById("gl"+identityid).value;
+            document.getElementById("gl"+identityid).disabled = false;
+            activeDesc = document.getElementById("desc"+identityid).value;
+            document.getElementById("desc"+identityid).readOnly = false;
+            activeAmount = document.getElementById("amount"+identityid).value;
+            document.getElementById("amount"+identityid).readOnly = false;
+        };
+        function cancelClick(event)
+        {
+            var identityid = event.target.id.replace("buttonC","");
+            document.getElementById("span2"+identityid).classList.replace("centered","hiddenSpan");
+            document.getElementById("span1"+identityid).classList.replace("hiddenSpan","centered");
+            document.getElementById("date"+identityid).value = activeDate;
+            document.getElementById("date"+identityid).readOnly = true;
+            document.getElementById("gl"+identityid).value = activeGL;
+            document.getElementById("gl"+identityid).disabled = true;
+            document.getElementById("desc"+identityid).value = activeDesc;
+            document.getElementById("desc"+identityid).readOnly = true;
+            document.getElementById("amount"+identityid).value = activeAmount;
+            document.getElementById("amount"+identityid).readOnly = true;
+
+        };
+        function saveClick(event)
+        {
+            var identityid = event.target.id.replace("buttonS","");
+            var glSelected = document.getElementById("gl"+identityid).value;
+            var descEntered = document.getElementById("desc"+identityid).value;
+            var amountEntered = document.getElementById("amount"+identityid).value;
+            if(descEntered == null || descEntered == "")
+            {
+                alert("You must enter a value for Description");
+            }
+            else if(amountEntered == null || amountEntered == "" || amountEntered == "0.00")
+            {
+                alert("You must enter a non-zero value for Amount");
+            }
+            else
+            {
+                if(identityid != "00")
+                {
+                    document.getElementById("span2"+identityid).classList.replace("centered","hiddenSpan");
+                    document.getElementById("span1"+identityid).classList.replace("hiddenSpan","centered");
+                    document.getElementById("date"+identityid).readOnly = true;
+                    document.getElementById("gl"+identityid).disabled = true;
+                    document.getElementById("desc"+identityid).readOnly = true;
+                    document.getElementById("amount"+identityid).readOnly = true;
+                }
+                $.ajax(
+                {
+                    type: "POST", 
+                    url: "/FDB/UpdateAddons",
+                    data: { "addIDin" : identityid,
+                            "dateIn": document.getElementById("date"+identityid).value,
+                            "glIn": glSelected,
+                            "descIn": descEntered,
+                            "amountIn": amountEntered},
+                    dataType: "text"
+                })
+                .done(function(data)
+                {
+                    if(data.includes("SUCCESS"))
+                    {
+                        if(identityid == "00")
+                        {
+                            insertAddedRow(data.replace("SUCCESS",""), glSelected, descEntered, amountEntered);
+                        };
+                    };
+                })
+                .fail(function(errMsg){alert(errMsg);})
+                ;
+            }
+        };
+        function deleteClick(event)
+        {
+            if(confirm("This action cannot be reversed. Are you sure you want to delete this entry?"))
+            {
+                var identityid = event.target.id.replace("buttonD","");
+                var rowElement = document.getElementById("row" + identityid);
+                identityid = identityid * -1;
+                $.ajax(
+                {
+                    type: "POST", 
+                    url: "/FDB/UpdateAddons",
+                    data: { "addIDin" : identityid,
+                            "dateIn": "1900-01-01",
+                            "glIn": "X",
+                            "descIn": "X",
+                            "amountIn": 0},
+                    dataType: "text"
+                })
+                .done(function(data)
+                {
+                    if(data.includes("SUCCESS"))
+                    {
+                        rowElement.parentNode.removeChild(rowElement);
+                    };
+                })
+                .fail(function(errMsg){alert(errMsg);})
+                ;
+            }
+        };
+        function insertAddedRow(newrowID, glSelected, descEntered, amountEntered)
+        {
+            var addonsTable = document.getElementById("addonsTable");
+            var addonRows = addonsTable.rows;
+            for (var i = 2; i < addonRows.length; i++) 
+            {
+                var row = addonsTable.rows[i];
+                var rowID = row.id.replace("row","");
+                var dateID = "date" + rowID;                    
+                var transDate = document.getElementById(dateID).value;
+                if(document.getElementById("date00").value >= transDate)
+                {
+                    var newRow = addonsTable.insertRow(i);
+                    newRow.id = "row" + newrowID;
+                    var insertedRow = addonsTable.rows[i];
+                    var newCell = insertedRow.insertCell();
+                    newCell.classList.add("centered");
+                    newCell.innerHTML = '<input class="centeredInput" type="date" id="date' + newrowID + '" value="' + document.getElementById("date00").value + '" readonly required>';
+                    var newCell2 = insertedRow.insertCell();
+                    newCell2.classList.add("centered");
+                    var selectStr = '<select name="glSelect" id="gl' + newrowID +'" value="' + glSelected + '" disabled required>' 
+                    selectStr += ((glSelected == "0302") ? '<option selected="selected">' : '<option>') + '0302</option>';
+                    selectStr += ((glSelected == "0319") ? '<option selected="selected">' : '<option>') + '0319</option>';
+                    selectStr += ((glSelected == "0326") ? '<option selected="selected">' : '<option>') + '0326</option>';
+                    selectStr += ((glSelected == "0328") ? '<option selected="selected">' : '<option>') + '0328</option>';
+                    selectStr += ((glSelected == "0348") ? '<option selected="selected">' : '<option>') + '0348</option>';
+                    selectStr += ((glSelected == "0352") ? '<option selected="selected">' : '<option>') + '0352</option>';
+                    selectStr += ((glSelected == "0358") ? '<option selected="selected">' : '<option>') + '0358</option>';
+                    selectStr += ((glSelected == "0359") ? '<option selected="selected">' : '<option>') + '0359</option>';
+                    selectStr += ((glSelected == "0384") ? '<option selected="selected">' : '<option>') + '0384</option>';
+                    selectStr += ((glSelected == "0392") ? '<option selected="selected">' : '<option>') + '0392</option>';
+                    selectStr += ((glSelected == "0393") ? '<option selected="selected">' : '<option>') + '0393</option>';
+                    selectStr += ((glSelected == "0925") ? '<option selected="selected">' : '<option>') + '0925</option>';
+                    selectStr += '</select>';
+                    newCell2.innerHTML = selectStr;
+                    var newCell3 = insertedRow.insertCell();
+                    newCell3.innerHTML = '&nbsp;<input class="leftInput" type="text" size="50" id="desc' + newrowID + '" value="' + descEntered + '" readonly required>';
+                    var newCell4 = insertedRow.insertCell();
+                    newCell4.classList.add("centered");
+                    newCell4.innerHTML = '<input class="centeredInput" type="number" step="0.01" id="amount' + newrowID + '" value="' + amountEntered + '" readonly required>';
+                    var newCell5 = insertedRow.insertCell();
+                    newCell5.classList.add("centered");
+                    newCell5.style.border = 'none';
+                    newCell5.innerHTML = '&nbsp;&nbsp;';
+                    newCell5.innerHTML += '<span class="centered" id="span1' + newrowID + '"><button type="button" class="myEdit" id="buttonE' + newrowID + '">Edit</button>&nbsp;&nbsp;<button type="button" class="myDelete" id="buttonD' + newrowID + '">Delete</button></span>';
+                    newCell5.innerHTML += '<span class="hiddenSpan" id="span2' + newrowID + '"><button type="button" class="mySave" id="buttonS' + newrowID + '">Save</button>&nbsp;&nbsp;<button type="button" class="myCancel" id="buttonC' + newrowID + '">Cancel</button></span>';
+                    newCell5.innerHTML += '&nbsp;&nbsp;';
+                    document.getElementById("buttonE" + newrowID).addEventListener('click', editClick);
+                    document.getElementById("buttonD" + newrowID).addEventListener('click', deleteClick);
+                    document.getElementById("buttonS" + newrowID).addEventListener('click', saveClick);
+                    document.getElementById("buttonC" + newrowID).addEventListener('click', cancelClick);
+                    document.getElementById("buttonC00").click();
+                    break;
+                }
+            }
+        };
+        function openPopup() 
+        {
+            popupOverlay.style.display = 'block';
+        }
+        function closePopup(saveGL) 
+        {
+            popupOverlay.style.display = 'none';
+            if(saveGL == true)
+            {
+                var glSelect = document.getElementById("gl00");
+                const glSelectOptions = glSelect.options;
+                var newGLValue = document.getElementById("newGL").value;
+                const newGLOption = new Option(newGLValue,null,false,true);
+                for (let i = 0; i < glSelectOptions.length; i++) 
+                {
+                    if (glSelectOptions[i].text > newGLValue) 
+                    { 
+                        glSelect.add(newGLOption,i);
+                        break; // Exit loop once found and selected
+                    }
+                }
+            } 
+        };
+        $(document).ready(function () {
+        const editButtons = document.querySelectorAll('.myEdit');
+        const saveButtons = document.querySelectorAll('.mySave');
+        const cancelButtons = document.querySelectorAll('.myCancel');
+        const deleteButtons = document.querySelectorAll('.myDelete');
+        editButtons.forEach(editButton => 
+        {
+            editButton.addEventListener('click', editClick); 
+        });
+        cancelButtons.forEach(cancelButton => 
+        {
+            cancelButton.addEventListener('click', cancelClick);
+        });
+        saveButtons.forEach(saveButton => 
+        {
+            saveButton.addEventListener('click', saveClick); 
+        });
+        deleteButtons.forEach(deleteButton => 
+        {
+            deleteButton.addEventListener('click', deleteClick);
+        });
+        document.getElementById("buttonC00").addEventListener('click', function() 
+        {
+            var resetDate = new Date();
+            const tmpMonth = String(resetDate.getMonth()+1).padStart(2, '0');
+            const tmpDay = String(resetDate.getDate()).padStart(2, '0');
+            const formattedDate = resetDate.getFullYear()+'-'+tmpMonth+'-'+tmpDay;
+            document.getElementById("date00").value = formattedDate;
+            document.getElementById("gl00").value = "0302";
+            document.getElementById("desc00").value = "";
+            document.getElementById("amount00").value = "0.00";
+        });
+        });
+        document.getElementById("gl00").addEventListener('change', function()
+        {
+            var glSelected = this.value;
+            if(glSelected == "Other")
+            {
+                openPopup();
+            }
+        });
+    </script>
+}

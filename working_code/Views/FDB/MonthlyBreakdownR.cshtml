@@ -1,0 +1,206 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@{
+ DateTime startDate = (DateTime)ViewBag.FiscalYearStartDate;
+ var yearName = startDate.ToString("yyyy");
+    DateTime currentDate = DateTime.Now;
+    int monthIndex = 0;
+
+    decimal totalSDTaken = 0;
+    decimal totalSDApplied = 0;
+    decimal totalSDMR = 0;
+    decimal totalNetChange1 = 0;
+    decimal totalRDTaken = 0;
+    decimal totalRDApplied = 0;
+    decimal totalRDMR = 0;
+    decimal totalNetChange2 = 0;
+    decimal totalGDTaken = 0;
+    decimal totalGDApplied = 0;
+    decimal totalGDMR = 0;
+    decimal totalNetChange3 = 0;
+    decimal totalPurchased = 0;
+    decimal totalRedeemedSite = 0;
+    decimal totalRedeemedRent = 0;
+    decimal totalRedeemedSto = 0;
+    decimal totalNetChange4 = 0;
+}
+<div class='head-container'>
+    <h1>Month-By-Month Information for Fiscal Year @yearName</h1>
+    <p>&nbsp;</p>
+    <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
+    <p>&nbsp;</p>
+    <p>single click a specific month for its daily breakdown</p>
+</div>
+
+<body>
+   @if (Model is not null && Model.Tables[0].Rows.Count > 0)
+            {
+<table id="monthly-table" class="breakdown clickable-tableR" style="width:240px">
+    <tr>
+        <th class="breakdownMonth" rowspan="4"><br><br>Month</th>
+        <th class="breakdownBigTitle" colspan="18">Reservations Deposits</th>
+    </tr>
+    <tr>
+        <th class="breakdownTaxBig" colspan="4">Campsites</th>
+        <th class="breakdownTaxBig" colspan="4">Rentals</th>
+        <th class="breakdownTaxBig" colspan="4">Golf Carts</th>
+        <th class="breakdownMonth" rowspan="3"><br><br>Month</th>
+        <th class="breakdownTaxBig" colspan="5">Gift Vouchers</th>
+    </tr>
+    <tr>
+        <th class="breakdownTitle" colspan="3">281</th>
+                <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
+        <th class="breakdownTitle" colspan="3">283</th>
+                <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
+        <th class="breakdownTitle" colspan="3">262</th>
+                <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
+        <th class="breakdownTitle" colspan="4">287</th>
+                <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
+    </tr>
+    <tr>
+        <th class="breakdownTitle">Deposits Taken</th>
+        <th class="breakdownTitle">Deposits Applied</th>
+        <th class="breakdownRefTitle">Manual Refunds Generated</th>
+        <th class="breakdownTitle">Rentals Taken</th>
+        <th class="breakdownTitle">Rentals Applied</th>
+        <th class="breakdownRefTitle">Manual Refunds Generated</th>
+        <th class="breakdownTitle">Deposits Taken</th>
+        <th class="breakdownTitle">Deposits Applied</th>
+        <th class="breakdownRefTitle">Manual Refunds Generated</th>
+        <th class="breakdownTitle">Purchased</th>
+        <th class="breakdownTitle">Redeemed For Sites</th>
+        <th class="breakdownTitle">Redeemed For Rentals</th>
+        <th class="breakdownTitle">Redeemed For Storage</th>
+
+   </tr>
+@foreach (DataRow row in Model!.Tables[0].Rows)
+{
+    var monthDate = startDate.AddMonths(monthIndex);
+    var month = startDate.AddMonths(monthIndex).ToString("MMMM");
+
+    var SDT = ((decimal)row["SitesTaken"]+(decimal)row["SitesTakenFuture"]);
+    var SDA = (decimal)row["SitesApplied"];
+    var SDMRG = (decimal)row["SiteDepMRG"];
+    var RDT = (decimal)row["RentalTaken"]+(decimal)row["RentalTakenFuture"];
+    var RDA = (decimal)row["RentalApplied"];
+    var RDMRG = (decimal)row["RentalDerpMRG"];
+    var GDT = (decimal)row["GolfTaken"];
+    var GDA = (decimal)row["GolfApplied"];
+    var GDMRG = (decimal)row["GolfDepMRG"];
+    var VP = (decimal)row["VouchersPurch"];
+    var VRS = (decimal)row["VouchersRedSite"];
+    var VRR = (decimal)row["VouchersRedRental"];
+    var VRSto = (decimal)row["VouchersRedStorage"];
+    var netChange1 = SDT - (SDA + SDMRG);
+    var netChange2 = RDT - (RDA + RDMRG);
+    var netChange3 = GDT - (GDA + GDMRG);
+    var netChange4 = VP - VRS - VRR - VRSto;
+
+
+    totalSDTaken += SDT;
+     totalSDApplied += SDA;
+     totalSDMR += SDMRG;
+     totalNetChange1 += netChange1;
+     totalRDTaken += RDT;
+     totalRDApplied += RDA;
+     totalRDMR += RDMRG;
+     totalNetChange2 += netChange2 ;
+     totalGDTaken += GDT;
+     totalGDApplied += GDA;
+    totalGDMR += GDMRG;
+     totalNetChange3 += netChange3 ;
+     totalPurchased += VP;
+     totalRedeemedSite += VRS;
+     totalRedeemedRent += VRR;
+     totalRedeemedSto += VRSto;
+     totalNetChange4 += netChange4;
+    
+
+    <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
+        <td class="breakdownData">@month</td>
+        <td class="breakdownData">@SDT</td>
+        <td class="breakdownData">@SDA</td>
+        <td class="breakdownRef">@SDMRG</td>
+        <td class="breakdownTotals">@netChange1</td>
+        <td class="breakdownData">@RDT</td>
+        <td class="breakdownData">@RDA</td>
+        <td class="breakdownRef">@RDMRG</td>
+        <td class="breakdownTotals">@netChange2</td>
+        <td class="breakdownData">@GDT</td>
+        <td class="breakdownData">@GDA</td>
+        <td class="breakdownRef">@GDMRG</td>
+        <td class="breakdownTotals">@netChange3</td>
+        <td class="breakdownData">@month</td>
+        <td class="breakdownData">@VP</td>
+        <td class="breakdownData">@VRS</td>
+        <td class="breakdownData">@VRR</td>
+        <td class="breakdownData">@VRSto</td>
+        <td class="breakdownTotals">@netChange4</td>
+    </tr>
+    monthIndex++;
+}
+<tr>
+    <td class ="breakdownMonth">Totals:</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDTaken)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDApplied)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDMR)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange1)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDTaken)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDApplied)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDMR)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange2)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDTaken)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDApplied)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDMR)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange3)</td>
+    <td class ="breakdownMonth">&nbsp;</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalPurchased)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSite)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedRent)</td>      
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSto)</td>
+    <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange4)</td>
+</tr>
+
+</table>}
+</body>
+
+<script>
+$(document).ready(function () {
+    $("#monthly-table").on("click", "tr", function () {
+        var year = $(this).data("year");
+        var month = $(this).data("month");
+        var date = new Date(year, month - 1, 1); // JavaScript months are 0-based
+        var url = `/FDB/DailyBreakdownR?date=${date.toISOString()}&whichMonth=None`;
+        console.log('single-click detected on table row. URL:', url);
+        if (url) {
+            console.log('Navigating to:', url);
+            window.location.href = url;
+        } else {
+            console.error('URL is undefined');
+        }
+    });
+    var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
+cells.forEach(function (cell) { 
+    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
+    if (!isNaN(amount)) { 
+        if (amount == 0){
+            cell.textContent = ' ';
+        } else {
+            if (amount < 0){
+                cell.classList.add('negative-value');
+                cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
+            } else{
+            cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
+            }
+        }
+    } 
+});
+function formatNumberWithCommas(number) {
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+});
+</script>
+</html>

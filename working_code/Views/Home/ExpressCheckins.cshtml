@@ -1,0 +1,290 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+
+<script src="~/js/site.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var titleDate = ViewBag.reportDate != null ? ViewBag.reportDate.ToString("dddd, MMMM dd, yyyy"): "No Data Selected";
+    var rptDay = ViewBag.reportDate != null ? ViewBag.reportDate.ToString("ddd"): "Any";
+    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    string rightnow = DateTime.Now.ToString("MM/dd/yyyy h:mm tt");
+    var remVal = "1.0rem";
+}
+@if(isPdf)
+{
+    <h4 style="text-align: right;">@rightnow</h4>
+}
+<h2 style="text-align: center;">Express Check-in Wristbands Claim List For @titleDate</h2>
+@if (!isPdf)
+{
+    <input type="date" id="datePicker" placeholder="Select a date" />
+    <input class = "dataButton" type="button" id="fetchDataButton" value="Fetch Data" />
+    <input class="pdfButton" type="button" id="generatePdfButton" value="Generate PDF" />
+    <p></p>
+}
+<style>
+    .yellow2{
+    text-align: right;
+    }
+    .gray{
+    text-align: right;
+    }
+    .centered{
+        text-align: center;
+    }
+    .tables-wrapper{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin:10px;
+    }
+td{
+        border-color: black;
+        border-width: 1px;
+        border-style: solid;
+        font-size: @remVal;
+    }
+    @@media (max-width: 400px) {
+        .ded {
+            display: none;
+        }
+
+        .tots {
+            display: none;
+        }
+
+        .widget {
+            width: 100%;
+            background: #f1f1f1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            align-items: center;
+        }
+    }
+
+    @@media (min-width: 401px) {
+        .tot {
+            display: none;
+        }
+    }
+</style>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+    <div class="table-wrapper">
+        <table style="border: none;">
+            <tr>
+                <td style="border: none; vertical-align: top;">
+                    <table id="toClaim">
+                        <thead>
+                            <tr>
+                                <td colspan="6" class="centered">Waiting to be Claimed</td>
+                            </tr>
+                            <tr>
+                                <td class="centered">&nbsp;Booking ID&nbsp;</td>
+                                <td>&nbsp;Guest Name&nbsp;</td>
+                                <td>&nbsp;Site #&nbsp;</td>
+                                <td>&nbsp;Arrival&nbsp;</td>
+                                <td>&nbsp;Wristbands to Issue&nbsp;</td>
+                                <td>&nbsp;Claim&nbsp;</td>
+                            </tr>
+                        </thead>
+                        <tbody> 
+                            @{
+                                var rowNum = 0;
+                            }
+                            @foreach (DataRow row in Model!.Tables[0].Rows)
+                            {
+                                rowNum ++;
+                                var guestName = row["LastName"] + ", " + row["FirstName"];
+                                var boxID = "claimBox" + @row["BookingID"];
+                                var rowID = "row" + @row["BookingID"];
+                                string backColor;
+                                DateTime scheduled = (DateTime)row["Scheduled"];
+                                if(scheduled.Date != DateTime.Today)
+                                {
+                                    backColor = "background-color: lightsalmon";
+                                }
+                                else
+                                {
+                                    backColor = "background-color: none";
+                                }
+                                <tr style="@backColor" id="@rowID">
+                                    <td class="centered">@row["BookingID"]</td>
+                                    <td>&nbsp; @guestName &nbsp;</td>
+                                    <td class="centered">@row["SiteNum"]</td>
+                                    <td class="centered">@scheduled.ToShortDateString()</td>
+                                    <td class="centered">@row["Wristbands"]</td>
+                                    <!-- the class of 'my-checkbox' is a dummy class used to assign a function  -->
+                                    <td class="centered"><input type="checkbox" class="my-checkbox" id=@boxID></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </td>
+                <td style="border: none">&nbsp;&nbsp;&nbsp;</td>
+                <td style="border: none; vertical-align: top;">
+                    <table id="claimedTable">
+                        <thead>
+                            <tr>
+                                <td colspan="6" class="centered">Claimed Today</td>
+                            </tr>
+                            <tr>
+                                <td class="centered">&nbsp;Booking ID&nbsp;</td>
+                                <td>&nbsp;Guest Name&nbsp;</td>
+                                <td>&nbsp;Site #&nbsp;</td>
+                                <td>&nbsp;Wristbands Issued&nbsp;</td>
+                                <td>&nbsp;Claimed&nbsp;</td>
+                            </tr>
+                        </thead>
+                        <tbody> 
+                            @foreach (DataRow row in Model!.Tables[1].Rows)
+                            {
+                                var guestName = row["LastName"] + ", " + row["FirstName"];
+                                DateTime claimed = (DateTime)row["ClaimedDate"];
+                                <tr>
+                                    <td class="centered">@row["BookingID"]</td>
+                                    <td>&nbsp; @guestName &nbsp;</td>
+                                    <td class="centered">@row["SiteNum"]</td>
+                                    <td class="centered">@row["Wristbands"]</td>
+                                    <td class="centered">@claimed.ToShortTimeString()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+}
+else
+{
+    <h1>No Data Found For This Date</h1>
+}
+@section Scripts 
+{
+    <script>
+        let today = new Date();
+        var todayStr = today.toISOString().split('T')[0];
+        document.getElementById('datePicker').setAttribute('min', todayStr);
+        document.getElementById('fetchDataButton').addEventListener('click', function ()
+        {
+            var selectedDate = document.getElementById('datePicker').value;
+            if(selectedDate){
+                 var url = '@Url.Action("ExpressCheckins","Home")'+'?checkinDate=' + selectedDate;
+                 window.location.href = url;
+            }
+        });
+        document.getElementById('generatePdfButton').addEventListener('click', function () 
+        {
+            var currentUrl = new URL(window.location.href);
+            var dateParam = currentUrl.searchParams.get("checkinDate");
+            if (dateParam)
+            {
+                window.location.href = '@Url.Action("GenerateExpressPDF", "Home")' + '?checkinDate=' + dateParam;
+            } 
+            else
+            {
+                window.location.href = '@Url.Action("GenerateExpressPDF", "Home")';
+            }
+        });
+        $(document).ready(function () {
+            var currentUrl = new URL(window.location.href); 
+            var dateParam = currentUrl.searchParams.get("checkinDate"); 
+            if (dateParam) 
+            { 
+                document.getElementById('datePicker').value = dateParam; 
+                document.querySelector('h1').innerText = "Express Check-ins For " + dateParam;
+            }
+        const checkboxes = document.querySelectorAll('.my-checkbox');
+        checkboxes.forEach(checkbox => 
+        {
+            checkbox.addEventListener('change', function() 
+                {
+                    $.ajax(
+                        {
+                            type: "POST", 
+                            url: "/Home/UpdateClaims",
+                            dataType: "json",
+                            data: { "bookingIdIn": this.id},
+                            success: function(response) 
+                            {
+                                var rowID = "row" + response.bookingId;
+                                const toClaimTable = document.getElementById("toClaim");
+                                var oldRows = toClaimTable.rows;
+                                for (var i = 0; i < oldRows.length; i++) 
+                                {
+                                    var row = oldRows[i];
+                                    if(row.id == rowID)
+                                    {
+                                        var cells = row.cells;
+                                        const claimedTable = document.getElementById("claimedTable");
+                                        const newRow = claimedTable.insertRow(-1);
+                                        const cell0 = newRow.insertCell(0);
+                                        cell0.classList.add("centered");
+                                        cell0.innerHTML = cells[0].innerHTML;
+                                        const cell1 = newRow.insertCell(1);
+                                        cell1.innerHTML = cells[1].innerHTML;
+                                        const cell2 = newRow.insertCell(2);
+                                        cell2.classList.add("centered");
+                                        cell2.innerHTML = cells[2].innerHTML;
+                                        const cell3 = newRow.insertCell(3);
+                                        cell3.classList.add("centered");
+                                        cell3.innerHTML = cells[4].innerHTML;
+                                        const cell4 = newRow.insertCell(4);
+                                        cell4.classList.add("centered");
+                                        cell4.innerHTML = response.dateString;
+                                        document.getElementById(rowID).remove();
+                                        sortTable();
+                                        break;
+                                    }
+                                }
+                            },
+                            failure: function(response) 
+                            {
+                                alert(response.responseText);
+                            },
+                            error: function(response) 
+                            {
+                                alert(response.responseText);
+                            },
+                        }
+                    );
+                    //alert(checkbox.id);
+                }
+            );
+        });
+        });
+        function sortTable() {
+            var mytable, i, x, y;
+            mytable = document.getElementById("claimedTable");
+            var switching = true;
+            while (switching)
+            {
+                switching = false;
+                var claimRows = mytable.rows;
+                for (i = 2; i < (claimRows.length - 1); i++)
+                {
+                    var Switch = false;
+                    var irow = claimRows[i];
+                    var irowplus1 = claimRows[i+1];
+                    var irowCells = irow.cells;
+                    var irowplus1Cells = irowplus1.cells;
+                    if(irowCells[1].innerText > irowplus1Cells[1].innerText)
+                    {
+                        Switch = true;
+                        break;
+                    }
+                }
+                if(Switch)
+                {
+                    claimRows[i].parentNode.insertBefore(claimRows[i + 1], claimRows[i]);
+                    switching = true;
+                }
+            }
+        }
+    </script>
+}

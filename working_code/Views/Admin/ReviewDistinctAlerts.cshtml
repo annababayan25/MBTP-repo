@@ -1,0 +1,151 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+<script src="~/js/site.js"></script>
+
+@{
+    ViewData["Title"] = "Alert Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+
+.color {
+    background-color: #b4dfff;
+}
+
+.center {
+    margin: auto;
+    text-align: center;
+    height: auto;
+    width: 80%;
+    max-width: 500px;
+    border: 3px solid #b4dfff;
+    padding: 30px 20px;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
+.container {
+    width: 100%;
+    margin: 0 auto;
+}
+
+.centered {
+    text-align: center;
+    border: 1px black solid;
+}
+
+@@media (max-width: 600px) {
+    .center {
+        width: 90%;
+        padding: 20px 10px;
+    }
+
+
+    .signOUT {
+        font-size: 24px;
+    }
+
+
+    .pdfButton {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+.errorText{
+  text-align: left;
+  border: 1px black solid;
+  padding-left: 5px;
+  padding-right: 5px;
+  color: black;
+}
+</style>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+    <table class="breakdown" id="alertTable">
+        <tr>
+            <th class="breakdownBigTitle" colspan="3">Alerts to Review</th>
+        </tr>
+        <tr>
+            <th class="breakdownTitle">Error Date</th>
+            <th class="breakdownTitle">Error Description</th>
+            <th class="breakdownTitle">Blackout Date</th>
+        </tr>
+        @if (Model is not null && Model.Tables[0].Rows.Count > 0)
+        {
+            var rowNum = 0;
+            @foreach (DataRow row in Model!.Tables[0].Rows)
+            {
+                rowNum ++;
+                var rowID = "row" + rowNum;
+                var transDate = (DateTime)row["TransDate"];
+                int pcID = (int) row["PCID"];
+                string boxID = transDate.ToString("yyy-MM-dd") + pcID.ToString();
+                <tr class="colorAlt" id="@rowID" >
+                    <td class="breakdownDate" style="text-align: center;">@transDate.ToString("MM/dd/yy")</td>
+                    <td class="errorText">@row["alerttext"]</td>
+                    @if(pcID != 100)
+                    {
+                        <td class="centered"><input type="checkbox" class="my-checkbox" id=@boxID name=@rowID></td>
+                    }
+                    else
+                    {
+                        <td class="centered">&nbsp;</td>
+                    }
+                </tr>
+            }
+        }
+    </table>
+}
+else
+{
+    <h1>No Data Found</h1>
+}
+@section Scripts 
+{
+<script>
+    $(document).ready(function () {
+        const checkboxes = document.querySelectorAll('.my-checkbox');
+        checkboxes.forEach(checkbox => 
+        {
+            checkbox.addEventListener('change', function() 
+                {
+                    var rowID = this.name;
+                    $.ajax(
+                        {
+                            type: "POST", 
+                            url: "/Admin/AddBlackout",
+                            dataType: "json",
+                            data: { "blackoutIdIn": this.id},
+                            success: function(response) 
+                            {
+                                const alertTable = document.getElementById("alertTable");
+                                var oldRows = alertTable.rows;
+                                for (var i = 0; i < oldRows.length; i++) 
+                                {
+                                    var row = oldRows[i];
+                                    if(row.id == rowID)
+                                    {
+                                        document.getElementById(rowID).remove();
+                                        break;
+                                    }
+                                }
+                            },
+                            failure: function(response) 
+                            {
+                                alert(response.responseText);
+                            },
+                            error: function(response) 
+                            {
+                                alert(response.responseText);
+                            },
+                        }
+                    );
+                }
+            );
+        });
+    });
+</script>
+}

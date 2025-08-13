@@ -1,0 +1,21 @@
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+*.cache
+*.mdb
+
+# VS and MSBuild folders/files
+.vs/
+*.user
+*.suo
+
+# Rider
+.idea/
+
+# Temporary files
+*.log
+*.tmp
+*.bak

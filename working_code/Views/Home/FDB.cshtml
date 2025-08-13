@@ -1,0 +1,99 @@
+<style>
+.pdfButton {
+    background-color: #b4dfff;
+    border: none;
+    color: white;
+    padding: 15px; /* Adjust padding as needed */
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    width: 100%; /* Make buttons take full width of the container */
+    max-width: 250px; /* Set a maximum width */
+    margin: 0 auto; /* Center the button */
+}
+
+.beach-image {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.container {
+    margin-top: 20px;
+}
+
+.centered-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px; /* Add space between buttons */
+}
+</style>
+
+<!DOCTYPE html>
+@{
+    ViewData["Title"] = "Home Page";
+    var accID = User.FindFirst("AccID")?.Value;
+    int accIDInt = 0;
+    int.TryParse(accID, out accIDInt);
+}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="icon" href="~/images/favicon.png" type="image/png" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<body class="homePage bg-dark text-white">
+    <div class="container">
+        <h1 class="display-4 text-center" style="text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000">
+            Myrtle Beach Travel Park Financial Database
+        </h1>
+        <div class="centered-buttons my-4">
+            @if (accIDInt < 8)
+            {
+                <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Yearly Report</a>
+                <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Monthly" asp-route-whichMonth="Current">Monthly Report</a>
+            }
+            @if (accID != "6" && accID != "7")
+            {
+                <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Snapshot">Snapshots</a>
+            }
+            @if (accIDInt < 4 || accIDInt == 6)
+            {
+                <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="DailyReservation">Daily Reservations Report</a>
+            }
+            @if (accIDInt <= 6 && accIDInt != 3)
+            {
+                <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Daily">Daily Operations Report</a>
+            }
+            @if (accIDInt == 6)
+            {
+                <a class="pdfButton" asp-area="" asp-controller="Admin" asp-action="ProcessExports">Process POS Data</a>
+                <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="ManageMisc">Enter Miscellaneous Income</a>
+            }
+        </div>
+    </div>
+        <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+</body>
+</html>

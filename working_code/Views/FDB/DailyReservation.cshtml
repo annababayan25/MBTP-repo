@@ -1,0 +1,1031 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+<script src="~/js/site.js"></script>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var titleDate = ViewBag.FinalDate != null ? ViewBag.FinalDate.ToString("dddd, MMMM dd, yyyy"): "No Data Selected";
+    var accID = User.FindFirst("AccID")?.Value;
+    const string numformat = "{0:#,##0.00;(#,##0.00);0.0}";
+    const string numformatdashed = "{0:#,##0.00;(#,##0.00);------}";
+    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    string rightnow = DateTime.Now.ToString("MM/dd/yyyy h:mm tt");
+    string opsButtonText = "Operations Report for " + ViewBag.FinalDate.ToString("MMM dd, yyyy");
+}
+@if(isPdf)
+{
+    <h4 style="text-align: right;">@rightnow</h4>
+}
+<h2 style="text-align: center;">Daily Reservations Overview for @titleDate</h2>
+@if (!isPdf)
+{
+    <input type="date" id="datePicker" placeholder="Select a date" />
+    <input class = "dataButton" type="button" id="fetchDataButton" value="Fetch Data" />
+    <input class="pdfButton" type="button" id="generatePdfButton" value="Generate PDF" />
+    @if(accID != "3")
+    {
+        <input class="pdfButton" type="button" id="opsButton" value="@(opsButtonText)" />
+    }
+    <p></p>
+}
+<style>
+    .yellow2{
+    text-align: right;
+    }
+    .gray{
+    text-align: right;
+    }
+    .tables-wrapper{
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    margin:10px;
+    }
+
+    @@media (max-width: 400px) {
+        .ded {
+            display: none;
+        }
+
+        .tots {
+            display: none;
+        }
+
+        .widget {
+            width: 100%;
+            background: #f1f1f1;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            font-size: 14px;
+            align-items: center;
+        }
+    }
+
+    @@media (min-width: 401px) {
+        .tot {
+            display: none;
+        }
+    }
+</style>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+    @foreach (DataRow row in Model!.Tables["Weather"].Rows)
+    {
+        var Description = (string)row["Description"];
+        DateTime SunriseString = DateTime.Parse((string)row["sunrise"]);
+        DateTime SunsetString = DateTime.Parse((string)row["sunset"]);
+        //<div class="widget">
+            <div class="grid-container temp">
+                <div>
+                    <table>
+                        <tr>
+                            <td class="weather" style="font-weight:bold">&nbsp;&nbsp;&nbsp;&nbsp;Sunrise:&nbsp;@(SunriseString.ToString("t"))&nbsp;&nbsp;Sunset:&nbsp;@(SunsetString.ToString("t"))</td>
+                        </tr>
+                        <tr>
+                            <td class="weather" style="font-weight:bold; color:@(Description.IndexOf("rain") != -1 ? "darkblue" : "orange")">&nbsp;&nbsp;&nbsp;&nbsp;@((string)row["Description"])&nbsp;&nbsp;High:&nbsp;@String.Format("{0:n0}",((decimal)row["TempMax"]*1.8m)+32)°F&nbsp;&nbsp;Low:&nbsp;@String.Format("{0:n0}",((decimal)row["TempMin"]*1.8m)+32)°F</td>
+                        </tr>
+                        @if(Description.IndexOf("rain") != -1)
+                        {
+                        <tr>
+                            <td class="weather" style="color:darkblue">&nbsp;&nbsp;&nbsp;&nbsp;Rainfall of @String.Format("{0:n2}",((decimal)row["Precip"]*0.0393701m)) inches fell over roughly @String.Format("{0:n0}",(decimal)row["Precipcover"])% of our area</td>
+                        </tr>
+                        }
+                    </table>
+                </div>
+                <div>
+                    @{
+                        @if(Description.IndexOf("rain") != -1)
+                        {
+                            <p style="margin-left:10px" class="emoji">🌧️</p>;
+                        }
+                        else if(Description.IndexOf("Partly sunny") != -1)
+                        {
+                            <p style="margin-left:10px" class="emoji">⛅</p>;
+                        }
+                        else if(Description.IndexOf("Partly cloudy") != -1)
+                        {
+                            <p style="margin-left:10px" class="emoji">🌤️</p>;
+                        }
+                        else if(Description.IndexOf("Cloudy") != -1 || Description.IndexOf("Overcast") != -1)
+                        {
+                            <p style="margin-left:10px" class="emoji">☁️</p>;
+                        }
+                        else
+                        {
+                            <p style="margin-left:10px" class="emoji">☀️</p>;
+                        }
+                    }
+                </div>
+            </div> 
+        //</div>
+    }
+    <table class="widget tots">
+        <tbody>
+            @{
+                decimal miscSum = 0;
+            }
+            @foreach (DataRow row in Model.Tables["Miscellaneous"].Rows)
+            {
+                miscSum += (decimal)row["Amount"];
+            }
+            @foreach (DataRow row in Model!.Tables[0].Rows)
+            {
+                <tr>
+                    <td class="white" style="border-radius:10px">&nbsp;</td>
+                    <td class="white" style="font-weight:bold; border-radius:10px">Reservations:&nbsp;&nbsp;</td>
+                    <td class="blue" style="border-radius:10px">@String.Format(numformat, (decimal)row["Annual Leases"]+(decimal)row["Employee"]+(decimal)row["LT Sites"]+(decimal)row["LT Rentals"]+(decimal)row["Sites"]+(decimal)row["MH Park"]+(decimal)row["Rentals"]+(decimal)row["Lock Fees"]+(decimal)row["Damage Fees"]+(decimal)row["Late Fees"]+(decimal)row["Storage"]+(decimal)row["Transfer Fees"]+(decimal)row["Visitor Fees"]+(decimal)row["Extra Vehicle Fees"]+(decimal)row["Golf Cart Rentals"]+(decimal)row["Misc"]+miscSum)</td>
+                    <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td class="white" style="font-weight:bold; border-radius:10px">Deposits:&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td class="skyblue" style="border-radius:10px">@String.Format(numformat, (decimal)row["SiteDepTakenFuture"]+(decimal)row["SiteDepTaken"]-(decimal)row["SiteDepApp"]+(decimal)row["RentalDepTakenFuture"]+(decimal)row["RentalDepTaken"]-(decimal)row["RentalDepApp"]+(decimal)row["GolfDepTakenFuture"]+(decimal)row["GolfDepTaken"]-(decimal)row["GolfDepApp"]+(decimal)row["VouchersPurch"]-(decimal)row["VouchersRedSite"]-(decimal)row["VouchersRedRental"]-(decimal)row["VouchersRedRentalDep"]-(decimal)row["VouchersRedStorage"]-(decimal)row["VouchersRedSiteDep"]-(decimal)row["VouchersRedRentalDep"])</td>
+                    <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td class="white" style="font-weight:bold; border-radius:10px">Other Revenue:&nbsp;&nbsp;</td>
+                    <td class="green" style="border-radius:10px">@String.Format(numformat, (decimal)row["Events"] + (decimal)row["Propane"])</td>
+                    <td class="white" style="border-radius:10px">&nbsp;</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="tables-wrapper">
+        <div class="table-wrapper">
+            <table>
+                <tbody> 
+                    @foreach (DataRow row in Model!.Tables[0].Rows)
+                    {
+                        <tr class="top">
+                            <td style=text-align:center colspan="6">Additions</td>
+                        </tr>
+                        <tr class="daily">
+                            <td colspan="6">1. Non-Taxable Campsites Income</td>
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">1a. Annual Leases</td>
+                            @if((decimal)row["Annual Leases"] != 0)
+                            {
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["Annual Leases"])</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td colspan="5">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">1b. Employee Sites</td>
+                            @if((decimal)row["Employee"] != 0)
+                            {
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["Employee"])</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td colspan="5">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">1c. Long Term Site Rentals</td>
+                            @if((decimal)row["LT Sites"] != 0)
+                            {
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["LT Sites"])</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td colspan="5">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">1d. Long Term Unit Rentals</td>
+                            @if((decimal)row["LT Rentals"] != 0)
+                            {
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["LT Rentals"])</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td colspan="5">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Non-Taxable Campsites Income:&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td class="center">302</td>
+                            @if((decimal)row["Annual Leases"]+(decimal)row["Employee"]+(decimal)row["LT Sites"]+(decimal)row["LT Rentals"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@((decimal)row["Annual Leases"]+(decimal)row["Employee"]+(decimal)row["LT Sites"]+(decimal)row["LT Rentals"] != 0 ? String.Format(numformat,(decimal)row["Annual Leases"]+(decimal)row["Employee"]+(decimal)row["LT Sites"]+(decimal)row["LT Rentals"]) : "")</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>2. Campsite Rentals</td>
+                            <td>&nbsp;</td>
+                            <td class="center">304</td>
+                            @if((decimal)row["Sites"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Sites"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>3. Mobile Home Rentals</td>
+                            <td>&nbsp;</td>
+                            <td class="center">306</td>
+                            @if((decimal)row["MH Park"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["MH Park"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>4. Rental Unit Rentals</td>
+                            <td>&nbsp;</td>
+                            <td class="center">307</td>
+                            @if((decimal)row["Rentals"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Rentals"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>5. Lock Fees</td>
+                            <td>&nbsp;</td>
+                            <td class="center">309</td>
+                            @if((decimal)row["Lock Fees"] !=0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Lock Fees"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>6. Damage Fees</td>
+                            <td>&nbsp;</td>
+                            <td class="center">310</td>
+                            @if((decimal)row["Damage Fees"] !=0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Damage Fees"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>7. Late Fees</td>
+                            <td>&nbsp;</td>
+                            <td class="center">311</td>
+                            @if((decimal)row["Late Fees"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Late Fees"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>8. Propane-Office Sales</td>
+                            <td>&nbsp;</td>
+                            <td class="center">320</td>
+                            @if((decimal)row["Propane"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="green">@String.Format(numformat,(decimal)row["Propane"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                            </tr>
+                        <tr class="daily">
+                            <td>9. Storage and Tow Fees</td>
+                            <td>&nbsp;</td>
+                            <td class="center">356</td>
+                            @if((decimal)row["Storage"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Storage"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>10. Lease Transfer Fees </td>
+                            <td>&nbsp;</td>
+                            <td class="center">358</td>
+                            @if((decimal)row["Transfer Fees"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Transfer Fees"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>11. Events Income</td>
+                            <td>&nbsp;</td>
+                            <td class="center">359</td>
+                            @if((decimal)row["Events"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="green">@String.Format(numformat,(decimal)row["Events"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>12. Visitor Fees</td>
+                            <td>&nbsp;</td>
+                            <td class="center">360</td>
+                            @if((decimal)row["Visitor Fees"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Visitor Fees"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>13. Extra Vehicle Fees</td>
+                            <td>&nbsp;</td>
+                            <td class="center">361</td>
+                            @if((decimal)row["Extra Vehicle Fees"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Extra Vehicle Fees"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>14. Golf Cart Rentals</td>
+                            <td>&nbsp;</td>
+                            <td class="center">362</td>
+                            @if((decimal)row["Golf Cart Rentals"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Golf Cart Rentals"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                         </tr>
+                        <tr class="daily">
+                            <td colspan="6">15. Campsite Deposits</td>
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["SiteDepTakenFuture"] != 0)
+                            {
+                                <td class="tableHead">15a. To Be Realized FY 2025/FY 2026</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["SiteDepTakenFuture"])</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td class="tableHead" colspan="6">15a. To Be Realized FY 2025/FY 2026</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["SiteDepTaken"] != 0)
+                            {
+                                <td class="tableHead">15b. To Be Realized FY 2024</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["SiteDepTaken"])</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td class="tableHead" colspan="6">15b. To Be Realized FY 2024</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["SiteDepTakenFuture"]+(decimal)row["SiteDepTaken"] != 0)
+                            {
+                            <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")" colspan="2">Total Site Deposits Received:&nbsp;</td>
+                            <td class="center">281</td>
+                            <td colspan="2">&nbsp;</td>
+                            <td class="skyblue">@String.Format(numformat,(decimal)row["SiteDepTakenFuture"]+(decimal)row["SiteDepTaken"])</td>
+                            }
+                            else
+                            {
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")" colspan="6">Total Site Deposits Received:&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">15c. Campsites Deposits Applied</td>
+                            <td>&nbsp;</td>
+                            <td class="center">281</td>
+                            @if((decimal)row["SiteDepApp"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                if((decimal)row["SiteDepApp"] >= 0)
+                                {
+                                    <td class="skyblue negative-value">@String.Format(numformat,(decimal)row["SiteDepApp"] * -1)</td>
+                                }
+                                else
+                                {
+                                    <td class="skyblue">@String.Format(numformat,(decimal)row["SiteDepApp"] * -1)</td>
+                                }
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td colspan="6">16. Rental Unit Deposits</td>
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["RentalDepTakenFuture"] != 0)
+                            {
+                                <td class="tableHead">16a. To Be Realized FY 2025/FY 2026</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["RentalDepTakenFuture"])</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td class="tableHead" colspan="6">16a. To Be Realized FY 2025/FY 2026</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["RentalDepTaken"] != 0)
+                            {
+                                <td class="tableHead">16b. To Be Realized FY 2024</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["RentalDepTaken"])</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                 <td class="tableHead" colspan="2">16b. To Be Realized FY 2024</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["RentalDepTakenFuture"]+(decimal)row["RentalDepTaken"] != 0)
+                            {
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Rental Deposits Received:</td>
+                                <td>&nbsp;</td>
+                                <td class="center">283</td>
+                                <td colspan="2">&nbsp;</td>
+                                <td class="skyblue">@String.Format(numformat,(decimal)row["RentalDepTakenFuture"]+(decimal)row["RentalDepTaken"])</td>
+                            }
+                            else
+                            {
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")" colspan="6">Total Rental Deposits Received:</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">16c. Rental Units Deposits Applied</td>
+                            <td>&nbsp;</td>
+                            <td class="center">283</td>
+                            @if((decimal)row["RentalDepApp"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                if((decimal)row["RentalDepApp"] >= 0)
+                                {
+                                    <td class="skyblue negative-value">@String.Format(numformat,(decimal)row["RentalDepApp"] * -1)</td>
+                                }
+                                else
+                                {
+                                    <td class="skyblue">@String.Format(numformat,(decimal)row["RentalDepApp"] * -1)</td>
+                                }
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td colspan="6">17. Golf Cart Rental Deposits</td>
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">17a. Golf Cart Deposits Received</td>
+                            <td>&nbsp;</td>
+                            <td class="center">262</td>
+                            @if((decimal)row["GolfDepTakenFuture"]+(decimal)row["GolfDepTaken"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="skyblue">@String.Format(numformat,(decimal)row["GolfDepTakenFuture"]+(decimal)row["GolfDepTaken"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">17b. Golf Cart Deposits Applied</td>
+                            <td>&nbsp;</td>
+                            <td class="center">262</td>
+                            @if((decimal)row["GolfDepApp"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                if((decimal)row["GolfDepApp"] >= 0)
+                                {
+                                    <td class="skyblue negative-value">@String.Format(numformat,(decimal)row["GolfDepApp"] * -1)</td>
+                                }
+                                else
+                                {
+                                    <td class="skyblue">@String.Format(numformat,(decimal)row["GolfDepApp"] * -1)</td>
+                                }
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td colspan="6">18. Gift Vouchers</td>
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead">18a. Vouchers Sold</td>
+                            <td>&nbsp;</td>
+                            <td class="center">287</td>
+                            @if((decimal)row["VouchersPurch"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="skyblue">@String.Format(numformat,(decimal)row["VouchersPurch"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead" colspan="6">18b. Vouchers Redeemed</td>
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["VouchersRedSite"] != 0)
+                            {
+                                <td class="tableHead3">18b1. For Campsites </td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["VouchersRedSite"] * -1)</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td class="tableHead3" colspan="6">18b1. For Campsites </td>
+                            }
+                         </tr>
+                        <tr class="daily">
+                            @if((decimal)row["VouchersRedRental"] != 0)
+                            {
+                                <td class="tableHead3">18b2. For Rentals</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["VouchersRedRental"] * -1)</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td class="tableHead3" colspan="6">18b2. For Rentals</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["VouchersRedStorage"] != 0)
+                            {
+                                <td class="tableHead3">18b3. For Storage</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["VouchersRedStorage"] * -1)</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td class="tableHead3" colspan="6">18b3. For Storage</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["VouchersRedSiteDep"] != 0)
+                            {
+                                <td class="tableHead3">18b4. For Campsite Deposits</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["VouchersRedSiteDep"] * -1)</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td class="tableHead3" colspan="6">18b4. For Campsite Deposits</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            @if((decimal)row["VouchersRedRentalDep"] != 0)
+                            {
+                                <td class="tableHead3">18b5. For Rental Deposits</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformat,(decimal)row["VouchersRedRentalDep"] * -1)</td>
+                                <td>&nbsp;</td>
+                            }
+                            else
+                            {
+                                <td class="tableHead3" colspan="6">18b5. For Rental Deposits</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td class="tableHead2">Total Vouchers Redeemed:</td>
+                            <td>&nbsp;</td>
+                            <td class="center">287</td>
+                            @if((decimal)row["VouchersRedSite"]+(decimal)row["VouchersRedRental"]+(decimal)row["VouchersRedRentalDep"]+(decimal)row["VouchersRedStorage"]+(decimal)row["VouchersRedSiteDep"]+(decimal)row["VouchersRedRentalDep"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="skyblue negative-value">@String.Format(numformatdashed,((decimal)row["VouchersRedSite"]+(decimal)row["VouchersRedRental"]+(decimal)row["VouchersRedRentalDep"]+(decimal)row["VouchersRedStorage"]+(decimal)row["VouchersRedSiteDep"]+(decimal)row["VouchersRedRentalDep"])* -1)</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        <tr class="daily">
+                            <td>19. Miscellaneous Receipts</td>
+                            <td>&nbsp;</td>
+                            <td class="center">925</td>
+                            @if((decimal)row["Misc"] != 0)
+                            {
+                                <td colspan="2">&nbsp;</td>
+                                <td class="blue">@String.Format(numformat,(decimal)row["Misc"])</td>
+                            }
+                            else
+                            {
+                                <td colspan="3">&nbsp;</td>
+                            }
+                        </tr>
+                        @if(Model.Tables["Miscellaneous"].Rows.Count != 0)
+                        {
+                            int rowNum = 20;
+                            string glCode;
+                            @foreach (DataRow row2 in Model.Tables["Miscellaneous"].Rows)
+                            {
+                                <tr class="daily">
+                                    <td>@(rowNum.ToString()). @(row2["Description"])</td>
+                                    <td>&nbsp;</td>
+                                    @{
+                                        glCode = (string)row2["GL"];
+                                        glCode = glCode.Substring(1);
+                                        rowNum += 1;
+                                    }
+                                    <td class="center">@(glCode)</td>
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="blue">@String.Format(numformat,(decimal)row2["Amount"])</td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <p></p>
+        <div class="table-wrapper">
+            <table>
+                <tbody> 
+                    @foreach (DataRow row in Model.Tables["Deductions"].Rows)
+                    {
+                        <tr class="top">
+                            <td colspan="6" style=text-align:center>Deductions</td>
+                        </tr>
+                        <tr class="daily">
+                            <td>1. Credit Card Deposit</td>
+                                <td>&nbsp;</td>
+                                <td class="center">102</td>
+                                <td colspan="2">&nbsp;</td>
+                                <td class="right">@String.Format(numformat, (decimal)row["OfficeCC"])</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6">&nbsp;</td>
+                        </tr>
+                        <tr class="daily">
+                            <td>2. Expected Cash Deposit</td>
+                                <td>&nbsp;</td>
+                                <td class="center">103</td>
+                                <td colspan="2">&nbsp;</td>
+                            <td class="right">@String.Format(numformat, (decimal)row["OfficeCash"])</td>
+                        </tr>
+                        <tr>
+                            <td colspan="6">&nbsp;</td>
+                        </tr>
+                    }
+                    <tr class="top">
+                        <td colspan="6" style=text-align:center>Balance Transfers (activity included in Addtions)</td>
+                    </tr>
+                    @if (Model is not null && Model.Tables["Transfers"].Rows.Count > 0)
+                    {
+                        @foreach (DataRow row in Model.Tables["Transfers"].Rows)
+                        {
+                            @if ((decimal)row["Sites"] != 0 || (decimal)row["Rentals"] != 0 || (decimal)row["Annual"] != 0 || (decimal)row["GolfCarts"] != 0 || (decimal)row["MHPark"] != 0 || (decimal)row["Storage"] != 0 || (decimal)row["SiteDeposits"] != 0 || (decimal)row["RentalDeposits"] != 0 || (decimal)row["GolfDeposits"] != 0 || (decimal)row["Vouchers"] != 0 || (decimal)row["Forfeits"] != 0 || (decimal)row["Guests"] != 0 || (decimal)row["Other"] != 0)
+                            {
+                                <tr class="daily">
+                                    <td>a. To/From Annual Leases</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">302</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Annual"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>b. To/From Campsite Rentals</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">304</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Sites"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>c. To/From Mobile Home Leases</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">306</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["MHPark"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>d. To/From Rental Unit Rentals</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">307</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Rentals"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>e. To/From Storage</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">356</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Storage"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>f. To/From Golf Cart Rentals</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">362</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["GolfCarts"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>g. To/From Campsite Deposits</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">281</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["SiteDeposits"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>h. To/From Rental Unit Deposits</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">283</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["RentalDeposits"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>i. To/From Golf Cart Deposits</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">262</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["GolfDeposits"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>j. To/From Vouchers</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">287</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Vouchers"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>k. To/From Forfeits</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Forfeits"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>l. To/From Guests</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Guests"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>m. To/From Other</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Other"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead2">Non-Taxable of Balance Transfers:</td>
+                                    <td colspan="4">&nbsp;</td>
+                                    <td class="right">@String.Format(numformatdashed,(decimal)row["Sites"]+(decimal)row["Rentals"]+(decimal)row["Annual"]+(decimal)row["GolfCarts"]+(decimal)row["MHPark"]+(decimal)row["Storage"]+(decimal)row["SiteDeposits"]+(decimal)row["RentalDeposits"]+(decimal)row["GolfDeposits"]+(decimal)row["Vouchers"]+(decimal)row["Forfeits"]+(decimal)row["Guests"]+(decimal)row["Other"])</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6">No Balance Transfers Recorded</td>
+                                </tr>
+                            }
+                        }
+                    }    
+                    <tr>
+                        <td colspan="6">&nbsp;</td>
+                    </tr>
+                    <tr class="top">
+                        <td colspan="6" style=text-align:center>Pending Refunds Via Manual Checks</td>
+                    </tr>
+                    @if (Model is not null && Model.Tables["Checks"].Rows.Count > 0)
+                    {
+                        @foreach (DataRow row in Model.Tables["Checks"].Rows)
+                        {
+                            @if ((decimal)row["Sites"]+(decimal)row["Rentals"]+(decimal)row["Annual"]+(decimal)row["Golf"]+(decimal)row["LTSites"]+(decimal)row["LTRentals"]+(decimal)row["MHPark"]+(decimal)row["Storage"]+(decimal)row["SiteDeposits"]+(decimal)row["RentalDeposits"]+(decimal)row["GolfDeposits"]+(decimal)row["Other"] > 0)
+                            {
+                                <tr class="daily">
+                                    <td>a. Campsite Rentals</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">304</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Sites"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>b. Villa/Trailer/Cabin/Cottage Rentals</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">307</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Rentals"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>c. Golf Cart Rentals</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">362</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Rentals"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>d. Long Term/Annual Lease</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">302</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Annual"]+(decimal)row["LTSites"]+(decimal)row["LTRentals"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>e. Mobile Home Park</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">306</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["MHPark"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>f. Storage</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">356</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["MHPark"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>g. Campsite Deposits</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">281</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["SiteDeposits"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>h. Rental Unit Deposits</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">283</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["RentalDeposits"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>i. Golf Cart Deposits</td>
+                                        <td>&nbsp;</td>
+                                        <td class="center">262</td>
+                                        <td>&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["GolfDeposits"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td>j. Other</td>
+                                        <td colspan="3">&nbsp;</td>
+                                        <td class="right">@String.Format(numformat, (decimal)row["Other"])</td>
+                                        <td>&nbsp;</td>
+                                </tr>
+                                <tr class="daily">
+                                    <td class="tableHead2">Total Refunds Checks:</td>
+                                    <td colspan="4">&nbsp;</td>
+                                    <td class="right">@String.Format(numformat,(decimal)row["Sites"]+(decimal)row["Rentals"]+(decimal)row["Annual"]+(decimal)row["Golf"]+(decimal)row["LTSites"]+(decimal)row["LTRentals"]+(decimal)row["MHPark"]+(decimal)row["Storage"]+(decimal)row["SiteDeposits"]+(decimal)row["RentalDeposits"]+(decimal)row["GolfDeposits"]+(decimal)row["Other"])</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6">No Manual Checks Submitted</td>
+                                </tr>
+                            }
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+else
+{
+    <h1>NO DATA FOUND</h1>
+}
+@section Scripts {
+    <script>
+        document.getElementById('fetchDataButton').addEventListener('click', function (){
+            var selectedDate = document.getElementById('datePicker').value;
+            if(selectedDate){
+                 var url = '@Url.Action("DailyReservation","FDB")'+'?date=' + selectedDate;
+                 window.location.href = url;
+            }
+        });
+        document.getElementById('opsButton').addEventListener('click', function (){
+            var currentUrl = new URL(window.location.href);
+            var dateParam = currentUrl.searchParams.get("date");
+            if (dateParam)
+                {
+                    window.location.href = '@Url.Action("Daily", "FDB")' + '?date=' + dateParam;
+                }
+                else
+                {
+                    window.location.href = '@Url.Action("Daily", "FDB")';
+                }
+        });
+        document.getElementById('generatePdfButton').addEventListener('click', function ()
+        {
+            var currentUrl = new URL(window.location.href);
+            var dateParam = currentUrl.searchParams.get("date");
+            if (dateParam)
+                {
+                    window.location.href = '@Url.Action("GeneratePDF2", "FDB")' + '?date=' + dateParam;
+                }
+                else
+                {
+                    window.location.href = '@Url.Action("GeneratePDF2", "FDB")';
+                }
+        });
+        $(document).ready(function () {
+
+        var currentUrl = new URL(window.location.href); 
+        var dateParam = currentUrl.searchParams.get("date"); 
+        if (dateParam) { 
+            document.getElementById('datePicker').value = dateParam; 
+            document.querySelector('h1').innerText = "Daily Reservation Income Overview: " + dateParam;
+            }
+        var cells = document.querySelectorAll('tbody td.right, tbody td.blue, tbody td.green'); 
+        cells.forEach(function (cell) { var amount = parseFloat(cell.textContent); 
+        if (!isNaN(amount)) { 
+            cell.textContent = formatNumberWithCommas(amount.toFixed(2)); 
+            } 
+            });
+                });
+</script>
+}

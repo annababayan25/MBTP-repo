@@ -1,0 +1,134 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+@{
+   DateTime startDate = (DateTime)ViewBag.FiscalYearStartDate;
+   var yearName = startDate.ToString("yyyy");
+   DateTime currentDate = DateTime.Now;
+   int monthIndex = 0;
+
+   decimal totalPreparedFoodC  = 0;
+   decimal totalMerchandiseC = 0;
+   decimal totalNonTaxC = 0;
+   decimal totalGrossRevenue = 0;
+   decimal totalTaxCollected = 0;
+   decimal totalNetRevenue = 0;
+   decimal totalTaxExpected = 0;
+}
+<div class='head-container'>
+    <h1>Month-By-Month Information for Fiscal Year @yearName</h1>
+    <p>&nbsp;</p>
+    <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
+    <p>&nbsp;</p>
+    <p>single click a specific month for its daily breakdown</p>
+</div>
+
+<body>
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+<table id="monthly-table" class="breakdown clickable-tableC" style="width:240px" data-MonthlyBreakdown="/FDB/MonthlyBreakdownC">
+   <tr>
+       <td class="breakdownBigTitle" colspan="8">Coffee Camper</td>
+   </tr>
+   <tr>
+       <th class="breakdownMonth" rowspan="2">Month</th>
+       <th class="breakdownTitle">330</th>
+       <th class="breakdownTitle">331</th>
+       <th class="breakdownTitle">332</th>
+       <th class="breakdownTotalsHead" rowspan="2">Total Gross Revenue</th>
+       <th class="breakdownTotalsHead" rowspan="2">Total Tax Collected</th>
+       <th class="breakdownTotalsHead" rowspan="2">Total Net Revenue</th>
+       <th class="breakdownTotalsHead" rowspan="2">Total Tax Expected</th>        
+   </tr>
+   <tr>
+       <th class="breakdownTitle">Prepared Food</th>
+       <th class="breakdownTitle">Merchandise</th>
+       <th class="breakdownTitle">Non-Tax Food</th>
+   </tr>
+   @foreach (DataRow row in Model!.Tables[0].Rows)
+   {
+       var monthDate = startDate.AddMonths(monthIndex);
+       var month = startDate.AddMonths(monthIndex).ToString("MMMM");
+       var TenP = 1.105m;
+       var preparedFoodC = (decimal)row["PreparedFoodC"];
+       var merchandiseC = (decimal)row["MerchandiseC"];
+       var nonTaxC = (decimal)row["NonTaxFoodC"];
+       var grossRevenue = preparedFoodC + merchandiseC + nonTaxC;
+       var taxCollected = (decimal)row["TaxC"];
+       var netRevenue = grossRevenue - taxCollected;
+       var taxExpected = preparedFoodC - (preparedFoodC / TenP);
+
+       totalPreparedFoodC  += preparedFoodC;
+       totalMerchandiseC += merchandiseC;
+       totalNonTaxC += nonTaxC;
+       totalGrossRevenue += grossRevenue;
+       totalTaxCollected += taxCollected;
+       totalNetRevenue += netRevenue;
+       totalTaxExpected += taxExpected;
+       <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
+           <td class="breakdownData">@month</td>
+           <td class="breakdownData">@String.Format("{0:F2}", preparedFoodC)</td>
+           <td class="breakdownData">@String.Format("{0:F2}", merchandiseC)</td>
+           <td class="breakdownData">@String.Format("{0:F2}", nonTaxC)</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", grossRevenue)</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", taxCollected)</td>
+           <td class="breakdownTotals">@String.Format("{0:F2}", netRevenue)</td>
+           <td class="breakdownTax">@String.Format("{0:F2}", taxExpected)</td>
+       </tr>
+       monthIndex++;
+   }
+   <tr>
+       <td class="breakdownMonth">Totals:</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalPreparedFoodC)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalMerchandiseC)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTaxC)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalGrossRevenue)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxCollected)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevenue)</td>
+       <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxExpected)</td>
+   </tr>
+</table>
+}
+</body>
+
+<script>
+$(document).ready(function () {
+    $("#monthly-table").on("click", "tr", function () {
+        var year = $(this).data("year");
+        var month = $(this).data("month");
+        var date = new Date(year, month - 1, 1); // JavaScript months are 0-based
+        var url = `/FDB/DailyBreakdownC?date=${date.toISOString()}&whichMonth=None`;
+        console.log('single-click detected on table row. URL:', url);
+        if (url) {
+            console.log('Navigating to:', url);
+            window.location.href = url;
+        } else {
+            console.error('URL is undefined');
+        }
+    });
+
+    var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
+    cells.forEach(function (cell) { 
+        var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
+        if (!isNaN(amount)) { 
+            if (amount == 0){
+                cell.textContent = ' ';
+            } else {
+                if (amount < 0){
+                    cell.classList.add('negative-value');
+                    cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
+                } else{
+                    cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
+                }
+            }
+        } 
+    });
+
+    function formatNumberWithCommas(number) {
+        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+});
+</script>
+</html>

@@ -1,0 +1,154 @@
+@{
+   ViewData["Title"] = "Login";
+   var returnUrl = ViewData["ReturnUrl"] as string;
+   bool isAuthenticated = User.Identity.IsAuthenticated;
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <title>@ViewData["Title"]</title>
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" crossorigin="anonymous" />
+   <link rel="stylesheet" href="~/css/site.css" />
+</head>
+<style>
+   .color {
+       background-color: #b4dfff;
+   }
+
+
+   .fa-spinner.fa-pulse.fa-3x.fa-fw {
+       color: #b4dfff;
+   }
+
+
+   .signOUT {
+       font-size: 30px;
+   }
+
+
+   .center {
+       margin: auto;
+       text-align: center;
+       height: auto;
+       width: 80%;
+       max-width: 500px;
+       border: 3px solid #b4dfff;
+       padding: 30px 20px;
+       border-radius: 10px;
+       background-color: #ffffff;
+   }
+
+
+   .container {
+       width: 100%;
+       margin: 0 auto;
+   }
+
+
+   .loginHead {
+       text-align: center;
+       margin-top: 50px;
+   }
+
+
+   .login, .login1 {
+       display: block;
+       margin-bottom: 10px;
+       font-family: Garamond, serif;
+   }
+
+
+   .pdfButton {
+       background-color: #b4dfff;
+       border: none;
+       color: rgb(0, 0, 0);
+       padding: 10px 20px;
+       text-align: center;
+       text-decoration: none;
+       display: inline-block;
+       font-size: 16px;
+       margin: 4px 2px;
+       cursor: pointer;
+       border-radius: 5px;
+   }
+
+
+   .centered {
+       text-align: center;
+   }
+
+
+   .beach-image {
+       width: 80%;
+       margin: auto;
+       display: block;
+   }
+
+
+   @@media (max-width: 600px) {
+       .center {
+           width: 90%;
+           padding: 20px 10px;
+       }
+
+
+       .signOUT {
+           font-size: 24px;
+       }
+
+
+       .pdfButton {
+           padding: 8px 16px;
+           font-size: 14px;
+       }
+   }
+</style>
+<body class="color">
+   @if (isAuthenticated)
+   {
+       <div class="center">
+           <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
+           <h2 class="signOUT">Are you sure you want to log out, @User.Identity.Name?</h2>
+           <form method="post" action="/Home/Logout">
+               <button class="pdfButton" type="submit">Sign Out</button>
+           </form>
+           <button class="pdfButton" onclick="history.back()">Go Back</button>
+           <p>&nbsp;</p>
+           <img class="beach-image" src="~/images/login.png" alt="beach" />
+       </div>
+   }
+   else
+   {
+       <div class="center">
+           <img class="beach-image" src="~/images/login.png" alt="beach" />
+           <p>&nbsp;</p>
+           <h1>Sign In</h1>
+           <form method="post" asp-action="Login">
+               <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+               <div class="container centered">
+                   <p>&nbsp;</p>
+                   <label for="uname"><b>Username:</b></label>
+                   <input style="font-family: Garamond, serif" type="text" placeholder="Enter Username" name="username" required>
+                   <p>&nbsp;</p>
+                   <div class="centered">
+                       <label for="psw"><b>Password:</b></label>
+                       <input style="font-family: Garamond, serif" type="password" placeholder="Enter Password" name="password" required>
+                   </div>
+                   <div class="centered">
+                       <p>&nbsp;</p>
+                       <button class="pdfButton" type="submit">Login</button>
+                   </div>
+                   @if (ViewBag.Error != null)
+                   {
+                       <div style="color:red; text-align:center;">@ViewBag.Error</div>
+                   }
+               </div>
+           </form>
+       </div>
+   }
+</body>
+</html>

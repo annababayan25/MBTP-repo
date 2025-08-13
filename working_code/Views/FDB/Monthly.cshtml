@@ -1,0 +1,768 @@
+@using System.Data
+@using MBTP.Controllers
+@using MBTP.Retrieval
+<script src="~/js/site.js"></script>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var startDate = ViewBag.StartDate != null ? (DateTime)ViewBag.StartDate : DateTime.Now;
+    var endDate = ViewBag.EndDate != null ? (DateTime)ViewBag.EndDate : DateTime.Now.AddDays(-1);
+    var whichMonth = ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current" ? "Prior" : "Current";
+    var monthText = ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current" ? "View Previous Month" : "View Current Month";
+    string urlF, urlG, urlA, urlC, urlR, urlK, urlM;
+    if(ViewBag.WhichMonth == "Prior")
+    {
+        urlF = "/FDB/DailyBreakdownF?date=" + startDate.ToShortDateString() + "&whichMonth=" + ViewBag.WhichMonth;
+        urlG = "/FDB/DailyBreakdownG?date=" + startDate.ToShortDateString() + "&whichMonth=" + ViewBag.WhichMonth;
+        urlR = "/FDB/DailyBreakdownR?date=" + startDate.ToShortDateString() + "&whichMonth=" + ViewBag.WhichMonth;
+        urlA = "/FDB/DailyBreakdownA?date=" + startDate.ToShortDateString() + "&whichMonth=" + ViewBag.WhichMonth;
+        urlC = "/FDB/DailyBreakdownC?date=" + startDate.ToShortDateString() + "&whichMonth=" + ViewBag.WhichMonth;
+        urlK = "/FDB/DailyBreakdownK?date=" + startDate.ToShortDateString() + "&whichMonth=" + ViewBag.WhichMonth;
+        urlM = "/FDB/DailyBreakdownM?date=" + startDate.ToShortDateString() + "&whichMonth=" + ViewBag.WhichMonth;
+    }
+    else
+    {
+        urlF = "/FDB/DailyBreakdownF";
+        urlG = "/FDB/DailyBreakdownG";
+        urlR = "/FDB/DailyBreakdownR";
+        urlA = "/FDB/DailyBreakdownA";
+        urlC = "/FDB/DailyBreakdownC";
+        urlK = "/FDB/DailyBreakdownK";
+        urlM = "/FDB/DailyBreakdownM";
+    }
+    var accID = User.FindFirst("AccID")?.Value;
+    int accIDInt = 0;
+    int.TryParse(accID, out accIDInt);
+
+   var monthName = startDate.ToString("MMMMMMMMMMMMMMMM");
+   var yearName = startDate.ToString("yyyy");
+   var dateRange = $"{startDate:MM/dd/yyyy}-{endDate:MM/dd/yyyy}";
+}
+@{
+    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    bool isPositive = ViewBag.IsPositive != null && (bool)ViewBag.IsPositive;
+    string backgroundColorClassTop = isPositive ? "background-dGreen" : "background-dRed";
+    string backgroundColorClass = isPositive ? "background-green" : "background-red";
+    string dataBackground = isPositive ? "background-GreenB" : "background-RedB";
+}
+<head>
+<style>
+    @@media (max-width: 200px) {
+        .table-wrapper { display: none; }
+        #table-dropdown { display: block; }
+    }
+    @@media (min-width: 201px) {
+        #table-dropdown {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+        }
+
+        #table-dropdown option {
+            font-size: 18px;
+        }
+        .table-wrapper { display: block; }
+    }
+    .dropbtn {
+        border-radius: 10px;
+        background-color: #696969;
+        color: white;
+        padding: 16px;
+        font-size: 16px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f1f1f1;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
+    .dropdown-content .option {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        cursor: pointer;
+    }
+
+    .dropdown-content .option:hover { background-color: #fffd8c; }
+
+    .head-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .button-container {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Add some space between the buttons */
+    }
+
+    .pdfButton {
+        text-decoration: none;
+        padding: 10px 20px;
+        background-color: #696969;
+        color: white;
+        border-radius: 5px;
+        display: inline-block;
+    }
+
+    .pdfButton:hover {
+        background-color: #d8d8d8;
+        color: black;
+    }
+</style>
+</head>
+<body class="@backgroundColorClass">
+    <div class='head-container'>
+        <h1>Month-To-Date Information for @monthName @yearName <h4>@dateRange</h4></h1>
+        <p>single click a table for its daily breakdown</p>
+        <div class="button-container">
+            <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
+            <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Monthly" asp-route-whichMonth=@whichMonth>@monthText</a>
+            <div class="dropdown">
+                <button class="dropbtn" id="table-dropdown" style="display:none">Select a table</button>
+                <div class="dropdown-content" id="dropdown-content">
+                    <div class="option" onclick="showTable('all')">All tables</div>
+                    <div class="option" onclick="showTable('table1')">Reservations</div>
+                    <div class="option" onclick="showTable('table2')">Reservations Dep</div>
+                    <div class="option" onclick="showTable('table3')">Arcade/Snack Bar</div>
+                    <div class="option" onclick="showTable('table4')">Coffee Trailer</div>
+                    <div class="option" onclick="showTable('table5')">Kayak Shack</div>
+                    <div class="option" onclick="showTable('table6')">Miscellaneous</div>
+                    <div class="option" onclick="showTable('table7')">General Store</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="grid-container">
+        @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Front Office Transactions
+        {
+            @if (accIDInt < 4 || accID=="6" || accID == "7")
+            {
+                <div class="table-wrapper">
+                    <table id="table1" class="column-side clickable-table" data-MonthlyBreakdown=@urlF id="table1">
+                        <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                            {
+                                var TwelveP = 1.12m;
+                                var TwelveValue = ((decimal)row["LateFees"]+(decimal)row["DamageFees"]+(decimal)row["ExVeh"]+(decimal)row["LockTotal"]+(decimal)row["RentalsTotal"]+(decimal)row["SiteTotal"]-(decimal)row["ManRefunds"]);
+                                var Add = ((decimal)row["MHPark"]+(decimal)row["LTRentals"]+(decimal)row["Misc"]+(decimal)row["LTSites"]+(decimal)row["TransferFees"]+(decimal)row["Employee"]+(decimal)row["Storage"]+(decimal)row["AnnualTotal"]-(decimal)row["ManRefundsNT"]-(decimal)row["ManRefundsNT2"]);
+                                var TwelveTot = TwelveValue / TwelveP;
+                                var FiveP = 1.05m;
+                                var FiveValue = (decimal)row["VisitorFees"];
+                                var FiveTot = FiveValue / FiveP;
+                                var EightP = 1.08m;
+                                var EightValue = ((decimal)row["GolfRentals"]);
+                                var EightTot = EightValue / EightP;
+                                <thead>
+                                    <th colspan="6" class="@backgroundColorClassTop">Reservations Income Summary</th>
+                                </thead>
+                                <tr class="@dataBackground">
+                                    <th colspan="2" class="monthSum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Taxable:
+                                        12%&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                    <th colspan="4" class="monthSum">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Non-Taxable&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </th>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Sites:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["SiteTotal"])</td>
+                                    <td class="name">Annual Leases:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["AnnualTotal"])</td>
+                                    <td class="name">Storage:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["Storage"])</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Rentals:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["RentalsTotal"])</td>
+                                    <td class="name">Employee:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["Employee"])</td>
+                                    <td class="name">Transfer Fees:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["TransferFees"])</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Lock Fees:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["LockTotal"])</td>
+                                    <td class="name">LT Sites:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["LTSites"])</td>
+                                    <td class="name">Misc:</td>
+                                    <td class="monthlyData">@String.Format("{0:c2}", (decimal)row["Misc"])</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Ex Veh Fees:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["ExVeh"])</td>
+                                    <td class="name">LT Rentals:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["LTRentals"])</td>
+                                    <td class="name">Manual Refunds:</td>
+                                    <td class="data" style="color:red">@String.Format("{0:F2}", (decimal)row["ManRefundsNT2"])</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Damage Fees:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["DamageFees"])</td>
+                                    <td class="name">MH Park:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["MHPark"])</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Late Fees:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["LateFees"])</td>
+                                    <td class="name">Manual Refunds:</td>
+                                    <td class="data" style="color:red">@String.Format("{0:F2}", (decimal)row["ManRefundsNT"])</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Manual Refunds:</td>
+                                    <td class="data" style="color:red">@String.Format("{0:F2}", (decimal)row["ManRefunds"])</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                </tr>
+                                <tr>
+                                    <th colspan="2" class="monthSum">Taxable: 5%</th>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Visitor Fees:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["VisitorFees"])</td>
+                                </tr>
+                                <tr>
+                                    <th colspan="2" class="monthSum">Taxable: 8%</th>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Cart Rentals:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["GolfRentals"])</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Manual Refunds:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["ManRefundsGolf"])</td>
+                                </tr>
+                                <tr style="border:2px solid black;" colspan="6">
+                                    <td colspan = "2" class="tots">Net Revenue:</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="totsColor">@String.Format("{0:F2}",@TwelveTot+@FiveTot+@EightTot+@Add)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else if(accID == "4")
+            {
+                <div class="table-wrapper">
+                    @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Store
+                    {
+                        <table id="table7" class="column-side clickable-table" data-MonthlyBreakdown=@urlG >
+                            <thead>
+                                <th colspan="2" class="@backgroundColorClassTop">General Store Summary</th>
+                            </thead>
+                            <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                                {
+                                    <tr class="@dataBackground">
+                                        <td class="name">Apparel:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["Apparel"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Food Counter:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["FoodCounter"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Seasonal Novelty:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["SeasonalNovelty"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Other Novelty:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["OtherNovelty"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Food:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["Food"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Alcohol:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["Alcohol"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Ice:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["Ice"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Hard Goods:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["HardGoods"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Vending:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["Vending"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">RV Parts:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["RVParts"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Stamps:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["Stamps"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Seasonal Merchandise:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["SeasonalMerch"])</td>
+                                    </tr>
+                                    <tr style="border:2px solid black;">
+                                        <td class="tots">Net Revenue:</td>
+                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["Apparel"]+(decimal)row["SeasonalNovelty"]+(decimal)row["OtherNovelty"]+(decimal)row["Alcohol"]+(decimal)row["HardGoods"]+(decimal)row["RVParts"]+(decimal)row["SeasonalMerch"]+(decimal)row["FoodCounter"]+(decimal)row["Food"]+(decimal)row["Ice"]+(decimal)row["Vending"]+(decimal)row["Stamps"])</td>
+                                    </tr>}
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            }
+        }
+        <div class="table-wrapper">
+            @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Reservations Deposits
+            {
+                @if (accIDInt < 4 || accID=="6" || accID == "7")
+                {
+                    <table id="table2" class="column-middle clickable-table" data-MonthlyBreakdown=@urlR>
+                        <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                            {
+                                <thead>
+                                    <th colspan="8" class="@backgroundColorClassTop">Reservations Deposits Summary</th>
+                                </thead>
+                                <tr>
+                                    <td colspan="2" class="monthSum">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Campsites&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </td>
+                                    <td colspan="2" class="monthSum">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rentals&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </td>
+                                    <td colspan="2" class="monthSum">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Golf
+                                        Carts&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td colspan="2" class="monthSum">
+                                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Vouchers&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    </td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Taken:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["SitesTaken"]+(decimal)row["SitesTakenFuture"])</td>
+                                    <td class="name">Taken:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["RentalTaken"]+(decimal)row["RentalTakenFuture"])</td>
+                                    <td class="name">Taken:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["GolfTaken"]+(decimal)row["GolfTakenFuture"])</td>
+                                    <td class="name">Purchased:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["VouchersPurch"])</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Redeemed:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["SitesApplied"])</td>
+                                    <td class="name">Redeemed:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["RentalApplied"])</td>
+                                    <td class="name">Redeemed:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["GolfApplied"])</td>
+                                    <td class="name">Redeemed (Sites):</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["VouchersRedSite"])</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td class="name">Manual Refunds:</td>
+                                    <td class="data" style="color:red">@String.Format("{0:F2}", (decimal)row["SiteDepMRG"])</td>
+                                    <td class="name">Manual Refunds:</td>
+                                    <td class="data" style="color:red">@String.Format("{0:F2}", (decimal)row["RentalDerpMRG"])</td>
+                                    <td class="name">Manual Refunds:</td>
+                                    <td class="data" style="color:red">@String.Format("{0:F2}", (decimal)row["GolfDepMRG"])</td>
+                                    <td class="name">Redeemed (Rentals):</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["VouchersRedRental"])</td>
+                                </tr>
+                                <tr class="@dataBackground">
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td class="name">Redeemed (Storage):</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["VouchersRedStorage"])</td>
+                                </tr>
+                                <tr style="border:2px solid black;">
+                                    <td class="tots">Net Change:</td>
+                                    <td class="totsColor">@String.Format("{0:F2}", (decimal)row["SitesTaken"]+(decimal)row["SitesTakenFuture"]-(decimal)row["SitesApplied"]-(decimal)row["SiteDepMRG"])</td>
+                                    <td class="tots">Net Change:</td>
+                                    <td class="totsColor">@String.Format("{0:F2}", (decimal)row["RentalTaken"]+(decimal)row["RentalTakenFuture"]-(decimal)row["RentalApplied"]-(decimal)row["RentalDerpMRG"])</td>
+                                    <td class="tots">Net Change:</td>
+                                    <td class="totsColor">@String.Format("{0:F2}",(decimal)row["GolfTaken"]+(decimal)row["GolfTakenFuture"]-(decimal)row["GolfApplied"]-(decimal)row["GolfDepMRG"])</td>
+                                    <td class="tots">Net Change:</td>
+                                    <td class="totsColor">@String.Format("{0:F2}",(decimal)row["VouchersRedSite"]-(decimal)row["VouchersPurch"]-(decimal)row["VouchersRedRental"]-(decimal)row["VouchersRedStorage"])</td>
+                                </tr>
+                            }
+                    </table>
+                }
+            }
+            <p></p>
+            <div class="grid-container">
+                @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Snack Bar
+                {
+                    @if (accID == "1" || accID == "2" || accID =="5"|| accID=="6"|| accID == "7")
+                    {
+                        <table id="table3" class="column-middle clickable-table" data-MonthlyBreakdown=@urlA style="width:240px">
+                            <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                                {
+                                    <thead>
+                                        <th colspan="2" class="@backgroundColorClassTop">&nbsp;&nbsp;Snack Bar/Arcade Summary&nbsp;&nbsp;</th>
+                                    </thead>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Prepared Food:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["PreparedFoodA"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Arcade Games:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["ArcadeGames"])</td>
+                                    </tr>
+                                    <tr style="border:2px solid black;">
+                                        <td class="tots">Net Revenue:</td>
+                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["PreparedFoodA"]+(decimal)row["ArcadeGames"]-(decimal)row["TaxA"])</td>
+                                    </tr>}
+                            </tbody>
+                        </table>
+                    }
+                }
+                <p></p>
+                @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Coffee
+                {
+                    @if(accID == "1" || accID == "2" || accID == "5" || accID == "6"|| accID == "7")
+                    {
+                        <table id="table4" class="column-side clickable-table" data-MonthlyBreakdown=@urlC style="width:240px">
+                            <thead>
+                                <th colspan="2" class="@backgroundColorClassTop">Coffee Trailer Summary</th>
+                            </thead>
+                            <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                                {
+                                    <tr class="@dataBackground">
+                                        <td class="name">Prepared Food:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["PreparedFoodC"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Merchandise:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["MerchandiseC"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="name">Non-Taxable Food:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["NonTaxFoodC"])</td>
+                                    </tr>
+                                    <tr style="border:2px solid black;">
+                                        <td class="tots">Net Revenue:</td>
+                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["NonTaxFoodC"]+(decimal)row["MerchandiseC"]+(decimal)row["PreparedFoodC"]-(decimal)row["TaxC"])</td>
+                                    </tr>}
+                            </tbody>
+                        </table>
+                    }
+                }
+                @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Kayak
+                {
+                    @if(accID == "1" || accID == "2" || accID == "6"|| accID == "7")
+                    {
+                        <table id="table5" class="column-middle clickable-table" data-MonthlyBreakdown=@urlK style="width:240px">
+                            <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                                {
+                                    decimal eightP = 1.08m;
+                                    decimal tenP = 1.105m;
+                                    var KayAndBo = (decimal)row["KayAndBo"];
+                                    var PedBo = (decimal)row["PedBo"];
+                                    var taxBo = (KayAndBo + PedBo)/eightP;
+                                    var taxFood = (decimal)row["PreparedFoodK"]/tenP;
+                                    <thead>
+                                        <th colspan="2" class="@backgroundColorClassTop">Kayak Shack Summary</th>
+                                    </thead>
+                                    <tr class="@dataBackground">
+                                        <td class="nameL">Food Sales:</td>
+                                        <td class="dataL">@String.Format("{0:F2}", (decimal)row["NonTaxFoodK"] + (decimal)row["PreparedFoodK"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="nameL">Kayaks and Boards:</td>
+                                        <td class="dataL">@String.Format("{0:F2}", (decimal)row["KayAndBo"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="nameL">Pedal Boats:</td>
+                                        <td class="dataL">@String.Format("{0:F2}", (decimal)row["PedBo"])</td>
+                                    </tr>
+                                    <tr class="@dataBackground">
+                                        <td class="nameL">Miscellaneous Sales:</td>
+                                        <td class="dataL">@String.Format("{0:F2}", (decimal)row["MiscK"])</td>
+                                    </tr>
+                                    <tr style="border:2px solid black;">
+                                        <td class="tots">Net Revenue:</td>
+                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["NonTaxFoodK"]+(decimal)row["PreparedFoodK"]+(decimal)row["KayAndBo"]+(decimal)row["PedBo"]+(decimal)row["MiscK"]-(decimal)row["TaxK"])</td>
+                                    </tr>}
+                            </tbody>
+                        </table>
+                    }
+                }
+            </div>
+            <p></p>
+            <div class="grid-container">
+                @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Miscellaneous Income
+                {
+                    @if(accID == "1" || accID == "2" || (accIDInt >= 4 && accIDInt <= 7))
+                    {
+                        <table id="table6" class="column-middle clickable-table" data-MonthlyBreakdown=@urlM style="width:240px">
+                        <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                            {
+                                <thead>
+                                    @if(accID == "4")
+                                    {
+                                        <th colspan="6" class="@backgroundColorClassTop">&nbsp;&nbsp;&nbsp;Miscellaneous Income Summary&nbsp;&nbsp;&nbsp;</th>
+                                    }
+                                    else
+                                    {
+                                        <th colspan="11" class="@backgroundColorClassTop">&nbsp;&nbsp;&nbsp;Miscellaneous Income Summary&nbsp;&nbsp;&nbsp;</th>
+                                    }
+                                </thead>
+                                <tr class="dataBackground">
+                                    @if(accID != "4")
+                                    {
+                                        <td class="monthSum" colspan="2">&nbsp;&nbsp;Commissions&nbsp;&nbsp;</td>
+                                        <td>&nbsp;</td>
+                                    }
+                                    <td class="monthSum" colspan="2">&nbsp;Propane Sales&nbsp;</td>
+                                    <td>&nbsp;</td>
+                                    @if(accID != "4")
+                                    {
+                                        <td class="monthSum" colspan="5"><u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Other&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u></td>
+                                    }
+                                    else
+                                    {
+                                        <td class="monthSum" colspan="3"><u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Other&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u></td>
+                                    }
+                                </tr>
+                                <tr class="@dataBackground">
+                                    @if(accID != "4")
+                                    {
+                                        <td class="nameL">CATV:</td>
+                                        <td class="dataL">@String.Format("{0:F2}", (decimal)row["CATV"])</td>
+                                        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    }
+                                    <td class="name">At-Site:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["AtSitePropane"])</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td class="nameL">Guest Services:</td>
+                                    <td class="dataL">@String.Format("{0:F2}", (decimal)row["GuestServices"])</td>
+                                    <td>&nbsp;&nbsp;&nbsp;</td>
+                                    @if(accID != "4")
+                                    {
+                                        <td class="name">Events:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["FrontEvents"] + (decimal)row["StoreEvents"])</td>
+                                    }
+                                </tr>
+                                <tr class="@dataBackground">
+                                    @if(accID != "4")
+                                    {
+                                        <td class="nameL">Leased Concessions:</td>
+                                        <td class="dataL">@String.Format("{0:F2}", (decimal)row["LeasedConcessions"])</td>
+                                        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    }
+                                    <td class="name">Station:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["PropaneStation"])</td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td class="name">Laundry:</td>
+                                    <td class="data">@String.Format("{0:F2}", (decimal)row["Laundry"])</td>
+                                    <td>&nbsp;&nbsp;&nbsp;</td>
+                                    @if(accID != "4")
+                                    {
+                                        <td class="name">Supplemental:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
+                                    }
+                            </tr>
+                                <tr class="@dataBackground">
+                                    @if(accID != "4")
+                                    {
+                                        <td class="nameL">Other Commissions:</td>
+                                        <td class="dataL">@String.Format("{0:F2}", (decimal)row["OtherM"])</td>
+                                        <td colspan="4">&nbsp;&nbsp;&nbsp;</td>
+                                    }
+                                    else
+                                    {
+                                        <td>&nbsp;&nbsp;&nbsp;</td>
+                                    }
+                                    <td class="tots" colspan="4">Total Net Miscellaneous Revenue:</td>
+                                    @if(accID != "4")
+                                    {
+                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["FrontEvents"]+(decimal)row["StoreEvents"]+(decimal)row["Laundry"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
+                                    }
+                                    else
+                                    {
+                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["GuestServices"]+(decimal)row["Laundry"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"])</td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                        </table>
+                    }
+                }
+            </div>
+        </div>
+        <div class="table-wrapper">
+            @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Store
+            {
+                @if(accID == "1" || accID == "2" || accID == "6"|| accID == "7"){
+                <table id="table7" class="column-side clickable-table" data-MonthlyBreakdown=@urlG >
+                    <thead>
+                        <th colspan="2" class="@backgroundColorClassTop">General Store Summary</th>
+                    </thead>
+                    <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                        {
+                            <tr class="@dataBackground">
+                                <td class="name">Apparel:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["Apparel"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Food Counter:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["FoodCounter"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Seasonal Novelty:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["SeasonalNovelty"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Other Novelty:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["OtherNovelty"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Food:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["Food"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Alcohol:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["Alcohol"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Ice:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["Ice"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Hard Goods:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["HardGoods"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Vending:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["Vending"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">RV Parts:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["RVParts"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Stamps:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["Stamps"])</td>
+                            </tr>
+                            <tr class="@dataBackground">
+                                <td class="name">Seasonal Merchandise:</td>
+                                <td class="data">@String.Format("{0:F2}", (decimal)row["SeasonalMerch"])</td>
+                            </tr>
+                            <tr style="border:2px solid black;">
+                                <td class="tots">Net Revenue:</td>
+                                <td class="totsColor">@String.Format("{0:F2}", (decimal)row["Apparel"]+(decimal)row["SeasonalNovelty"]+(decimal)row["OtherNovelty"]+(decimal)row["Alcohol"]+(decimal)row["HardGoods"]+(decimal)row["RVParts"]+(decimal)row["SeasonalMerch"]+(decimal)row["FoodCounter"]+(decimal)row["Food"]+(decimal)row["Ice"]+(decimal)row["Vending"]+(decimal)row["Stamps"])</td>
+                            </tr>}
+                    </tbody>
+                </table>}
+            }
+        </div>
+    </div>
+</body>
+@section Scripts { 
+<script>
+function showTable(tableId) {
+   var tables = document.querySelectorAll('.table-wrapper table');
+   tables.forEach(function(table) {
+       table.style.display = 'none';
+   });
+
+   if (tableId === "all") {
+       tables.forEach(function(table) {
+           table.style.display = 'table';
+       });
+   } else if (tableId) {
+       var selectedTable = document.getElementById(tableId);
+       if (selectedTable) {
+           selectedTable.style.display = 'table';
+       }
+   }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+   // Handle dropdown button click
+   var dropdownButton = document.getElementById('table-dropdown');
+   var dropdownContent = document.getElementById('dropdown-content');
+   
+   dropdownButton.addEventListener('click', function() {
+       if (dropdownContent.style.display === 'block') {
+           dropdownContent.style.display = 'none';
+       } else {
+           dropdownContent.style.display = 'block';
+       }
+   });
+
+   // Close dropdown when clicking outside
+   document.addEventListener('click', function(event) {
+       if (!dropdownButton.contains(event.target) && !dropdownContent.contains(event.target)) {
+           dropdownContent.style.display = 'none';
+       }
+   });
+
+   // Handle dropdown options
+   var dropdownOptions = document.querySelectorAll('.dropdown-content .option');
+   dropdownOptions.forEach(function(option) {
+       option.addEventListener('click', function() {
+           var tableId = this.getAttribute('onclick').match(/'([^']+)'/)[1];
+           showTable(tableId);
+
+           // Close the dropdown menu
+           dropdownContent.style.display = 'none';
+       });
+   });
+
+   // Format the table cells
+   var cells = document.querySelectorAll('tbody td.data, tbody td.totsColor, tbody td.dataL');
+   cells.forEach(function (cell) {
+       var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g, ""));
+       if (!isNaN(amount)) {
+           if (amount == 0) {
+               cell.textContent = '$0.00';
+           }
+           if (amount < 0) {
+               cell.textContent = '(' + formatNumberWithCommas(Math.abs(amount.toFixed(2))) + ')';
+           } else {
+               cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
+           }
+       }
+   });
+
+   // single-click event for tables
+   var clickableTables = document.querySelectorAll('.clickable-table');
+   clickableTables.forEach(function (table) {
+       table.addEventListener('click', function () {
+           var url = table.getAttribute('data-monthlybreakdown');
+           console.log('single-click detected on table. URL:', url);
+           if (url) {
+               console.log('Navigating to:', url);
+               window.location.href = url;
+           } else {
+               console.error('URL is undefined');
+           }
+       });
+   });
+
+   function formatNumberWithCommas(x) {
+       return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+   }
+});
+</script>
+}
