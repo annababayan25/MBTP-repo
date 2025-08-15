@@ -96,9 +96,10 @@ namespace MBTP.Retrieval
                 using (SqlCommand cmd = new SqlCommand(@"UPDATE BlackoutDates
                                                          SET StartDate = @StartDate,
                                                          EndDate = @EndDate,
-                                                         Reason = @Reason,
+                                                         Reason = @Reason
                                                          WHERE BlackoutID = @BlackoutID", conn))
                 {
+                    cmd.Parameters.AddWithValue("@BlackoutID", blackout.BlackoutID);
                     cmd.Parameters.AddWithValue("@PCID", blackout.PCID);
                     cmd.Parameters.AddWithValue("@StartDate", blackout.StartDate);
                     cmd.Parameters.AddWithValue("@EndDate", blackout.EndDate);
