@@ -26,11 +26,11 @@ namespace MBTP.Retrieval
         {
             var list = new List<BlackoutDate>();
             using (SqlConnection conn = _dbConnectionService.CreateConnection())
-            using (SqlCommand cmd = new SqlCommand("dbo.RetrieveBlackoutDate", conn))
+            using (SqlCommand cmd = new SqlCommand(@"SELECT b.BlackoutID, b.PCID, p.Description AS ProfitCenterName, b.StartDate, b.EndDate, b.Reason 
+                                                    FROM BlackoutDates b
+                                                    INNER JOIN ProfitCenters p on b.PCID = p.PCID
+                                                    ORDER BY b.StartDate", conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@Transdate", DBNull.Value);
-                cmd.Parameters.AddWithValue("@PCID", DBNull.Value);
                 conn.Open();
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
@@ -57,10 +57,9 @@ namespace MBTP.Retrieval
             try
                 {
                     using (SqlConnection conn = _dbConnectionService.CreateConnection())
-                    using (SqlCommand cmd = new SqlCommand("dbo.InsertBlackoutDate", conn))
+                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO BlackoutDates (PCID, StartDate, EndDate, Reason)
+                                                             VALUES (@PCID, @StartDate, @EndDate, @Reason)", conn))
                     {
-                        cmd.CommandType = CommandType.StoredProcedure;
-
                         cmd.Parameters.AddWithValue("@PCID", blackout.PCID);
                         cmd.Parameters.AddWithValue("@StartDate", blackout.StartDate);
                         cmd.Parameters.AddWithValue("@EndDate", blackout.EndDate);
@@ -94,10 +93,12 @@ namespace MBTP.Retrieval
             try
             {
                 using (SqlConnection conn = _dbConnectionService.CreateConnection())
-                using (SqlCommand cmd = new SqlCommand("dbo.UpdateBlackoutDate", conn))
+                using (SqlCommand cmd = new SqlCommand(@"UPDATE BlackoutDates
+                                                         SET StartDate = @StartDate,
+                                                         EndDate = @EndDate,
+                                                         Reason = @Reason,
+                                                         WHERE BlackoutID = @BlackoutID", conn))
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-
                     cmd.Parameters.AddWithValue("@PCID", blackout.PCID);
                     cmd.Parameters.AddWithValue("@StartDate", blackout.StartDate);
                     cmd.Parameters.AddWithValue("@EndDate", blackout.EndDate);
@@ -138,8 +139,7 @@ namespace MBTP.Retrieval
             using (SqlConnection conn = _dbConnectionService.CreateConnection())
             using (SqlCommand cmd = new SqlCommand(@"SELECT COUNT(*) FROM BlackoutDates WHERE PCID = @PCID AND StartDate <= @Date AND EndDate >= @Date", conn))
             {
-                cmd.CommandType = CommandType.StoredProcedure;
-
+            
                 cmd.Parameters.AddWithValue("@PCID", PCID);
                 cmd.Parameters.AddWithValue("@Date", date);
 
@@ -151,9 +151,9 @@ namespace MBTP.Retrieval
 
         public bool HasOverlap(int PCID, DateTime startDate, DateTime endDate, int? excludeId = null)
         {
-
             string sql = @"
-                SELECT COUNT(*) FROM BlackoutDates 
+                SELECT COUNT(*) 
+                FROM BlackoutDates 
                 WHERE PCID = @PCID
                 AND StartDate <= @EndDate 
                 AND EndDate >= @StartDate";
@@ -162,7 +162,7 @@ namespace MBTP.Retrieval
                 sql += " AND BlackoutID != @BlackoutID";
 
             using (SqlConnection conn = _dbConnectionService.CreateConnection())
-            using (SqlCommand cmd = new SqlCommand(@"SELECT * FROM ProfitCenters ORDER BY PCID", conn))
+            using (SqlCommand cmd = new SqlCommand(sql, conn))
             {
                 cmd.Parameters.AddWithValue("@PCID", PCID);
                 cmd.Parameters.AddWithValue("@StartDate", startDate);
@@ -170,9 +170,11 @@ namespace MBTP.Retrieval
                 if (excludeId.HasValue) cmd.Parameters.AddWithValue("@BlackoutID", excludeId);
 
                 conn.Open();
-                return (int)cmd.ExecuteScalar() > 0;
+                int count = (int)cmd.ExecuteScalar();
+                return count > 0;
             }
         }
+
 
         public List<ProfitCenters> GetAllProfitCenters()
         {
