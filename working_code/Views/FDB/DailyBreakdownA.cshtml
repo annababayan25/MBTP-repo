@@ -81,7 +81,7 @@
    </tr>
    @foreach (DataRow row in Model!.Tables[0].Rows)
    {
-       var transDate = (DateTime)row["TransDate"];
+        var transDate = (DateTime)row["TransDate"];
         string searchExp = "Transdate = '" + transDate.ToShortDateString() + "'";
         bool blackedOutDate = false;
         DataRow[] blackoutRows = Model.Tables["Blackout"].Select(searchExp);
