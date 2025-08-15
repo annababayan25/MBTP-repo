@@ -84,10 +84,21 @@
            font-size: 14px;
        }
    }
+
+      .table {
+       table-layout: fixed;
+       width: 100%;
+   }
+
+   .blackout-table th:nth-child(3),
+    .blackout-table td:nth-child(3) {
+        width: 120px;
+    }
+
 </style>
 
+ <h1 class="centered">Blackout Dates</h1>
 <div class="color">
-    <h1 class="centered">Blackout Dates</h1>
 
     @if (TempData["SuccessMessage"] != null)
     {
