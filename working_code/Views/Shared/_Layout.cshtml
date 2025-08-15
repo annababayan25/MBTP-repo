@@ -191,7 +191,7 @@ input:checked + .slider:before {
                                 <div style="height: 34px; line-height: 34px;">
                                     <span style="color: red; vertical-align: middle; font-size: large"><b>Test</b>&nbsp;&nbsp;</span>
                                     <label class="switch">
-                                        <input type="checkbox" id="dbSlider" @(Context.Session.GetString("EnvironmentMode") == "Live" ? "checked" : "") />
+                                        <input type="checkbox" id="dbSlider" @((Context.Session.GetString("EnvironmentMode") ?? "Live") == "Live" ? "checked" : "") />
                                         <span class="slider round"></span>
                                     </label>
                                     <span style="color:blue; vertical-align: middle; font-size: large">&nbsp;&nbsp;<b>Live</b></span>
@@ -222,8 +222,7 @@ input:checked + .slider:before {
             mySlider.addEventListener('change', function () {
                 $.post("/Home/ToggleSqlConnection", function (response) {
                     if (response.success) {
-                        alert("Switched to " + response.mode + " mode");
-                        location.reload(); // apply the new DB connection
+                        location.reload(); // this applies the new DB connection
                     } else {
                         alert("Toggle failed.");
                     }
