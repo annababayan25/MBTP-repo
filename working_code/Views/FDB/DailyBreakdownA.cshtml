@@ -111,7 +111,7 @@
            <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
             @if(preparedFoodA == 0)
             {
-                if(blackedOutDate)
+                if(blackedOutDate && grossRevenue <= 0)
                 {
                     <td class="alertData"><b>CLOSED</b></td>
                 }
