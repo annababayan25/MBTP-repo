@@ -44,6 +44,7 @@ namespace MBTP.Controllers
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
+        private readonly BlackoutService _blackoutService;
 
         public AdminController(
             ILogger<HomeController> logger,
@@ -54,7 +55,8 @@ namespace MBTP.Controllers
             NewBookService newBookService,
             IHttpContextAccessor httpContextAccessor,
             AdministrationService adminActions,
-            RetailService retailService
+            RetailService retailService,
+            BlackoutService blackoutService
         )
         {
             _viewEngine = viewEngine;
@@ -65,6 +67,7 @@ namespace MBTP.Controllers
             _httpContextAccessor = httpContextAccessor;
             _adminActions = adminActions;
             _retailService = retailService;
+            _blackoutService = blackoutService;
         }
         public IActionResult Privacy()
         {
@@ -169,14 +172,140 @@ namespace MBTP.Controllers
             DataSet ActiveAlerts = _adminActions.ReviewDistinctAlerts();
             return View(ActiveAlerts);
         }
-        [HttpPost]
-        public async Task<JsonResult> AddBlackout(string blackoutIdIn)
+
+        public IActionResult BlackoutDates()
         {
-            bool updateResult = await _adminActions.PostBlackoutDate(blackoutIdIn);
-            return Json(blackoutIdIn);
+            var data = _blackoutService.ViewAllBlackoutDates();
+            var operations = _blackoutService.GetAllProfitCenters();
+
+            ViewBag.ProfitCenters = operations.Select(loc => new SelectListItem
+            {
+                Value = loc.PCID.ToString(),
+                Text = loc.Description
+            }).ToList();
+
+            return View(data);
         }
-        
-        
+
+        [HttpPost]
+        [Route("Admin/AddBlackout")]
+        public IActionResult AddBlackout(BlackoutDate blackout)
+        {
+            try
+            {
+                System.Diagnostics.Debug.WriteLine($"Received blackout: PCID={blackout?.PCID}, StartDate={blackout?.StartDate}, EndDate={blackout?.EndDate}, Reason={blackout?.Reason}");
+
+                if (blackout == null)
+                {
+                    TempData["ErrorMessage"] = "No blackout data received.";
+                    return RedirectToAction("BlackoutDates");
+                }
+
+                if (blackout.PCID <= 0)
+                {
+                    TempData["ErrorMessage"] = "Please select a valid location.";
+                    return RedirectToAction("BlackoutDates");
+                }
+
+                if (blackout.StartDate == default(DateTime) || blackout.EndDate == default(DateTime))
+                {
+                    TempData["ErrorMessage"] = "Please provide valid start and end dates.";
+                    return RedirectToAction("BlackoutDates");
+                }
+
+                if (string.IsNullOrWhiteSpace(blackout.Reason))
+                {
+                    TempData["ErrorMessage"] = "Please provide a reason for the blackout.";
+                    return RedirectToAction("BlackoutDates");
+                }
+
+                // Additional validation
+                if (blackout.StartDate.Date > blackout.EndDate.Date)
+                {
+                    TempData["ErrorMessage"] = "Start date cannot be after end date.";
+                    return RedirectToAction("BlackoutDates");
+                }
+
+                // Check for overlaps
+                if (_blackoutService.HasOverlap(blackout.PCID, blackout.StartDate.Date, blackout.EndDate.Date))
+                {
+                    TempData["ErrorMessage"] = "This blackout period overlaps with an existing blackout for this location.";
+                    return RedirectToAction("BlackoutDates");
+                }
+
+                blackout.StartDate = blackout.StartDate.Date;
+                blackout.EndDate = blackout.EndDate.Date;
+
+                // Add the blackout
+                _blackoutService.InsertBlackoutDate(blackout);
+                
+                var duration = (blackout.EndDate - blackout.StartDate).Days + 1;
+                TempData["SuccessMessage"] = $"Blackout date added successfully for {duration} day{(duration == 1 ? "" : "s")}.";
+                
+                return RedirectToAction("BlackoutDates");
+            }
+            catch (ArgumentException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"ArgumentException in AddBlackout: {ex.Message}");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("BlackoutDates");
+            }
+            catch (InvalidOperationException ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"InvalidOperationException in AddBlackout: {ex.Message}");
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction("BlackoutDates");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Unexpected error in AddBlackout: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                TempData["ErrorMessage"] = $"An unexpected error occurred: {ex.Message}";
+                return RedirectToAction("BlackoutDates");
+            }
+        }
+
+        [HttpPost]
+        [Route("Admin/EditBlackout")]
+        public IActionResult EditBlackout([FromBody] BlackoutDate blackout)
+        {
+            try
+            {
+                if (_blackoutService.HasOverlap(blackout.PCID, blackout.StartDate, blackout.EndDate, blackout.BlackoutID))
+                {
+                    return Conflict(new { success = false, message = "This blackout overlaps with an existing entry." });
+                }
+
+                _blackoutService.UpdateBlackoutDate(blackout);
+                return Ok(new { success = true, message = "Blackout updated successfully." });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { success = false, message = "An unexpected error occurred while updating the blackout." });
+            }
+        }
+
+        [HttpGet]
+        [Route("Admin/IsBlackout")]
+        public IActionResult IsBlackout(int PCID, DateTime date)
+        {
+            bool result = _blackoutService.IsBlackout(PCID, date);
+            return Ok(new
+            {
+                PCID,
+                date = date.ToString("yyyy-MM-dd"),
+                isBlackout = result,
+            });
+        }
+
+        [HttpPost]
+        public IActionResult DeleteBlackout(int id)
+        {
+
+            _blackoutService.DeleteBlackoutDate(id);
+            return RedirectToAction("BlackoutDates");
+
+        }
+
     }
 }
 

@@ -40,6 +40,7 @@ namespace MBTP
             services.AddSingleton<RetailService>();
             services.AddScoped<SpecialAddonsService>();
             services.AddScoped<SQLSupport>();
+            services.AddScoped<BlackoutService>();
 
             // Auth
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
