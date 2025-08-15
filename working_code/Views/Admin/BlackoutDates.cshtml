@@ -1,163 +1,243 @@
-@model IEnumerable<MBTP.Models.BlackoutDate>
+@model List<MBTP.Models.BlackoutDate>
 @using Microsoft.AspNetCore.Mvc.Rendering
+
+<script src="~/js/site.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
+
 @{
-    ViewData["Title"] = "Manage Blackouts";
+    ViewData["Title"] = "Blackout Dates";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // Show only PCIDs 2–5 in the dropdown
-    var locations = (ViewBag.ProfitCenters as List<SelectListItem>)?
-        .Where(l => int.TryParse(l.Value, out var id) && id >= 2 && id <= 5)
-        .ToList()
-        ?? new List<SelectListItem>();
+    var locations = ViewBag.ProfitCenters as List<SelectListItem>;
+    var grouped = Model
+        .GroupBy(b => new { b.PCID, b.ProfitCenterName })
+        .OrderBy(g => g.Key.PCID);
 }
 
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" crossorigin="anonymous" />
+   <script src="lightpick.js"></script>
    <link rel="stylesheet" href="~/css/site.css" />
 </head>
 
 <style>
-   .color { background-color: #b4dfff; padding: 20px; }
+   .color {
+       background-color: #b4dfff;
+   }
+
+
    .center {
-       margin: auto; text-align: center; width: 80%; max-width: 800px;
-       border: 3px solid #b4dfff; padding: 30px 20px; border-radius: 10px; background-color: #ffffff;
+       margin: auto;
+       text-align: center;
+       height: auto;
+       width: 80%;
+       max-width: 500px;
+       border: 3px solid #b4dfff;
+       padding: 30px 20px;
+       border-radius: 10px;
+       background-color: #ffffff;
    }
+
+
+   .container {
+       width: 100%;
+       margin: 0 auto;
+   }
+
+
    .pdfButton {
-       background-color: #b4dfff; border: none; color: #000; padding: 10px 20px;
-       font-size: 16px; margin: 4px 6px; cursor: pointer; border-radius: 5px;
+       background-color: #b4dfff;
+       border: none;
+       color: rgb(0, 0, 0);
+       padding: 10px 20px;
+       text-align: center;
+       text-decoration: none;
+       display: inline-block;
+       font-size: 16px;
+       margin: 4px 2px;
+       cursor: pointer;
+       border-radius: 5px;
    }
-   .pdfButton:hover { background-color: #9cd4ff; }
-   table { margin-top: 20px; }
+
+
+   .centered {
+       text-align: center;
+   }
+
+
+   @@media (max-width: 600px) {
+       .center {
+           width: 90%;
+           padding: 20px 10px;
+       }
+
+
+       .signOUT {
+           font-size: 24px;
+       }
+
+
+       .pdfButton {
+           padding: 8px 16px;
+           font-size: 14px;
+       }
+   }
 </style>
 
 <div class="color">
-    <h1 style="text-align:center">Blackout Dates Management</h1>
+    <h1 class="centered">Blackout Dates</h1>
 
-    <!-- Add form -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success centered">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger centered">@TempData["ErrorMessage"]</div>
+    }
+
     <div class="center">
-        <h3>Add New Blackout Date</h3>
-        <form asp-controller="Admin" asp-action="AddBlackout" method="post" id="addBlackoutForm">
-            <div class="form-group mb-3">
-                <label asp-for="@(new MBTP.Models.BlackoutDate().PCID)">Operation</label>
-                <select name="PCID" class="form-control" required>
-                    <option value="">Select Operation</option>
-                    @foreach (var location in locations)
-                    {
-                        <option value="@location.Value">@location.Text</option>
-                    }
-                </select>
-            </div>
+        <div class="centered">
+            <h3>Add Blackout Date</h3>
+            <form id="addBlackoutForm" asp-action="AddBlackout" asp-controller="Admin" method="post">
+                @Html.AntiForgeryToken()
+                <div>
+                    <label asp-for="@(new MBTP.Models.BlackoutDate().PCID)">Operation</label>
+                    <select style="font-family: Garamond, serif" name="PCID" id="PCID" required>
+                        <option value="">-- Select --</option>
+                        @foreach (var item in locations.Where(pc => int.TryParse(pc.Value, out var val) && val >= 2 && val <= 5))
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    </select>
+                </div>
+                <p>&nbsp;</p>
+                <div>
+                    <label asp-for="@(new MBTP.Models.BlackoutDate().StartDate)">Start Date</label>
+                    <input style="font-family: Garamond, serif" type="date" name="StartDate" required />
+                </div>
+                <p>&nbsp;</p>
+                <div>
+                    <label asp-for="@(new MBTP.Models.BlackoutDate().EndDate)">End Date</label>
+                    <input style="font-family: Garamond, serif" type="date" name="EndDate" required />
+                </div>
+                <p>&nbsp;</p>
+                <div class="form-group mb-3">
+                    <label asp-for="@(new MBTP.Models.BlackoutDate().Reason)">Reason</label>
+                    <select id="ReasonDropdown" name="Reason" class="form-control" required>
+                        <option value="">Select Reason</option>
+                        <option value="Holiday">Holiday</option>
+                        <option value="Weather">Weather</option>
+                        <option value="Staffing">Staffing</option>
+                        <option value="Seasonal">Seasonal</option>
+                        <option value="Occupancy">Occupancy</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <div id="CustomReasonGroup" class="d-none mt-2">
+                        <input id="CustomReason" name="CustomReason" type="text" class="form-control" placeholder="Enter custom reason" />
+                    </div>
+                </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="@(new MBTP.Models.BlackoutDate().StartDate)">Start Date</label>
-                <input type="date" name="StartDate" class="form-control" required />
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="@(new MBTP.Models.BlackoutDate().EndDate)">End Date</label>
-                <input type="date" name="EndDate" class="form-control" required />
-            </div>
-
-            <div class="form-group mb-3">
-                <label asp-for="@(new MBTP.Models.BlackoutDate().Reason)">Reason</label>
-                <select name="Reason" class="form-control" required>
-                    <option value="">Select Reason</option>
-                    <option value="Holiday">Holiday</option>
-                    <option value="Weather">Weather</option>
-                    <option value="Staff Shortage">Staff Shortage</option>
-                    <option value="Seasonal">Seasonal</option>
-                    <option value="Occupancy">Occupancy</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Other">Other</option>
-                </select>
-            </div>
-
-            <div>
-                <button type="button" class="pdfButton" id="addStay">Add Blackout</button>
-                <button type="button" class="pdfButton" id="addCancel">Cancel</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Existing list -->
-    <div class="center" style="margin-top:30px;">
-        <h3>Existing Blackouts</h3>
-        @if (Model != null && Model.Any())
-        {
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Profit Center</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Reason</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var b in Model)
-                {
-                    <tr>
-                        <td>@b.ProfitCenterName</td>
-                        <td>@b.StartDate.ToString("yyyy-MM-dd")</td>
-                        <td>@b.EndDate.ToString("yyyy-MM-dd")</td>
-                        <td>@b.Reason</td>
-                        <td>
-                            <form asp-action="DeleteBlackout" method="post" style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@b.BlackoutID" />
-                                <button type="submit" class="pdfButton" style="background-color:#ffb4b4;"
-                                        onclick="return confirm('Delete this blackout?');">
-                                    Delete
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <p>No blackout dates set.</p>
-        }
+                <p>&nbsp;</p>
+                <div>
+                    <button class="pdfButton" type="submit">Add</button>
+                    &nbsp;&nbsp;&nbsp;
+                    <a href="@Url.Action("Administration","Home")" class="pdfButton">Cancel</a>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
+<hr />
+@if (Model.Any())
+{
+    <div class="container">
+        <h3 class="centered">Current Blackout Dates</h3>
+        @foreach (var group in grouped)
+        {
+            <div class="mb-5">
+                <h4>@group.Key.PCID - @group.Key.ProfitCenterName</h4>
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Reason</th>
+                            <th>Duration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in group)
+                        {
+                            var duration = (item.EndDate - item.StartDate).Days + 1;
+                            <tr>
+                                <td>@item.StartDate.ToString("MMM dd, yyyy")</td>
+                                <td>@item.EndDate.ToString("MMM dd, yyyy")</td>
+                                <td>@item.Reason</td>
+                                <td>@duration day@(duration == 1 ? "" : "s")</td>
+                                <td>
+                                    <button type="button" class="btn btn-sm btn-primary edit-btn"
+                                            data-id="@item.BlackoutID"
+                                            data-pcid="@item.PCID"
+                                            data-location-name="@item.ProfitCenterName"
+                                            data-start="@item.StartDate:yyyy-MM-dd"
+                                            data-end="@item.EndDate:yyyy-MM-dd"
+                                            data-reason="@item.Reason"
+                                            onclick="openEditModal(this)">
+                                        Edit
+                                    </button>
+                                    <form asp-action="DeleteBlackout" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.BlackoutID" />
+                                        <button type="submit" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('Are you sure you want to delete this blackout?');">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="alert alert-success">
+        <h4>No Blackout Dates Set</h4>
+        <p>All locations are currently set to be open. Add blackout dates below for planned closures.</p>
+    </div>
+}
+
 @section Scripts {
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-<script>
-    $(function () {
-        // Add & Add+Exit buttons
-        $("#addStay, #addExit").on("click", function (event) {
-            event.preventDefault();
+    <script>
+        function setupReasonDropdown(prefix) {
+            const reasonDropdown = document.getElementById(prefix + 'ReasonDropdown');
+            const customReasonGroup = document.getElementById(prefix + 'CustomReasonGroup');
+            const customReasonInput = document.getElementById(prefix + 'CustomReason');
 
-            var $form = $("#addBlackoutForm");
-            var formData = $form.serialize();
-            var actionType = this.id;
+            reasonDropdown.addEventListener('change', function () {
+                if (this.value === 'Other') {
+                    customReasonGroup.classList.remove('d-none');
+                    customReasonInput.setAttribute('required', 'required');
+                } else {
+                    customReasonGroup.classList.add('d-none');
+                    customReasonInput.removeAttribute('required');
+                }
+            });
+        }
 
-            $.post("/Admin/AddBlackout", formData)
-                .done(function () {
-                    if (actionType === "addExit") {
-                        window.location.href = '@Url.Action("Administration","Home")';
-                    } else {
-                        $form[0].reset();
-                        location.reload();
-                    }
-                })
-                .fail(function (xhr) {
-                    // If your controller returns Conflict(...) with JSON { message: "..." }
-                    var msg = (xhr.responseJSON && xhr.responseJSON.message) || "Error adding blackout.";
-                    alert(msg);
-                });
+        setupReasonDropdown('');
+
+        document.getElementById('addBlackoutForm').addEventListener('submit', function (e) {
+
         });
-
-        // Cancel
-        $("#addCancel").on("click", function () {
-            window.location.href = '@Url.Action("Administration","Home")';
-        });
-    });
-</script>
+    </script>
 }
