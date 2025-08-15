@@ -184,7 +184,6 @@ namespace GenericSupport
         return false;
         }
         
-        
         public static bool BlackedOutDate(string dateIn, byte pcidIn)
         {
             //            SqlConnection sqlConn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
