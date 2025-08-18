@@ -17,7 +17,9 @@
     bool arcadeClosed = false;
     bool coffeeClosed = false;
     bool kayakClosed = false;
+    bool blackout = false;
 }
+
 @if(isPdf)
 {
     <h4 style="text-align: right;">@rightnow</h4>
@@ -131,6 +133,7 @@
         arcadeClosed = ((int)row["ArcadeClosedState"] == 1 ? true : false);
         coffeeClosed = ((int)row["CoffeeClosedState"] == 1 ? true : false);
         kayakClosed = ((int)row["KayakClosedState"] == 1 ? true : false);
+        blackout = ((int)row["Blackout"] == 1 ? true : false);
     }
     <table class="widget tots">
         <tbody>
@@ -191,27 +194,37 @@
         <div class="table-wrapper">
             <table>
                 <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
+                {
+                    <tr class="top">
+                        <td style=text-align:center colspan="6">Additions</td>
+                    </tr>
+                    @if (accID != "4")
                     {
-                        <tr class="top">
-                            <td style=text-align:center colspan="6">Additions</td>
-                        </tr>
-                        @if(accID != "4")
+                        var dolphinSales = (decimal)row["PreparedFoodA"];
+
+                        if (dolphinSales != 0) // always show sales, regardless of blackout
                         {
                             <tr class="daily">
-                            @if(!arcadeClosed || ((decimal)row["PreparedFoodA"] != 0))
-                            {
                                 <td>1. Hungry Dolphin</td>
                                 <td>&nbsp;</td>
                                 <td class="center">318</td>
                                 <td colspan="2">&nbsp;</td>
-                                <td class="yellow">@String.Format(numformatdashed,(decimal)row["PreparedFoodA"])</td>
-                            }
-                            else
-                            {
-                                <td colspan="6">1. Hungry Dolphin - CLOSED</td>
-                            }
+                                <td class="yellow">@String.Format(numformatdashed, dolphinSales)</td>
                             </tr>
                         }
+                        else if (blackout) // no sales + blackout date
+                        {
+                            <tr class="daily" >
+                                <td style="text-align: left;" colspan="6" class="bclosed"> 1. Hungry Dolphin - CLOSED </td>
+                            </tr>
+                        }
+                        else // no sales + no blackout
+                        {
+                            <tr class="daily flag">
+                                <td style="text-align: center;" colspan="6"> ⚑ Hungry Dolphin: MISSING DATA </td>
+                            </tr>
+                        }
+                    }
                         @if(accID != "5")
                         {
                             <tr class="daily">
@@ -236,9 +249,14 @@
                                 <td class="green">@String.Format(numformatdashed, (decimal)row["Propane Station"])</td>
                             </tr>
                         }
-                        @if(accID != "4")
-                        {
-                            @if(!coffeeClosed || ((decimal)row["Non-Taxable Food"]+(decimal)row["Merchandise"]+(decimal)row["PreparedFoodC"] != 0))
+                    @if (accID != "4")
+                    {
+                        var preparedFoodC = (decimal)row["PreparedFoodC"];
+                        var merch = (decimal)row["Merchandise"];
+                        var nonTaxFood = (decimal)row["Non-Taxable Food"];
+                        var totalSales = preparedFoodC + merch + nonTaxFood;
+
+                        if (totalSales != 0) // always show sales, even if blackout/closed
                         {
                             <tr class="daily">
                                 <td colspan="6">4. Beachy Bean Cafe</td>
@@ -247,10 +265,10 @@
                                 <td class="tableHead">4a. Prepared Food Sales</td>
                                 <td>&nbsp;</td>
                                 <td class="center">330</td>
-                                @if((decimal)row["PreparedFoodC"] != 0)
+                                @if (preparedFoodC != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="blue">@String.Format(numformatdashed, (decimal)row["PreparedFoodC"])</td>
+                                    <td class="blue">@String.Format(numformatdashed, preparedFoodC)</td>
                                 }
                                 else
                                 {
@@ -261,10 +279,10 @@
                                 <td class="tableHead">4b. Merchandise Sales</td>
                                 <td>&nbsp;</td>
                                 <td class="center">331</td>
-                                @if((decimal)row["Merchandise"] != 0)
+                                @if (merch != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="blue">@String.Format(numformatdashed, (decimal)row["Merchandise"])</td>
+                                    <td class="blue">@String.Format(numformatdashed, merch)</td>
                                 }
                                 else
                                 {
@@ -275,10 +293,10 @@
                                 <td class="tableHead">4c. Non-Taxable Food Sales</td>
                                 <td>&nbsp;</td>
                                 <td class="center">332</td>
-                                @if((decimal)row["Non-Taxable Food"] != 0)
+                                @if (nonTaxFood != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="blue">@String.Format(numformatdashed, (decimal)row["Non-Taxable Food"])</td>
+                                    <td class="blue">@String.Format(numformatdashed, nonTaxFood)</td>
                                 }
                                 else
                                 {
@@ -289,132 +307,161 @@
                                 <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Beachy Bean Cafe Sales: </td>
                                 <td>&nbsp;</td>
                                 <td colspan="3">&nbsp;</td>
-                                <td class="right">@String.Format(numformatdashed,(decimal)row["Non-Taxable Food"]+(decimal)row["Merchandise"]+(decimal)row["PreparedFoodC"])</td>
+                                <td class="bbtotal">@String.Format(numformatdashed, totalSales)</td>
                             </tr>
                         }
-                        else
+                        else if (coffeeClosed) // no sales + blackout/closed
                         {
                             <tr class="daily">
-                                <td colspan="6">4. Beachy Bean Cafe - CLOSED</td>
+                                <td style="text-align: center;" colspan="6" class="bclosed"> Beachy Bean Cafe - CLOSED</td>
                             </tr>
                         }
-                        }
-                        @if(accID != "5")
+                        else // no sales + NOT closed → FLAG
                         {
-                            @if(!storeClosed || (decimal)row["Other Novelty"] + (decimal)row["Seasonal Novelty"] + (decimal)row["Apparel"] + (decimal)row["Food Counter"] + (decimal)row["Alcohol"] + (decimal)row["Hard Goods"] + (decimal)row["RV Parts"] + (decimal)row["Seasonal Merch"] + (decimal)row["Food"] + (decimal)row["Ice"] + (decimal)row["Stamps"] != 0)
-                            {
-                                <tr class="daily">
-                                    <td colspan="6">5. Store Novelty Sales</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">5a. Apparel</td>
-                                    <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed,(decimal)row["Apparel"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">5b. Seasonal-Novelty</td>
-                                    <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Seasonal Novelty"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">5c. Other Novelty</td>
-                                    <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Other Novelty"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Store Novelty Sales: </td>
-                                    <td>&nbsp;</td>
-                                    <td class="center">322</td>
+                            <tr class="daily flag">
+                                <td style="text-align: center;" colspan="6"> ⚑ Beachy Bean Cafe: MISSING DATA </td>
+                            </tr>
+                        }
+                    }   
+                    @if (accID != "5")
+                    {
+                        var apparel = (decimal)row["Apparel"];
+                        var seasonalNovelty = (decimal)row["Seasonal Novelty"];
+                        var otherNovelty = (decimal)row["Other Novelty"];
+                        var foodCounter = (decimal)row["Food Counter"];
+                        var alcohol = (decimal)row["Alcohol"];
+                        var hardGoods = (decimal)row["Hard Goods"];
+                        var rvParts = (decimal)row["RV Parts"];
+                        var seasonalMerch = (decimal)row["Seasonal Merch"];
+                        var food = (decimal)row["Food"];
+                        var ice = (decimal)row["Ice"];
+                        var stamps = (decimal)row["Stamps"];
+
+                        var totalSales = apparel + seasonalNovelty + otherNovelty + foodCounter +
+                                        alcohol + hardGoods + rvParts + seasonalMerch +
+                                        food + ice + stamps;
+
+                        if (totalSales != 0) // always show breakdown if revenue exists
+                        {
+                            <tr class="daily">
+                                <td colspan="6">5. Store Novelty Sales</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">5a. Apparel</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, apparel)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">5b. Seasonal-Novelty</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, seasonalNovelty)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">5c. Other Novelty</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, otherNovelty)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Store Novelty Sales: </td>
+                                <td>&nbsp;</td>
+                                <td class="center">322</td>
+                                <td colspan="2">&nbsp;</td>
+                                <td class="bYellow">@String.Format(numformatdashed, apparel + seasonalNovelty + otherNovelty)</td>
+                            </tr>
+                            <tr class="daily">
+                                <td>6. Store Prepared Food Sales</td>
+                                <td>&nbsp;</td>
+                                <td class="center">323</td>
+                                <td colspan="2">&nbsp;</td>
+                                <td class="bYellow">@String.Format(numformatdashed, foodCounter)</td>
+                            </tr>
+                            <tr class="daily">
+                                <td colspan="6">7. Store Merchandise Sales-Taxable</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">7a. Packaged Alcohol</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, alcohol)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">7b. Grocery-Hard Goods</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, hardGoods)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">7c. RV Parts</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, rvParts)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">7d. Seasonal-Store Merchandise</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, seasonalMerch)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Store Merchandise Sales: </td>
+                                <td>&nbsp;</td>
+                                <td class="center">324</td>
+                                <td colspan="2">&nbsp;</td>
+                                <td class="bYellow">@String.Format(numformatdashed, alcohol + hardGoods + rvParts + seasonalMerch)</td>
+                            </tr>
+                            <tr class="daily">
+                                <td colspan="6">8. Store Non-Taxable Food Sales</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">8a. Grocery</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, food)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="tableHead">8b. Ice</td>
+                                <td colspan="3">&nbsp;</td>
+                                <td class="right">@String.Format(numformatdashed, ice)</td>
+                                <td>&nbsp;</td>
+                            </tr>
+                            <tr class="daily">
+                                <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Non-Taxable Food Sales: </td>
+                                <td>&nbsp;</td>
+                                <td class="center">325</td>
+                                <td colspan="2">&nbsp;</td>
+                                <td class="bYellow">@String.Format(numformatdashed, food + ice)</td>
+                            </tr>
+                            <tr class="daily">
+                                <td>9. Store Non-Tax/Non-Revenue Sales</td>
+                                <td>&nbsp;</td>
+                                <td class="center">327</td>
+                                @if (stamps != 0)
+                                {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Other Novelty"] + (decimal)row["Seasonal Novelty"] + (decimal)row["Apparel"])</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td>6. Store Prepared Food Sales</td>
-                                    <td>&nbsp;</td>
-                                    <td class="center">323</td>
-                                    <td colspan="2">&nbsp;</td>
-                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Food Counter"])</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td colspan="6">7. Store Merchandise Sales-Taxable</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">7a. Packaged Alcohol</td>
+                                    <td class="bYellow">@String.Format(numformatdashed, stamps)</td>
+                                }
+                                else
+                                {
                                     <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Alcohol"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">7b. Grocery-Hard Goods</td>
-                                    <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Hard Goods"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">7c. RV Parts</td>
-                                    <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["RV Parts"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">7d. Seasonal-Store Merchandise</td>
-                                    <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Seasonal Merch"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Store Merchandise Sales: </td>
-                                    <td>&nbsp;</td>
-                                    <td class="center">324</td>
-                                    <td colspan="2">&nbsp;</td>
-                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Alcohol"] + (decimal)row["Hard Goods"] + (decimal)row["RV Parts"] + (decimal)row["Seasonal Merch"])</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td colspan="6">8. Store Non-Taxable Food Sales</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">8a. Grocery</td>
-                                    <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Food"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="tableHead">8b. Ice</td>
-                                    <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Ice"])</td>
-                                    <td>&nbsp;</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Non-Taxable Food Sales: </td>
-                                    <td>&nbsp;</td>
-                                    <td class="center">325</td>
-                                    <td colspan="2">&nbsp;</td>
-                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Food"] + (decimal)row["Ice"])</td>
-                                </tr>
-                                <tr class="daily">
-                                    <td>9. Store Non-Tax/Non-Revenue Sales</td>
-                                    <td>&nbsp;</td>
-                                    <td class="center">327</td>
-                                    @if((decimal)row["Stamps"] != 0)
-                                    {
-                                        <td colspan="2">&nbsp;</td>
-                                        <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Stamps"])</td>
-                                    }
-                                    else
-                                    {
-                                        <td colspan="3">&nbsp;</td>
-                                    }
-                                </tr>
-                            }
-                            else
-                            {
-                                <tr class="daily">
-                                    <td colspan="6">5 thru 9. General Store - CLOSED</td>
-                                </tr>
-                            }
+                                }
+                            </tr>
+                        }
+                        else if (storeClosed) // 0 sales + closed
+                        {
+                            <tr class="daily">
+                                <td style="text-align: center;" colspan="6" class="blz"> 5 thru 9: General Store - CLOSED</td>
+                            </tr>
+                        }
+                        else // 0 sales + not closed → FLAG
+                        {
+                            <tr class="daily flag">
+                                <td style="text-align: center;" colspan="6"> ⚑ 5 thru 9: General Store: MISSING DATA </td>
+                            </tr>
+                        }
+                    }
                             <tr class="daily">
                                 <td>10. Vending Machine Receipts</td>
                                 <td>&nbsp;</td>
@@ -443,7 +490,7 @@
                                     <td colspan="3">&nbsp;</td>
                                 }
                             </tr>
-                        }
+                        
                         @if(accID != "4")
                         {
                             <tr class="daily">
@@ -461,13 +508,19 @@
                                 }
                             </tr>
                         }
-                        @if(accID != "4" && accID != "5")
+                        @if (accID != "4" && accID != "5")
                         {
+                            var noTaxFood  = (decimal)row["No Tax Food"];
+                            var kayaks     = (decimal)row["Kayaks and Boards"];
+                            var pedalBoats = (decimal)row["Pedal Boats"];
+                            var miscSales  = (decimal)row["Misc Sales"];
+                            var totalKayak = noTaxFood + kayaks + pedalBoats + miscSales;
+
                             <tr class="daily">
                                 <td>13. Leased Concessions Receipts</td>
                                 <td>&nbsp;</td>
                                 <td class="center">352</td>
-                                @if((decimal)row["Leased Concessions"] != 0)
+                                @if ((decimal)row["Leased Concessions"] != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
                                     <td class="green">@String.Format(numformatdashed, (decimal)row["Leased Concessions"])</td>
@@ -477,7 +530,8 @@
                                     <td colspan="3">&nbsp;</td>
                                 }
                             </tr>
-                            @if(!kayakClosed || ((decimal)row["Kayaks and Boards"] + (decimal)row["Pedal Boats"] + (decimal)row["Misc Sales"] != 0))
+
+                            @if (totalKayak != 0) // revenue exists → show breakdown
                             {
                                 <tr class="daily">
                                     <td colspan="6">14. Kayak Shack Sales</td>
@@ -486,10 +540,10 @@
                                     <td class="tableHead">14a. Kayak Shack Food Sales</td>
                                     <td>&nbsp;</td>
                                     <td class="center">317</td>
-                                    @if((decimal)row["No Tax Food"] != 0)
+                                    @if (noTaxFood != 0)
                                     {
                                         <td colspan="2">&nbsp;</td>
-                                        <td class="lGreen">@String.Format(numformatdashed, (decimal)row["No Tax Food"])</td>
+                                        <td class="right">@String.Format(numformatdashed, noTaxFood)</td>
                                     }
                                     else
                                     {
@@ -500,10 +554,10 @@
                                     <td class="tableHead">14b. Kayaks and Paddle Board Rentals</td>
                                     <td>&nbsp;</td>
                                     <td class="center">353</td>
-                                    @if((decimal)row["Kayaks and Boards"] != 0)
+                                    @if (kayaks != 0)
                                     {
                                         <td colspan="2">&nbsp;</td>
-                                        <td class="lGreen">@String.Format(numformatdashed, (decimal)row["Kayaks and Boards"])</td>
+                                        <td class="right">@String.Format(numformatdashed, kayaks)</td>
                                     }
                                     else
                                     {
@@ -514,10 +568,10 @@
                                     <td class="tableHead">14c. Pedal Boat Rentals</td>
                                     <td>&nbsp;</td>
                                     <td class="center">354</td>
-                                    @if((decimal)row["Pedal Boats"] != 0)
+                                    @if (pedalBoats != 0)
                                     {
                                         <td colspan="2">&nbsp;</td>
-                                        <td class="lGreen">@String.Format(numformatdashed, (decimal)row["Pedal Boats"])</td>
+                                        <td class="right">@String.Format(numformatdashed, pedalBoats)</td>
                                     }
                                     else
                                     {
@@ -526,10 +580,10 @@
                                 </tr>
                                 <tr class="daily">
                                     <td class="tableHead">14d. Kayak Shack Misc Sales</td>
-                                    @if((decimal)row["Misc Sales"] != 0)
+                                    @if (miscSales != 0)
                                     {
                                         <td colspan="4">&nbsp;</td>
-                                        <td class="lGreen">@String.Format(numformatdashed, (decimal)row["Misc Sales"])</td>
+                                        <td class="right">@String.Format(numformatdashed, miscSales)</td>
                                     }
                                     else
                                     {
@@ -539,16 +593,24 @@
                                 <tr class="daily">
                                     <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Kayak Shack Sales: </td>
                                     <td colspan="4">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)row["Kayaks and Boards"] + (decimal)row["Pedal Boats"] + (decimal)row["Misc Sales"])</td>
+                                    <td class="lGreen">@String.Format(numformatdashed, totalKayak)</td>
                                 </tr>
                             }
-                            else
+                            else if (kayakClosed) // 0 sales + closed
                             {
                                 <tr class="daily">
-                                    <td colspan="6">14. Kayak Shack - CLOSED</td>
+                                    <td style="text-align: center;" colspan="6" class="bclosed"> Kayak Shack - CLOSED</td>
+                                </tr>
+                            }
+                            else // 0 sales + not closed → flag
+                            {
+                                <tr class="daily flag">
+                                    <td style="text-align: center;" colspan="6">⚑ Kayak Shack: MISSING DATA </td>
                                 </tr>
                             }
                         }
+
+
                         @if(accID != "4")
                         {
                             <tr class="daily">
@@ -566,6 +628,7 @@
                                 }
                             </tr>
                         }
+
                         @if(accID != "4" && accID != "5")
                         {
                             <tr class="daily">
@@ -603,7 +666,7 @@
                                 }
                                 else
                                 {
-                                    <td>17. Commissions-Guest Services - CLOSED</td>
+                                    <td colspan="6">17. Commissions-Guest Services - CLOSED</td>
                                 }
                             </tr>
                         }
