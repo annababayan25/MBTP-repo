@@ -640,6 +640,16 @@ a{
   cursor: pointer;
 }
 
+tr.flag td { 
+  background-color: #ffcccc; 
+  font-weight: bold; 
+  color: red; 
+}
+.bbtotal {
+  text-align: right;
+  background-color: #278bf5;
+}
+
 @keyframes fadeInScale {
   from {
       transform: translate(-50%, -50%) scale(0.95);
@@ -650,3 +660,4 @@ a{
       opacity: 1;
   }
 }
+
