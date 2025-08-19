@@ -9,6 +9,8 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using ClosedXML.Excel;
 using Microsoft.Extensions.Configuration;
 using SQLStuff;
+using MBTP.Retrieval;
+using MBTP.Interfaces;
 
 namespace GenericSupport
 {
@@ -56,10 +58,18 @@ namespace GenericSupport
         public static HeartlandRegisterFiles registerFiles = new HeartlandRegisterFiles();
         public static SingleFilesOperation singleFile = new SingleFilesOperation();
         public static NewbookFiles nbfiles = new NewbookFiles();
+        private readonly IDatabaseConnectionService _dbConnectionService;
+
+        public GenericRoutines(IDatabaseConnectionService dbConnectionService)
+        {
+            _dbConnectionService = dbConnectionService;
+        }
+
+
         public static void UpdateAlerts(byte pcidIn, string severityIn, string textIn)
         {
             SQLSupport.UpdateAlertsTable(pcidIn, severityIn, textIn);
-            
+
         }
         public static string DoesFileExist(string subDirectoryIn, string fileNameIn, string suffixIn, bool modifyCheck = false)
         {
@@ -183,28 +193,70 @@ namespace GenericSupport
             }
         return false;
         }
-        
-        public static bool BlackedOutDate(string dateIn, byte pcidIn)
-        {
-            //            SqlConnection sqlConn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
-            var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
-            SqlConnection sqlConn = new SqlConnection(connStr);
-            SqlCommand cmd = new SqlCommand("dbo.F_BlackoutDate", sqlConn)
-            {
-                CommandType = System.Data.CommandType.StoredProcedure
-            };
-            // add input parameter for transaction date
-            cmd.Parameters.Add("@TransDate", SqlDbType.Date);
-            cmd.Parameters["@TransDate"].Value = dateIn;
-            cmd.Parameters.Add("@Result", SqlDbType.Bit);
-            cmd.Parameters["@Result"].Direction = ParameterDirection.ReturnValue;
-            sqlConn.Open();
-            cmd.ExecuteScalar();
-            sqlConn.Close();
 
-            return (bool)cmd.Parameters["@Result"].Value;
+        public static bool IsOperationBlackedOut(DateTime dateToCheck, byte pcidIn, out string reason)
+        {
+            reason = string.Empty;
+
+            var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
+            using (SqlConnection sqlConn = new SqlConnection(connStr))
+            using (SqlCommand cmd = new SqlCommand("dbo.RetrieveBlackoutState", sqlConn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@StartDate", SqlDbType.Date).Value = dateToCheck;
+                cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = dateToCheck;
+
+                sqlConn.Open();
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        switch (pcidIn)
+                        {
+                            case 2:
+                                if (Convert.ToInt32(reader["StoreClosedState"]) == 1)
+                                {
+                                    reason = reader["StoreClosedReason"]?.ToString();
+                                    return true;
+                                }
+                                break;
+                            case 3:
+                                if (Convert.ToInt32(reader["ArcadeClosedState"]) == 1)
+                                {
+                                    reason = reader["ArcadeClosedReason"]?.ToString();
+                                    return true;
+                                }
+                                break;
+                            case 4:
+                                if (Convert.ToInt32(reader["CoffeeClosedState"]) == 1)
+                                {
+                                    reason = reader["CoffeeClosedReason"]?.ToString();
+                                    return true;
+                                }
+                                break;
+                            case 5:
+                                if (Convert.ToInt32(reader["KayakClosedState"]) == 1)
+                                {
+                                    reason = reader["KayakClosedReason"]?.ToString();
+                                    return true;
+                                }
+                                break;
+                            case 9:
+                                if (Convert.ToInt32(reader["Blackout"]) == 1)
+                                {
+                                    reason = "Guest Services blackout";
+                                    return true;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
-        
+
+
         public static bool AllFilesPresent(int pcIDIn)
         {
             string subDirName;
@@ -266,7 +318,7 @@ namespace GenericSupport
                         }
                         return true;
                         //return !filesToCheck.Values.Any(path => path == null); // logically negate the path check so the result of method will be true if all files were located
-                   }
+                    }
                 case 2: // Store
                     {
                         // look for sales file
@@ -288,14 +340,11 @@ namespace GenericSupport
                         }
                         else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 2))
-                            {
-                                GenericRoutines.UpdateAlerts(2, "SUCCESS", ""); // Can't be alerts if it wasn't operating
-                            }
-                            else
+                            if (!IsOperationBlackedOut(GenericRoutines.repDateTmp, 2, out string reason))
                             {
                                 GenericRoutines.UpdateAlerts(2, "FATAL ERROR", path__1.Substring(7) + " Not Found, GENERAL STORE IMPORT ABORTED");
                             }
+                    
                             return false;
                         }
                         break;
@@ -316,15 +365,10 @@ namespace GenericSupport
                         }
                         else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 3))
-                            {
-                                GenericRoutines.UpdateAlerts(3, "SUCCESS", ""); // Can't be alerts if it wasn't operating
-                            }
-                            else
+                            if (!IsOperationBlackedOut(GenericRoutines.repDateTmp, 3, out string reason))
                             {
                                 GenericRoutines.UpdateAlerts(3, "FATAL ERROR", path__1.Substring(7) + " Not Found, ARCADE IMPORT ABORTED");
                             }
-                            return false;
                         }
                         break;
                     }
@@ -349,14 +393,11 @@ namespace GenericSupport
                         }
                         else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 4))
+                            if (!IsOperationBlackedOut(GenericRoutines.repDateTmp, 4, out string reason))
                             {
-                                GenericRoutines.UpdateAlerts(4, "SUCCESS", ""); // Can't be alerts if it wasn't operating
+                                GenericRoutines.UpdateAlerts(4, "FATAL ERROR", path__1.Substring(7) + " Not Found, COFFEE TRAILER IMPORT ABORTED"); 
                             }
-                            else
-                            {
-                                GenericRoutines.UpdateAlerts(4, "FATAL ERROR", path__1.Substring(7) + " Not Found, COFFEE TRAILER IMPORT ABORTED");
-                            }
+                            
                             return false;
                         }
                         break;
@@ -377,11 +418,7 @@ namespace GenericSupport
                         }
                         else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 5))
-                            {
-                                GenericRoutines.UpdateAlerts(5, "SUCCESS", ""); // Can't be alerts if it wasn't operating
-                            }
-                            else
+                            if (!IsOperationBlackedOut(GenericRoutines.repDateTmp, 5, out string reason))
                             {
                                 GenericRoutines.UpdateAlerts(5, "FATAL ERROR", path__1.Substring(7) + " Not Found, KAYAK SHACK IMPORT ABORTED");
                             }
@@ -416,11 +453,7 @@ namespace GenericSupport
                         }
                         else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 9))
-                            {
-                                GenericRoutines.UpdateAlerts(9, "SUCCESS", ""); // Can't be alerts if it wasn't operating
-                            }
-                            else
+                            if (!IsOperationBlackedOut(GenericRoutines.repDateTmp, 9, out string reason))
                             {
                                 GenericRoutines.UpdateAlerts(9, "FATAL ERROR", path__1.Substring(7) + " Not Found, GUEST SERVICES IMPORT ABORTED");
                             }

@@ -286,12 +286,35 @@ namespace MBTP.Controllers
                 return writer.GetStringBuilder().ToString();
             }
         }
-        public IActionResult Index()
+            public IActionResult Index()
         {
             Dashboard report = new Dashboard(_dbConnectionService);
             DataSet dashData = report.RetrieveDashboardData();
+
+            if (dashData.Tables.Contains("Alerts"))
+            {
+                var alertsTable = dashData.Tables["Alerts"];
+
+                DataTable filteredAlerts = alertsTable.Clone();
+
+                foreach (DataRow row in alertsTable.Rows)
+                {
+                    string alertText = row["AlertText"]?.ToString() ?? "";
+
+                    if (!alertText.Contains("blackout", StringComparison.OrdinalIgnoreCase))
+                    {
+                        filteredAlerts.ImportRow(row);
+                    }
+                }
+
+                dashData.Tables.Remove("Alerts");
+                filteredAlerts.TableName = "Alerts";
+                dashData.Tables.Add(filteredAlerts);
+            }
+
             return View(dashData);
         }
+
 
         private LoginModel GetLoginModel()
         {

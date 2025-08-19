@@ -25,21 +25,51 @@ namespace MBTP.Retrieval
             try
             {
                 using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDashboardData", sqlConn))
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    SqlDataAdapter myDA = new SqlDataAdapter(cmd);
-                    SqlDataAdapter myDA2 = new SqlDataAdapter(cmd);
-                    SqlDataAdapter myDA3 = new SqlDataAdapter(cmd);
                     sqlConn.Open();
                     myDS.Clear();
-                    myDA.Fill(myDS);
-                    cmd.CommandText = "dbo.RetrieveDashboardStoreData";
-                    myDA2.Fill(myDS,"Store");
-                    cmd.CommandText = "dbo.RetrieveDataErrors";
-                    myDA3.Fill(myDS,"Alerts");
+
+                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDashboardData", sqlConn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                        {
+                            da.Fill(myDS);
+                        }
+                    }
+
+                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDashboardStoreData", sqlConn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                        {
+                            da.Fill(myDS, "Store");
+                        }
+                    }
+
+                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDataErrors", sqlConn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                        {
+                            da.Fill(myDS, "Alerts");
+                        }
+                    }
+
+                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveBlackoutState", sqlConn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@StartDate", DateTime.Today);
+                        cmd.Parameters.AddWithValue("@EndDate", DateTime.Today);
+                        using (SqlDataAdapter da = new SqlDataAdapter(cmd))
+                        {
+                            da.Fill(myDS, "Blackout");
+                        }
+                    }
+
                     sqlConn.Close();
                 }
+
                 return myDS;
             }
             catch (SqlException sqlEx)
