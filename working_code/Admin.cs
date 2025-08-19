@@ -18,7 +18,7 @@ namespace MBTP.Services
 
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("TestConnection")))
                 using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDistinctAlerts", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -47,7 +47,7 @@ namespace MBTP.Services
         {
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("TestConnection")))
                 using (SqlCommand cmd = new SqlCommand("dbo.UpdateBlackoutDates", sqlConn))
                 {
                     DateTime dummy = DateTime.Now;
@@ -95,7 +95,7 @@ namespace MBTP.Services
 
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("TestConnection")))
                 using (SqlCommand cmd = new SqlCommand("dbo.RetrieveSpecialAddons", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;

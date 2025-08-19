@@ -94,7 +94,7 @@ namespace SQLStuff
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            var connStr = configuration.GetConnectionString("DefaultConnection");
+            var connStr = configuration.GetConnectionString("TestConnection");
 
             using (var conn = new SqlConnection(connStr))
             {

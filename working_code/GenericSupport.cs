@@ -198,7 +198,7 @@ namespace GenericSupport
         {
             reason = string.Empty;
 
-            var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
+            var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["TestConnection"];
             using (SqlConnection sqlConn = new SqlConnection(connStr))
             using (SqlCommand cmd = new SqlCommand("dbo.RetrieveBlackoutState", sqlConn))
             {
