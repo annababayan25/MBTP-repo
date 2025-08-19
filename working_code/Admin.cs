@@ -42,7 +42,7 @@ namespace MBTP.Services
                 throw;
             }
         }
-        /*
+        
         public async Task<bool> PostBlackoutDate(string blackoutKey)
         {
             try
@@ -88,7 +88,7 @@ namespace MBTP.Services
                 return false;
             }
         }
-        */
+        
         public DataSet RetrieveAddons()
         {
             DataSet myDS = new DataSet();
