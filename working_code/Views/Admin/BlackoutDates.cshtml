@@ -27,7 +27,6 @@
        background-color: #b4dfff;
    }
 
-
    .center {
        margin: auto;
        text-align: center;
@@ -40,12 +39,10 @@
        background-color: #ffffff;
    }
 
-
    .container {
        width: 100%;
        margin: 0 auto;
    }
-
 
    .pdfButton {
        background-color: #b4dfff;
@@ -61,11 +58,9 @@
        border-radius: 5px;
    }
 
-
    .centered {
        text-align: center;
    }
-
 
    @@media (max-width: 600px) {
        .center {
@@ -73,11 +68,9 @@
            padding: 20px 10px;
        }
 
-
        .signOUT {
            font-size: 24px;
        }
-
 
        .pdfButton {
            padding: 8px 16px;
@@ -85,19 +78,41 @@
        }
    }
 
-      .table {
+   .table {
        table-layout: fixed;
        width: 100%;
    }
 
    .blackout-table th:nth-child(3),
-    .blackout-table td:nth-child(3) {
+   .blackout-table td:nth-child(3) {
         width: 120px;
-    }
+   }
+    
+   .active, .collapsible:hover {
+       background-color: #555;
+   }
 
+   .collapsible {
+       background-color: #777;
+       color: white;
+       cursor: pointer;
+       padding: 18px;
+       width: 100%;
+       border: none;
+       text-align: left;
+       outline: none;
+       font-size: 15px;
+   }
+
+   /* ✅ Smooth accordion animation */
+   .content {
+       max-height: 0;
+       overflow: hidden;
+       transition: max-height 0.4s ease-out;
+   }
 </style>
 
- <h1 class="centered">Blackout Dates</h1>
+<h1 class="centered">Blackout Dates</h1>
 <div class="color">
 
     @if (TempData["SuccessMessage"] != null)
@@ -171,50 +186,52 @@
         @foreach (var group in grouped)
         {
             <div class="mb-5">
-                <h4>@group.Key.ProfitCenterName</h4>
-                <table class="table table-striped table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Reason</th>
-                            <th>Duration</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var item in group)
-                        {
-                            var duration = (item.EndDate - item.StartDate).Days + 1;
+                <button type="button" class="collapsible">@group.Key.ProfitCenterName</button>
+                <div class="content">
+                    <table class="table table-striped table-bordered">
+                        <thead>
                             <tr>
-                                <td>@item.StartDate.ToString("MMM dd, yyyy")</td>
-                                <td>@item.EndDate.ToString("MMM dd, yyyy")</td>
-                                <td>@item.Reason</td>
-                                <td>@duration day@(duration == 1 ? "" : "s")</td>
-                                <td>
-                                    <button type="button" class="btn btn-sm btn-primary edit-btn"
-                                            data-id="@item.BlackoutID"
-                                            data-pcid="@item.PCID"
-                                            data-location-name="@item.ProfitCenterName"
-                                            data-start="@item.StartDate:yyyy-MM-dd"
-                                            data-end="@item.EndDate:yyyy-MM-dd"
-                                            data-reason="@item.Reason"
-                                            onclick="openEditModal(this)">
-                                        Edit
-                                    </button>
-                                    <form asp-action="DeleteBlackout" method="post" style="display:inline;">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="id" value="@item.BlackoutID" />
-                                        <button type="submit" class="btn btn-sm btn-danger"
-                                                onclick="return confirm('Are you sure you want to delete this blackout?');">
-                                            Delete
-                                        </button>
-                                    </form>
-                                </td>
+                                <th>Start Date</th>
+                                <th>End Date</th>
+                                <th>Reason</th>
+                                <th>Duration</th>
+                                <th>Actions</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in group)
+                            {
+                                var duration = (item.EndDate - item.StartDate).Days + 1;
+                                <tr>
+                                    <td>@item.StartDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@item.EndDate.ToString("MMM dd, yyyy")</td>
+                                    <td>@item.Reason</td>
+                                    <td>@duration day@(duration == 1 ? "" : "s")</td>
+                                    <td>
+                                        <button type="button" class="btn btn-sm btn-primary edit-btn"
+                                                data-id="@item.BlackoutID"
+                                                data-pcid="@item.PCID"
+                                                data-location-name="@item.ProfitCenterName"
+                                                data-start="@item.StartDate:yyyy-MM-dd"
+                                                data-end="@item.EndDate:yyyy-MM-dd"
+                                                data-reason="@item.Reason"
+                                                onclick="openEditModal(this)">
+                                            Edit
+                                        </button>
+                                        <form asp-action="DeleteBlackout" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@item.BlackoutID" />
+                                            <button type="submit" class="btn btn-sm btn-danger"
+                                                    onclick="return confirm('Are you sure you want to delete this blackout?');">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         }
     </div>
@@ -279,9 +296,9 @@ else
     </div>
 </div>
 
-
 @section Scripts {
-    <script>
+<script>
+    // Handle "Other" reason toggle
     document.getElementById('ReasonDropdown').addEventListener('change', function () {
         const customGroup = document.getElementById('CustomReasonGroup');
         const customInput = document.getElementById('CustomReason');
@@ -291,11 +308,12 @@ else
         } else {
             customGroup.classList.add('d-none');
             customInput.removeAttribute('required');
-            customInput.value();
+            customInput.value = "";
         }
     });
 
-     function openEditModal(button) {
+    // Edit modal functions
+    function openEditModal(button) {
         document.getElementById('EditBlackoutID').value = button.dataset.id;
         document.getElementById('EditPCID').value = button.dataset.pcid;
         document.getElementById('EditLocationDisplay').value = button.dataset.locationName;
@@ -329,38 +347,51 @@ else
         } else {
             customGroup.classList.add('d-none');
             customInput.removeAttribute('required');
-            customInput.value();
+            customInput.value = "";
         }
     });
 
+    // Submit handler for edit form
     document.getElementById('editForm').addEventListener('submit', function (e) {
-    e.preventDefault();
+        e.preventDefault();
 
-    const formData = Object.fromEntries(new FormData(this));
+        const formData = Object.fromEntries(new FormData(this));
 
-    fetch('/Admin/EditBlackout', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            location.reload(); // reload to show updated table
-        } else {
-            alert(data.message);
-        }
-    })
-    .catch(err => {
-        alert("An error occurred while saving changes.");
-        console.error(err);
+        fetch('/Admin/EditBlackout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(err => {
+            alert("An error occurred while saving changes.");
+            console.error(err);
+        });
     });
-});
 
+    var coll = document.getElementsByClassName("collapsible");
+    for (let i = 0; i < coll.length; i++) {
+        coll[i].addEventListener("click", function () {
+            this.classList.toggle("active");
+            var content = this.nextElementSibling;
 
-    </script>
+            if (content.style.maxHeight) {
+                content.style.maxHeight = null; // collapse
+            } else {
+                content.style.maxHeight = content.scrollHeight + "px"; // expand
+            }
+        });
+    }
+</script>
 }
