@@ -191,9 +191,7 @@ namespace GenericSupport
         public static bool IsOperationBlackedOut(DateTime dateToCheck, byte pcidIn, out string reason)
         {
             reason = string.Empty;
-            var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
-
-            using (SqlConnection sqlConn = new SqlConnection(connStr))
+            using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
             using (SqlCommand cmd = new SqlCommand("dbo.RetrieveBlackoutState", sqlConn))
             {
                 cmd.CommandType = CommandType.StoredProcedure;
