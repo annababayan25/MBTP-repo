@@ -12,15 +12,14 @@ namespace SQLStuff
         private SqlCommand _cmd;
         private SqlConnection _sqlConn;
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDatabaseConnectionService dbConnectionService)
-        {
-            GenericRoutines.Initialize(dbConnectionService);
-        }
-
 
         public SQLSupport(IDatabaseConnectionService dbConnectionService)
         {
             _dbConnectionService = dbConnectionService;
+        }
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDatabaseConnectionService dbConnectionService)
+        {
+            GenericRoutines.Initialize(dbConnectionService);
         }
 
         public bool PrepareForImport(string procName)

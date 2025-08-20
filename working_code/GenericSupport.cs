@@ -9,13 +9,14 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using ClosedXML.Excel;
 using Microsoft.Extensions.Configuration;
 using SQLStuff;
+using Microsoft.EntityFrameworkCore.Storage;
 using MBTP.Interfaces;
 
 namespace GenericSupport
 {
     public class NewbookFiles
     {
-#nullable enable
+        #nullable enable
         public string? Transflow { get; set; }
         public string? Recon { get; set; }
         public string? Invitems { get; set; }
@@ -28,36 +29,40 @@ namespace GenericSupport
         public string? Bookdep { get; set; }
         public string? Bookstay { get; set; }
         public string? Occupancy { get; set; }
-
     }
+
     public class HeartlandRetailFiles
     {
         public string? Sales { get; set; }
         public string? Tax { get; set; }
         public string? Payments { get; set; }
     }
-#nullable disable
+
+    #nullable disable
     public class HeartlandRegisterFiles
     {
         public string Sales { get; set; }
         public string Modifiers { get; set; }
         public string Payments { get; set; }
     }
+
     public class SingleFilesOperation
     {
         public string Data { get; set; }
     }
+
     public class GenericRoutines
     {
-    public const string dirPath = @"\\DAVE-800-G3\Users\dgriffis.MBTP\OneDrive - MYRTLE BEACH TRAVEL PARK\Downloads\";
+        public const string dirPath = @"\\DAVE-800-G3\Users\dgriffis.MBTP\OneDrive - MYRTLE BEACH TRAVEL PARK\Downloads\";
         public const string altPath = @"\\DAVE-800-G3\Users\dgriffis.MBTP\OneDrive - MYRTLE BEACH TRAVEL PARK\Daily Export Files Archives\";
+
         public static string repDateStr;
         public static System.DateTime repDateTmp;
         public static HeartlandRetailFiles storeFiles = new HeartlandRetailFiles();
         public static HeartlandRegisterFiles registerFiles = new HeartlandRegisterFiles();
         public static SingleFilesOperation singleFile = new SingleFilesOperation();
         public static NewbookFiles nbfiles = new NewbookFiles();
-        private static IDatabaseConnectionService _dbConnectionService;
+        public static IDatabaseConnectionService _dbConnectionService;
 
         public static void Initialize(IDatabaseConnectionService dbConnectionService)
         {
@@ -66,22 +71,13 @@ namespace GenericSupport
         public static void UpdateAlerts(byte pcidIn, string severityIn, string textIn)
         {
             SQLSupport.UpdateAlertsTable(_dbConnectionService, pcidIn, severityIn, textIn);
-
         }
-        
+
         public static string DoesFileExist(string subDirectoryIn, string fileNameIn, string suffixIn, bool modifyCheck = false)
         {
             string repDate = repDateTmp.ToString("MMMdd").ToUpper();
-            //DateTime tmpParseDate = DateTime.Today;
-            //if (dateToUse != null)
-            //{
-            //    tmpParseDate = DateTime.Parse(dateToUse);
-            //    repDate = tmpParseDate.ToString("MMMdd").ToUpper();
-            //}
-            // although counterintuitive, look to see if the files exist in an archive directory first.  We need to do this so that it won't
-            // grab the wrong October files.  This forces it to look for the previous fiscal year files and not grab the current October files
-            // if any historical reporting needs to be done during year-end closeout.
             string workingFilePath;
+
             if (repDateTmp.Month >= 10)
             {
                 workingFilePath = altPath + "FY" + repDateTmp.ToString("yyyy") + @"\" + repDateTmp.ToString("MMM") + @"\";
@@ -90,10 +86,12 @@ namespace GenericSupport
             {
                 workingFilePath = altPath + "FY" + (repDateTmp.Year - 1).ToString() + @"\" + repDateTmp.ToString("MMM") + @"\";
             }
+
             workingFilePath = workingFilePath + subDirectoryIn + fileNameIn + repDate + suffixIn;
+
             if (System.IO.File.Exists(workingFilePath))
             {
-                if (modifyCheck) // this only applies to Newbook files.  If a modified version is found that path is returned
+                if (modifyCheck)
                 {
                     string modifiedFilePath = workingFilePath.Replace(suffixIn, " - MODIFIED" + suffixIn);
                     if (System.IO.File.Exists(modifiedFilePath))
@@ -107,17 +105,12 @@ namespace GenericSupport
                 }
                 return workingFilePath;
             }
-            else // now we look for the file in the standard downloads directory
+            else
             {
-                //workingFilePath = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ExportRetrieval")["Path"];
-                //if (subDirectoryIn != ""){
-                //    workingFilePath += "%2F" + subDirectoryIn;
-                //}
-                //workingFilePath += "%2F" + fileNameIn + repDate + suffixIn;
                 workingFilePath = dirPath + subDirectoryIn + fileNameIn + repDate + suffixIn;
                 if (System.IO.File.Exists(workingFilePath))
                 {
-                    if (modifyCheck) // this only applies to Newbook files.  If a modified version is found that path is returned
+                    if (modifyCheck)
                     {
                         string modifiedFilePath = workingFilePath.Replace(suffixIn, " - MODIFIED" + suffixIn);
                         if (System.IO.File.Exists(modifiedFilePath))
@@ -137,13 +130,12 @@ namespace GenericSupport
                 }
             }
         }
+
         public static bool DidGuestArrive(string subDirectoryIn, string fileNameIn, string suffixIn, DateTime arrDateIn, string bookingIDIn)
         {
             string arrDateToCheck = arrDateIn.ToString("MMMdd").ToUpper();
-            // although counterintuitive, look to see if the files exist in an archive directory first.  We need to do this so that it won't
-            // grab the wrong October files.  This forces it to look for the previous fiscal year files and not grab the current October files
-            // if any historical reporting needs to be done during year-end closeout.
             string workingFilePath;
+
             if (arrDateIn.Month >= 10)
             {
                 workingFilePath = altPath + "FY" + arrDateIn.ToString("yyyy") + @"\" + arrDateIn.ToString("MMM") + @"\";
@@ -152,17 +144,18 @@ namespace GenericSupport
             {
                 workingFilePath = altPath + "FY" + (arrDateIn.Year - 1).ToString() + @"\" + arrDateIn.ToString("MMM") + @"\";
             }
+
             workingFilePath = workingFilePath + subDirectoryIn + fileNameIn + arrDateToCheck + suffixIn;
+
             if (System.IO.File.Exists(workingFilePath))
             {
-                // check for a modified version first
                 string modifiedFilePath = workingFilePath.Replace(suffixIn, " - MODIFIED" + suffixIn);
                 if (System.IO.File.Exists(modifiedFilePath))
                 {
                     workingFilePath = modifiedFilePath;
                 }
             }
-            else // now we look for the file in the standard downloads directory
+            else
             {
                 workingFilePath = dirPath + subDirectoryIn + fileNameIn + arrDateToCheck + suffixIn;
                 if (System.IO.File.Exists(workingFilePath))
@@ -178,68 +171,105 @@ namespace GenericSupport
                     return false;
                 }
             }
+
             XLWorkbook checkedInBook = new XLWorkbook(workingFilePath);
             IXLWorksheet checkedInSheet = checkedInBook.Worksheet(1);
             int listRowCount = checkedInSheet.LastRowUsed().RowNumber();
+
             for (int listCounter = 2; listCounter <= listRowCount; listCounter++)
             {
-                if (checkedInSheet.Row(listCounter).Cell(3).Value.ToString().Length == 6 && checkedInSheet.Row(listCounter).Cell(3).Value.ToString().Substring(0, 6) == bookingIDIn)
+                if (checkedInSheet.Row(listCounter).Cell(3).Value.ToString().Length == 6 &&
+                    checkedInSheet.Row(listCounter).Cell(3).Value.ToString().Substring(0, 6) == bookingIDIn)
                 {
                     checkedInBook.Dispose();
                     return true;
                 }
             }
-        return false;
+            return false;
         }
-        
-        public static bool BlackedOutDate(string dateIn, byte pcidIn)
-        {
-            //            SqlConnection sqlConn = new System.Data.SqlClient.SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString);
-            var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
-            SqlConnection sqlConn = new SqlConnection(connStr);
-            SqlCommand cmd = new SqlCommand("dbo.F_BlackoutDate", sqlConn)
-            {
-                CommandType = System.Data.CommandType.StoredProcedure
-            };
-            // add input parameter for transaction date
-            cmd.Parameters.Add("@TransDate", SqlDbType.Date);
-            cmd.Parameters["@TransDate"].Value = dateIn;
-            cmd.Parameters.Add("@Result", SqlDbType.Bit);
-            cmd.Parameters["@Result"].Direction = ParameterDirection.ReturnValue;
-            sqlConn.Open();
-            cmd.ExecuteScalar();
-            sqlConn.Close();
 
-            return (bool)cmd.Parameters["@Result"].Value;
+        public static bool IsOperationBlackedOut(DateTime dateToCheck, byte pcidIn, out string reason)
+        {
+            reason = string.Empty;
+            var connStr = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"];
+
+            using (SqlConnection sqlConn = new SqlConnection(connStr))
+            using (SqlCommand cmd = new SqlCommand("dbo.RetrieveBlackoutState", sqlConn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Add("@StartDate", SqlDbType.Date).Value = dateToCheck;
+                cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = dateToCheck;
+                sqlConn.Open();
+
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        switch (pcidIn)
+                        {
+                            case 2:
+                                if (Convert.ToInt32(reader["StoreClosedState"]) == 1)
+                                {
+                                    reason = reader["StoreClosedReason"]?.ToString();
+                                    return true;
+                                }
+                                break;
+                            case 3:
+                                if (Convert.ToInt32(reader["ArcadeClosedState"]) == 1)
+                                {
+                                    reason = reader["ArcadeClosedReason"]?.ToString();
+                                    return true;
+                                }
+                                break;
+                            case 4:
+                                if (Convert.ToInt32(reader["CoffeeClosedState"]) == 1)
+                                {
+                                    reason = reader["CoffeeClosedReason"]?.ToString();
+                                    return true;
+                                }
+                                break;
+                            case 5:
+                                if (Convert.ToInt32(reader["KayakClosedState"]) == 1)
+                                {
+                                    reason = reader["KayakClosedReason"]?.ToString();
+                                    return true;
+                                }
+                                break;
+                            case 9:
+                                if (Convert.ToInt32(reader["Blackout"]) == 1)
+                                {
+                                    reason = "Guest Services blackout";
+                                    return true;
+                                }
+                                break;
+                        }
+                    }
+                }
+            }
+            return false;
         }
-        
+
         public static bool AllFilesPresent(int pcIDIn)
         {
             string subDirName;
             bool failureEncountered = true;
+
             switch (pcIDIn)
             {
                 case var i when pcIDIn == 1:
-                    {
-                        subDirName = "";
-                        break;
-                    }
+                    subDirName = "";
+                    break;
                 case var i when pcIDIn == 2 || (pcIDIn >= 4 && pcIDIn < 6) || pcIDIn == 9:
-                    {
-                        subDirName = @"Store Exports\";
-                        break;
-                    }
+                    subDirName = @"Store Exports\";
+                    break;
                 case var i when pcIDIn == 3:
-                    {
-                        subDirName = @"Arcade Exports\";
-                        break;
-                    }
+                    subDirName = @"Arcade Exports\";
+                    break;
                 default:
-                    {
-                        subDirName = "";
-                        break;
-                    }
+                    subDirName = "";
+                    break;
             }
+
             switch (pcIDIn)
             {
                 case 1: // Newbook
@@ -259,6 +289,7 @@ namespace GenericSupport
                             { "Bookings_Staying_", path => nbfiles.Bookstay = path },
                             { "Occupancy_Report_", path => nbfiles.Occupancy = path }
                         };
+
                         foreach (var fileCheck in filesToCheck)
                         {
                             string path = GenericRoutines.DoesFileExist(subDirName, fileCheck.Key, ".xlsx", true);
@@ -268,37 +299,36 @@ namespace GenericSupport
                             }
                             else
                             {
-                                GenericRoutines.UpdateAlerts(1, "FATAL ERROR", fileCheck.Key + ".xlsx" + " Not Found, NEWBOOK IMPORT ABORTED");
+                                GenericRoutines.UpdateAlerts(1, "FATAL ERROR", fileCheck.Key + ".xlsx Not Found, NEWBOOK IMPORT ABORTED");
                                 return false;
                             }
                         }
                         return true;
-                        //return !filesToCheck.Values.Any(path => path == null); // logically negate the path check so the result of method will be true if all files were located
-                   }
+                    }
+
                 case 2: // Store
                     {
-                        // look for sales file
                         string path__1 = GenericRoutines.DoesFileExist(subDirName, @"Store Sales ", ".xlsx");
-                        if (path__1.IndexOf("FAILURE") == -1)   // The file was found, look for tax file
+                        if (path__1.IndexOf("FAILURE") == -1)
                         {
                             storeFiles.Sales = path__1;
                             path__1 = GenericRoutines.DoesFileExist(subDirName, @"Store Tax ", ".xlsx");
-                            if (path__1.IndexOf("FAILURE") == -1)   // The file was found, look for payments file
+                            if (path__1.IndexOf("FAILURE") == -1)
                             {
                                 storeFiles.Tax = path__1;
                                 path__1 = GenericRoutines.DoesFileExist(subDirName, @"Store CC ", ".xlsx");
-                                if (path__1.IndexOf("FAILURE") == -1)   // The file was found, set boolean to false
+                                if (path__1.IndexOf("FAILURE") == -1)
                                 {
                                     storeFiles.Payments = path__1;
                                     failureEncountered = false;
                                 }
                             }
                         }
-                        else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
+                        else
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 2))
+                            if (IsOperationBlackedOut(GenericRoutines.repDateTmp, 2, out string reason))
                             {
-                                GenericRoutines.UpdateAlerts(2, "SUCCESS", ""); // Can't be alerts if it wasn't operating
+                                GenericRoutines.UpdateAlerts(2, "SUCCESS", $"Skipped due to blackout: {reason}");
                             }
                             else
                             {
@@ -308,25 +338,25 @@ namespace GenericSupport
                         }
                         break;
                     }
+
                 case 3: // Arcade
                     {
-                        // look for sales file
                         string path__1 = GenericRoutines.DoesFileExist(subDirName, @"Arcade Sales ", ".xlsx");
-                        if (path__1.IndexOf("FAILURE") == -1)   // The file was found, look for payments file
+                        if (path__1.IndexOf("FAILURE") == -1)
                         {
                             registerFiles.Sales = path__1;
                             path__1 = GenericRoutines.DoesFileExist(subDirName, @"Arcade Payments ", ".xlsx");
-                            if (path__1.IndexOf("FAILURE") == -1)   // The file was found, set boolean to false
+                            if (path__1.IndexOf("FAILURE") == -1)
                             {
                                 registerFiles.Payments = path__1;
                                 failureEncountered = false;
                             }
                         }
-                        else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
+                        else
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 3))
+                            if (IsOperationBlackedOut(GenericRoutines.repDateTmp, 3, out string reason))
                             {
-                                GenericRoutines.UpdateAlerts(3, "SUCCESS", ""); // Can't be alerts if it wasn't operating
+                                GenericRoutines.UpdateAlerts(3, "SUCCESS", $"Skipped due to blackout: {reason}");
                             }
                             else
                             {
@@ -336,30 +366,30 @@ namespace GenericSupport
                         }
                         break;
                     }
+
                 case 4: // Coffee Trailer
                     {
-                        // look for sales file
                         string path__1 = GenericRoutines.DoesFileExist(subDirName, @"Coffee Item Sales ", ".xlsx");
-                        if (path__1.IndexOf("FAILURE") == -1)   // The file was found, look for tax file
+                        if (path__1.IndexOf("FAILURE") == -1)
                         {
                             registerFiles.Sales = path__1;
                             path__1 = GenericRoutines.DoesFileExist(subDirName, @"Coffee Modifier Sales ", ".xlsx");
-                            if (path__1.IndexOf("FAILURE") == -1)   // The file was found, look for payments file
+                            if (path__1.IndexOf("FAILURE") == -1)
                             {
                                 registerFiles.Modifiers = path__1;
                                 path__1 = GenericRoutines.DoesFileExist(subDirName, @"Coffee Payments ", ".xlsx");
-                                if (path__1.IndexOf("FAILURE") == -1)   // The file was found, set boolean to false
+                                if (path__1.IndexOf("FAILURE") == -1)
                                 {
                                     registerFiles.Payments = path__1;
                                     failureEncountered = false;
                                 }
                             }
                         }
-                        else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
+                        else
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 4))
+                            if (IsOperationBlackedOut(GenericRoutines.repDateTmp, 4, out string reason))
                             {
-                                GenericRoutines.UpdateAlerts(4, "SUCCESS", ""); // Can't be alerts if it wasn't operating
+                                GenericRoutines.UpdateAlerts(4, "SUCCESS", $"Skipped due to blackout: {reason}");
                             }
                             else
                             {
@@ -369,25 +399,25 @@ namespace GenericSupport
                         }
                         break;
                     }
-                case 5: // Kayak Shack 
+
+                case 5: // Kayak Shack
                     {
-                        // look for sales file
                         string path__1 = GenericRoutines.DoesFileExist(subDirName, @"Kayak Item Sales ", ".xlsx");
-                        if (path__1.IndexOf("FAILURE") == -1)   // The file was found, look for tax file
+                        if (path__1.IndexOf("FAILURE") == -1)
                         {
                             registerFiles.Sales = path__1;
                             path__1 = GenericRoutines.DoesFileExist(subDirName, @"Kayak Payments ", ".xlsx");
-                            if (path__1.IndexOf("FAILURE") == -1)   // The file was found, set boolean to false
+                            if (path__1.IndexOf("FAILURE") == -1)
                             {
                                 registerFiles.Payments = path__1;
                                 failureEncountered = false;
                             }
                         }
-                        else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
+                        else
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 5))
+                            if (IsOperationBlackedOut(GenericRoutines.repDateTmp, 5, out string reason))
                             {
-                                GenericRoutines.UpdateAlerts(5, "SUCCESS", ""); // Can't be alerts if it wasn't operating
+                                GenericRoutines.UpdateAlerts(5, "SUCCESS", $"Skipped due to blackout: {reason}");
                             }
                             else
                             {
@@ -397,10 +427,9 @@ namespace GenericSupport
                         }
                         break;
                     }
-                case 6: // Special Addons Spreadsheet 
+
+                case 6: // Special Addons Spreadsheet
                     {
-                        // the file should be in the standard downloads directory
-                        // We do not call DoesFileExist since the location and name of this file are fixed.
                         string workingFilePath = dirPath + @"Special Daily Income Addons.xlsx";
                         if (System.IO.File.Exists(workingFilePath))
                         {
@@ -413,20 +442,20 @@ namespace GenericSupport
                         }
                         break;
                     }
+
                 case 9: // Guest Services
                     {
-                        // look for the single data file
                         string path__1 = GenericRoutines.DoesFileExist(subDirName, @"Guest Services - ", ".csv");
-                        if (path__1.IndexOf("FAILURE") == -1)   // The file was found, set boolean to false
+                        if (path__1.IndexOf("FAILURE") == -1)
                         {
                             singleFile.Data = path__1;
                             failureEncountered = false;
                         }
-                        else // check for blacked out date if sales file not found.  if blacked out this is not an error condition
+                        else
                         {
-                            if (BlackedOutDate(GenericRoutines.repDateStr, 9))
+                            if (IsOperationBlackedOut(GenericRoutines.repDateTmp, 9, out string reason))
                             {
-                                GenericRoutines.UpdateAlerts(9, "SUCCESS", ""); // Can't be alerts if it wasn't operating
+                                GenericRoutines.UpdateAlerts(9, "SUCCESS", $"Skipped due to blackout: {reason}");
                             }
                             else
                             {
@@ -436,12 +465,11 @@ namespace GenericSupport
                         }
                         break;
                     }
+
                 default:
-                    {
-                        break;
-                    }
+                    break;
             }
-            return !failureEncountered; // logically negate the variable (the result of method will be true if all files were located)
+            return !failureEncountered;
         }
     }
 }
