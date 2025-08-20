@@ -193,8 +193,6 @@ namespace MBTP.Controllers
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine($"Received blackout: PCID={blackout?.PCID}, StartDate={blackout?.StartDate}, EndDate={blackout?.EndDate}, Reason={blackout?.Reason}");
-
                 if (blackout == null)
                 {
                     TempData["ErrorMessage"] = "No blackout data received.";
