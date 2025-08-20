@@ -281,41 +281,41 @@ namespace MBTP.Retrieval
         return blackoutStatus;
     }
 
-    public void InsertRecurringBlackouts(int pcid, DateTime startDate, DateTime endDate, 
-        DayOfWeek dayOfWeek, string reason)
-    {
-        var blackoutsToInsert = new List<BlackoutDate>();
-        
-        // Find all instances of the specified day of week in the date range
-        for (var date = startDate; date <= endDate; date = date.AddDays(1))
+        public void InsertRecurringBlackouts(int pcid, DateTime startDate, DateTime endDate,
+            DayOfWeek dayOfWeek, string reason)
         {
-            if (date.DayOfWeek == dayOfWeek)
-            {
-                blackoutsToInsert.Add(new BlackoutDate
-                {
-                    PCID = pcid,
-                    StartDate = date,
-                    EndDate = date,
-                    Reason = reason
-                });
-            }
-        }
-        
-        // Insert all blackouts
-        foreach (var blackout in blackoutsToInsert)
-        {
-            try
-            {
-                InsertBlackoutDate(blackout);
-            }
-            catch (InvalidOperationException)
-            {
-                // Skip overlapping dates, continue with others
-                continue;
-            }
-        }
-    
+            var blackoutsToInsert = new List<BlackoutDate>();
 
+            // Find all instances of the specified day of week in the date range
+            for (var date = startDate; date <= endDate; date = date.AddDays(1))
+            {
+                if (date.DayOfWeek == dayOfWeek)
+                {
+                    blackoutsToInsert.Add(new BlackoutDate
+                    {
+                        PCID = pcid,
+                        StartDate = date,
+                        EndDate = date,
+                        Reason = reason
+                    });
+                }
+            }
+
+            // Insert all blackouts
+            foreach (var blackout in blackoutsToInsert)
+            {
+                try
+                {
+                    InsertBlackoutDate(blackout);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Skip overlapping dates, continue with others
+                    continue;
+                }
+            }
+
+        }
         // Supporting class for blackout information
         public class BlackoutInfo
         {

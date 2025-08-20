@@ -193,7 +193,6 @@ namespace MBTP.Controllers
         {
             try
             {
-                // Handle both JSON (AJAX) and form submissions
                 var blackoutData = blackout ?? formBlackout;
 
                 System.Diagnostics.Debug.WriteLine($"Received blackout: PCID={blackoutData?.PCID}, StartDate={blackoutData?.StartDate}, EndDate={blackoutData?.EndDate}, Reason={blackoutData?.Reason}");

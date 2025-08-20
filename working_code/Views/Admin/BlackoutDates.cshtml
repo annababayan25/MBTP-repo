@@ -111,8 +111,6 @@
    }
 </style>
 
-<h1 class="centered">Blackout Dates</h1>
-<div class="color">
 
     @if (TempData["SuccessMessage"] != null)
     {
@@ -126,7 +124,8 @@
     <link rel="stylesheet" href="/static/theme/calendar-styles.css" />
     <div class="center">
         <div class="centered">
-            <h3>Add Blackout Date</h3>
+            <h3 class="">Add Blackout Date</h3>
+            <br></br>
             <form id="addBlackoutForm" asp-action="AddBlackout" asp-controller="Admin" method="post">
                 @Html.AntiForgeryToken()
                 <div>
