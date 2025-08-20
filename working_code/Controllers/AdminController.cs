@@ -189,121 +189,76 @@ namespace MBTP.Controllers
 
         [HttpPost]
         [Route("Admin/AddBlackout")]
-        public IActionResult AddBlackout([FromBody] BlackoutDate blackout = null, BlackoutDate formBlackout = null)
+        public IActionResult AddBlackout(BlackoutDate blackout)
         {
             try
             {
-                // Handle both JSON (AJAX) and form submissions
-                var blackoutData = blackout ?? formBlackout;
+                System.Diagnostics.Debug.WriteLine($"Received blackout: PCID={blackout?.PCID}, StartDate={blackout?.StartDate}, EndDate={blackout?.EndDate}, Reason={blackout?.Reason}");
 
-                System.Diagnostics.Debug.WriteLine($"Received blackout: PCID={blackoutData?.PCID}, StartDate={blackoutData?.StartDate}, EndDate={blackoutData?.EndDate}, Reason={blackoutData?.Reason}");
-
-                if (blackoutData == null)
+                if (blackout == null)
                 {
-                    if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                    {
-                        return BadRequest(new { success = false, message = "No blackout data received." });
-                    }
                     TempData["ErrorMessage"] = "No blackout data received.";
                     return RedirectToAction("BlackoutDates");
                 }
 
-                if (blackoutData.PCID <= 0)
+                if (blackout.PCID <= 0)
                 {
-                    if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                    {
-                        return BadRequest(new { success = false, message = "Please select a valid location." });
-                    }
                     TempData["ErrorMessage"] = "Please select a valid location.";
                     return RedirectToAction("BlackoutDates");
                 }
 
-                if (blackoutData.StartDate == default(DateTime) || blackoutData.EndDate == default(DateTime))
+                if (blackout.StartDate == default(DateTime) || blackout.EndDate == default(DateTime))
                 {
-                    if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                    {
-                        return BadRequest(new { success = false, message = "Please provide valid start and end dates." });
-                    }
                     TempData["ErrorMessage"] = "Please provide valid start and end dates.";
                     return RedirectToAction("BlackoutDates");
                 }
 
-                if (string.IsNullOrWhiteSpace(blackoutData.Reason))
+                if (string.IsNullOrWhiteSpace(blackout.Reason))
                 {
-                    if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                    {
-                        return BadRequest(new { success = false, message = "Please provide a reason for the blackout." });
-                    }
                     TempData["ErrorMessage"] = "Please provide a reason for the blackout.";
                     return RedirectToAction("BlackoutDates");
                 }
 
                 // Additional validation
-                if (blackoutData.StartDate.Date > blackoutData.EndDate.Date)
+                if (blackout.StartDate.Date > blackout.EndDate.Date)
                 {
-                    if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                    {
-                        return BadRequest(new { success = false, message = "Start date cannot be after end date." });
-                    }
                     TempData["ErrorMessage"] = "Start date cannot be after end date.";
                     return RedirectToAction("BlackoutDates");
                 }
 
                 // Check for overlaps
-                if (_blackoutService.HasOverlap(blackoutData.PCID, blackoutData.StartDate.Date, blackoutData.EndDate.Date))
+                if (_blackoutService.HasOverlap(blackout.PCID, blackout.StartDate.Date, blackout.EndDate.Date))
                 {
-                    if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                    {
-                        return Conflict(new { success = false, message = "This blackout period overlaps with an existing blackout for this location." });
-                    }
                     TempData["ErrorMessage"] = "This blackout period overlaps with an existing blackout for this location.";
                     return RedirectToAction("BlackoutDates");
                 }
 
-                blackoutData.StartDate = blackoutData.StartDate.Date;
-                blackoutData.EndDate = blackoutData.EndDate.Date;
+                blackout.StartDate = blackout.StartDate.Date;
+                blackout.EndDate = blackout.EndDate.Date;
 
                 // Add the blackout
-                _blackoutService.InsertBlackoutDate(blackoutData);
-
-                var duration = (blackoutData.EndDate - blackoutData.StartDate).Days + 1;
-                var successMessage = $"Blackout date added successfully for {duration} day{(duration == 1 ? "" : "s")}.";
-
-                if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                {
-                    return Ok(new { success = true, message = successMessage });
-                }
-
-                TempData["SuccessMessage"] = successMessage;
+                _blackoutService.InsertBlackoutDate(blackout);
+                
+                var duration = (blackout.EndDate - blackout.StartDate).Days + 1;
+                TempData["SuccessMessage"] = $"Blackout date added successfully for {duration} day{(duration == 1 ? "" : "s")}.";
+                
                 return RedirectToAction("BlackoutDates");
             }
             catch (ArgumentException ex)
             {
                 System.Diagnostics.Debug.WriteLine($"ArgumentException in AddBlackout: {ex.Message}");
-                if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                {
-                    return BadRequest(new { success = false, message = ex.Message });
-                }
                 TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction("BlackoutDates");
             }
             catch (InvalidOperationException ex)
             {
                 System.Diagnostics.Debug.WriteLine($"InvalidOperationException in AddBlackout: {ex.Message}");
-                if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                {
-                    return StatusCode(409, new { success = false, message = ex.Message });
-                }
                 TempData["ErrorMessage"] = ex.Message;
                 return RedirectToAction("BlackoutDates");
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Unexpected error in AddBlackout: {ex.Message}\nStackTrace: {ex.StackTrace}");
-                if (Request.Headers["Content-Type"].ToString().Contains("application/json"))
-                {
-                    return StatusCode(500, new { success = false, message = $"An unexpected error occurred: {ex.Message}" });
-                }
                 TempData["ErrorMessage"] = $"An unexpected error occurred: {ex.Message}";
                 return RedirectToAction("BlackoutDates");
             }
