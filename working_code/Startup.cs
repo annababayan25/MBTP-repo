@@ -36,8 +36,8 @@ namespace MBTP
             services.AddScoped<TrailerMovesReport>();
             services.AddScoped<ExpressCheckinsReport>();
             services.AddScoped<AccessLevelsActions>();
-            services.AddSingleton<AdministrationService>();
-            services.AddSingleton<RetailService>();
+            services.AddScoped<AdministrationService>();
+            services.AddScoped<RetailService>();
             services.AddScoped<SpecialAddonsService>();
             services.AddScoped<SQLSupport>();
             services.AddScoped<BlackoutService>();

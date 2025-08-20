@@ -12,6 +12,12 @@ namespace SQLStuff
         private SqlCommand _cmd;
         private SqlConnection _sqlConn;
 
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IDatabaseConnectionService dbConnectionService)
+        {
+            GenericRoutines.Initialize(dbConnectionService);
+        }
+
+
         public SQLSupport(IDatabaseConnectionService dbConnectionService)
         {
             _dbConnectionService = dbConnectionService;
@@ -88,15 +94,13 @@ namespace SQLStuff
             }
         }
 
-        public static void UpdateAlertsTable(byte pcidIn, string severityIn, string textIn)
+        public static void UpdateAlertsTable(IDatabaseConnectionService dbConnectionService, byte pcidIn, string severityIn, string textIn)
         {
             var configuration = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json")
                 .Build();
 
-            var connStr = configuration.GetConnectionString("TestConnection");
-
-            using (var conn = new SqlConnection(connStr))
+            using (var conn = dbConnectionService.CreateConnection())
             {
                 conn.Open();
                 using (var cmd = new SqlCommand("dbo.UpdateAlerts", conn))
