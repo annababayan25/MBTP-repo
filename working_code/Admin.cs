@@ -1,15 +1,16 @@
 using System.Data;
 using Microsoft.Data.SqlClient;
+using MBTP.Interfaces;
 
 namespace MBTP.Services
 {
     public class AdministrationService
     {
-        private readonly IConfiguration _configuration;
+        private readonly IDatabaseConnectionService _dbConnectionService;
 
-        public AdministrationService(IConfiguration configuration)
+        public AdministrationService(IDatabaseConnectionService dbConnectionService)
         {
-            _configuration = configuration;
+            _dbConnectionService = dbConnectionService;
         }
 
         public DataSet ReviewDistinctAlerts()
@@ -18,7 +19,7 @@ namespace MBTP.Services
 
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("TestConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDistinctAlerts", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
@@ -43,26 +44,25 @@ namespace MBTP.Services
             }
         }
         
-        public async Task<bool> PostBlackoutDate(string blackoutKey)
+        public async Task<bool> PostBlackoutDate(string blackoutKey, string reason = null)
         {
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("TestConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.UpdateBlackoutDates", sqlConn))
                 {
                     DateTime dummy = DateTime.Now;
                     string pcID = blackoutKey.Substring(10);
                     string myDate = blackoutKey.Substring(0, 10);
                     cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@TransDate", dummy);
                     cmd.Parameters.AddWithValue("@StartDate", myDate);
                     cmd.Parameters.AddWithValue("@EndDate", myDate);
                     cmd.Parameters.AddWithValue("@pcID", pcID);
                     cmd.Parameters.AddWithValue("@DeleteNeeded", 255);
+                    cmd.Parameters.AddWithValue("@Reason", (object?)reason ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@WorkingYr", 0);
                     cmd.Parameters.AddWithValue("@WorkingMonth", 0);
-                    cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
-                    cmd.Parameters["@status"].Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
                     sqlConn.Open();
                     await cmd.ExecuteNonQueryAsync();
                     sqlConn.Close();
@@ -95,7 +95,7 @@ namespace MBTP.Services
 
             try
             {
-                using (SqlConnection sqlConn = new SqlConnection(_configuration.GetConnectionString("TestConnection")))
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 using (SqlCommand cmd = new SqlCommand("dbo.RetrieveSpecialAddons", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
