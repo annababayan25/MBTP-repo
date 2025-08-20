@@ -188,7 +188,7 @@ namespace MBTP.Controllers
         }
 
         [HttpPost]
-        [Route("Admin/AddBlackout")]
+        [Route("Admin/AddBlackout")] 
         public IActionResult AddBlackout(BlackoutDate blackout)
         {
             try
