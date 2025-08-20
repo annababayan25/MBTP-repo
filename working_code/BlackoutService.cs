@@ -29,7 +29,7 @@ namespace MBTP.Retrieval
             using (SqlCommand cmd = new SqlCommand(@"SELECT b.BlackoutID, b.PCID, p.Description AS ProfitCenterName, b.StartDate, b.EndDate, b.Reason 
                                                     FROM BlackoutDates b
                                                     INNER JOIN ProfitCenters p on b.PCID = p.PCID
-                                                    ORDER BY b.StartDate DESC", conn))
+                                                    ORDER BY b.StartDate", conn))
             {
                 conn.Open();
                 using var reader = cmd.ExecuteReader();
@@ -127,7 +127,7 @@ namespace MBTP.Retrieval
         public void DeleteBlackoutDate(int blackoutID)
         {
             using (SqlConnection conn = _dbConnectionService.CreateConnection())
-            using (SqlCommand cmd = new SqlCommand(@"DELETE FROM BlackoutDates WHERE BlackoutID = @BlackoutID", conn))
+            using (SqlCommand cmd = new SqlCommand(@"DELETE FROM BlackoutDAtes WHERE BlackoutID = @BlackoutID", conn))
             {
                 cmd.Parameters.AddWithValue("@BlackoutID", blackoutID);
                 conn.Open();
@@ -281,41 +281,42 @@ namespace MBTP.Retrieval
         return blackoutStatus;
     }
 
-        public void InsertRecurringBlackouts(int pcid, DateTime startDate, DateTime endDate,
-            DayOfWeek dayOfWeek, string reason)
+
+    public void InsertRecurringBlackouts(int pcid, DateTime startDate, DateTime endDate, 
+        DayOfWeek dayOfWeek, string reason)
+    {
+        var blackoutsToInsert = new List<BlackoutDate>();
+        
+        // Find all instances of the specified day of week in the date range
+        for (var date = startDate; date <= endDate; date = date.AddDays(1))
         {
-            var blackoutsToInsert = new List<BlackoutDate>();
-
-            // Find all instances of the specified day of week in the date range
-            for (var date = startDate; date <= endDate; date = date.AddDays(1))
+            if (date.DayOfWeek == dayOfWeek)
             {
-                if (date.DayOfWeek == dayOfWeek)
+                blackoutsToInsert.Add(new BlackoutDate
                 {
-                    blackoutsToInsert.Add(new BlackoutDate
-                    {
-                        PCID = pcid,
-                        StartDate = date,
-                        EndDate = date,
-                        Reason = reason
-                    });
-                }
+                    PCID = pcid,
+                    StartDate = date,
+                    EndDate = date,
+                    Reason = reason
+                });
             }
-
-            // Insert all blackouts
-            foreach (var blackout in blackoutsToInsert)
-            {
-                try
-                {
-                    InsertBlackoutDate(blackout);
-                }
-                catch (InvalidOperationException)
-                {
-                    // Skip overlapping dates, continue with others
-                    continue;
-                }
-            }
-
         }
+        
+        // Insert all blackouts
+        foreach (var blackout in blackoutsToInsert)
+        {
+            try
+            {
+                InsertBlackoutDate(blackout);
+            }
+            catch (InvalidOperationException)
+            {
+                // Skip overlapping dates, continue with others
+                continue;
+            }
+        }
+    }
+
         // Supporting class for blackout information
         public class BlackoutInfo
         {
@@ -330,4 +331,3 @@ namespace MBTP.Retrieval
 
         }
     }
-        
