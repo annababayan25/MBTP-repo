@@ -9,6 +9,7 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using ClosedXML.Excel;
 using Microsoft.Extensions.Configuration;
 using SQLStuff;
+using MBTP.Interfaces;
 
 namespace GenericSupport
 {
@@ -56,11 +57,18 @@ namespace GenericSupport
         public static HeartlandRegisterFiles registerFiles = new HeartlandRegisterFiles();
         public static SingleFilesOperation singleFile = new SingleFilesOperation();
         public static NewbookFiles nbfiles = new NewbookFiles();
+        private static IDatabaseConnectionService _dbConnectionService;
+
+        public static void Initialize(IDatabaseConnectionService dbConnectionService)
+        {
+            _dbConnectionService = dbConnectionService;
+        }
         public static void UpdateAlerts(byte pcidIn, string severityIn, string textIn)
         {
-            SQLSupport.UpdateAlertsTable(pcidIn, severityIn, textIn);
-            
+            SQLSupport.UpdateAlertsTable(_dbConnectionService, pcidIn, severityIn, textIn);
+
         }
+        
         public static string DoesFileExist(string subDirectoryIn, string fileNameIn, string suffixIn, bool modifyCheck = false)
         {
             string repDate = repDateTmp.ToString("MMMdd").ToUpper();
@@ -74,7 +82,7 @@ namespace GenericSupport
             // grab the wrong October files.  This forces it to look for the previous fiscal year files and not grab the current October files
             // if any historical reporting needs to be done during year-end closeout.
             string workingFilePath;
-            if(repDateTmp.Month >= 10)
+            if (repDateTmp.Month >= 10)
             {
                 workingFilePath = altPath + "FY" + repDateTmp.ToString("yyyy") + @"\" + repDateTmp.ToString("MMM") + @"\";
             }
@@ -87,7 +95,7 @@ namespace GenericSupport
             {
                 if (modifyCheck) // this only applies to Newbook files.  If a modified version is found that path is returned
                 {
-                    string modifiedFilePath = workingFilePath.Replace(suffixIn," - MODIFIED" + suffixIn);
+                    string modifiedFilePath = workingFilePath.Replace(suffixIn, " - MODIFIED" + suffixIn);
                     if (System.IO.File.Exists(modifiedFilePath))
                     {
                         return modifiedFilePath;

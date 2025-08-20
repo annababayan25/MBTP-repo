@@ -29,7 +29,7 @@ namespace MBTP.Retrieval
             using (SqlCommand cmd = new SqlCommand(@"SELECT b.BlackoutID, b.PCID, p.Description AS ProfitCenterName, b.StartDate, b.EndDate, b.Reason 
                                                     FROM BlackoutDates b
                                                     INNER JOIN ProfitCenters p on b.PCID = p.PCID
-                                                    ORDER BY b.StartDate", conn))
+                                                    ORDER BY b.StartDate DESC", conn))
             {
                 conn.Open();
                 using var reader = cmd.ExecuteReader();
@@ -127,7 +127,7 @@ namespace MBTP.Retrieval
         public void DeleteBlackoutDate(int blackoutID)
         {
             using (SqlConnection conn = _dbConnectionService.CreateConnection())
-            using (SqlCommand cmd = new SqlCommand(@"DELETE FROM BlackoutDAtes WHERE BlackoutID = @BlackoutID", conn))
+            using (SqlCommand cmd = new SqlCommand(@"DELETE FROM BlackoutDates WHERE BlackoutID = @BlackoutID", conn))
             {
                 cmd.Parameters.AddWithValue("@BlackoutID", blackoutID);
                 conn.Open();
@@ -314,7 +314,7 @@ namespace MBTP.Retrieval
                 continue;
             }
         }
-    }
+    
 
         // Supporting class for blackout information
         public class BlackoutInfo
