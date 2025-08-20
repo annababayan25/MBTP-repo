@@ -29,7 +29,7 @@ namespace MBTP.Retrieval
             using (SqlCommand cmd = new SqlCommand(@"SELECT b.BlackoutID, b.PCID, p.Description AS ProfitCenterName, b.StartDate, b.EndDate, b.Reason 
                                                     FROM BlackoutDates b
                                                     INNER JOIN ProfitCenters p on b.PCID = p.PCID
-                                                    ORDER BY b.StartDate", conn))
+                                                    ORDER BY b.StartDate DESC", conn))
             {
                 conn.Open();
                 using var reader = cmd.ExecuteReader();
