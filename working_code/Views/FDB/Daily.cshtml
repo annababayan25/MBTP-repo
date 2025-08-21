@@ -869,12 +869,12 @@ else
                 document.getElementById('datePicker').value = dateParam; 
                 document.querySelector('h1').innerText = "Daily Operations Overview: " + dateParam;
             }
-            var cells = document.querySelectorAll('tbody td.right, tbody td.blue, tbody td.green, tbody td.bYellow, tbody td.yellow,  tbody td.yellow2'); 
+            var cells = document.querySelectorAll('tbody td.right, tbody td.blue, tbody td.green, tbody td.bYellow, tbody td.yellow, tbody td.yellow2'); 
             cells.forEach(function (cell) { 
-                var amount = parseFloat(cell.textContent); 
-                if (!isNaN(amount)) 
-                { 
-                    cell.textContent = formatNumberWithCommas(amount.toFixed(2)); 
+                var raw = cell.textContent.trim().replace(/,/g, ''); 
+                var amount = parseFloat(raw); 
+                if (!isNaN(amount)) { 
+                    cell.textContent = Number(amount).toLocaleString('en-US', { minimumFractionDigits: 2 });
                 } 
             });
         });
