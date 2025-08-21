@@ -10,11 +10,9 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-
 .color {
     background-color: #b4dfff;
 }
-
 .center {
     margin: auto;
     text-align: center;
@@ -26,42 +24,45 @@
     border-radius: 10px;
     background-color: #ffffff;
 }
-
 .container {
     width: 100%;
     margin: 0 auto;
 }
-
 .centered {
     text-align: center;
     border: 1px black solid;
 }
-
 @@media (max-width: 600px) {
-    .center {
-        width: 90%;
-        padding: 20px 10px;
-    }
-
-
-    .signOUT {
-        font-size: 24px;
-    }
-
-
-    .pdfButton {
-        padding: 8px 16px;
-        font-size: 14px;
-    }
+    .center { width: 90%; padding: 20px 10px; }
+    .signOUT { font-size: 24px; }
+    .pdfButton { padding: 8px 16px; font-size: 14px; }
 }
-.errorText{
+.errorText {
   text-align: left;
   border: 1px black solid;
   padding-left: 5px;
   padding-right: 5px;
   color: black;
 }
+/* Modal styling */
+#reasonModal {
+  display:none;
+  position:fixed;
+  top:30%;
+  left:50%;
+  transform:translate(-50%, -30%);
+  background:#fff;
+  padding:20px;
+  border:1px solid #ccc;
+  border-radius:8px;
+  box-shadow:0 0 10px rgba(0,0,0,0.3);
+  z-index:1000;
+}
+#reasonModal h3 {
+  margin-top:0;
+}
 </style>
+
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
     <table class="breakdown" id="alertTable">
@@ -73,22 +74,22 @@
             <th class="breakdownTitle">Error Description</th>
             <th class="breakdownTitle">Blackout Date</th>
         </tr>
-        @if (Model is not null && Model.Tables[0].Rows.Count > 0)
-        {
+        @{
             var rowNum = 0;
-            @foreach (DataRow row in Model!.Tables[0].Rows)
+            foreach (DataRow row in Model!.Tables[0].Rows)
             {
-                rowNum ++;
+                rowNum++;
                 var rowID = "row" + rowNum;
                 var transDate = (DateTime)row["TransDate"];
-                int pcID = (int) row["PCID"];
-                string boxID = transDate.ToString("yyy-MM-dd") + pcID.ToString();
-                <tr class="colorAlt" id="@rowID" >
-                    <td class="breakdownDate" style="text-align: center;">@transDate.ToString("MM/dd/yy")</td>
-                    <td class="errorText">@row["alerttext"]</td>
+                int pcID = (int)row["PCID"];
+                string dateStr = transDate.ToString("yyyy-MM-dd");
+                <tr class="colorAlt" id="@rowID">
+                    <td class="breakdownDate" style="text-align:center;">@transDate.ToString("MM/dd/yy")</td>
+                    <td class="errorText">@row["AlertText"]</td>
                     @if(pcID != 100)
                     {
-                        <td class="centered"><input type="checkbox" class="my-checkbox" id=@boxID name=@rowID></td>
+                        <td class="centered"><input type="checkbox" class="blk-checkbox"
+                            data-pcid="@pcID" data-date="@dateStr" data-row="@rowID"></td>
                     }
                     else
                     {
@@ -103,49 +104,95 @@ else
 {
     <h1>No Data Found</h1>
 }
-@section Scripts 
-{
-<script>
-    $(document).ready(function () {
-        const checkboxes = document.querySelectorAll('.my-checkbox');
-        checkboxes.forEach(checkbox => 
+
+<div id="reasonModal">
+    <h3>Select Reason for Blackout</h3>
+    <select id="reasonDropdown">
+        @foreach (var reason in (List<SelectListItem>)ViewBag.Reasons)
         {
-            checkbox.addEventListener('change', function() 
-                {
-                    var rowID = this.name;
-                    $.ajax(
-                        {
-                            type: "POST", 
-                            url: "/Admin/AddBlackout",
-                            dataType: "json",
-                            data: { "blackoutIdIn": this.id},
-                            success: function(response) 
-                            {
-                                const alertTable = document.getElementById("alertTable");
-                                var oldRows = alertTable.rows;
-                                for (var i = 0; i < oldRows.length; i++) 
-                                {
-                                    var row = oldRows[i];
-                                    if(row.id == rowID)
-                                    {
-                                        document.getElementById(rowID).remove();
-                                        break;
-                                    }
-                                }
-                            },
-                            failure: function(response) 
-                            {
-                                alert(response.responseText);
-                            },
-                            error: function(response) 
-                            {
-                                alert(response.responseText);
-                            },
-                        }
-                    );
-                }
-            );
-        });
+            <option value="@reason.Value">@reason.Text</option>
+        }
+    </select>
+    <br /><br />
+    <button id="confirmReason">Confirm</button>
+    <button id="cancelReason">Cancel</button>
+</div>
+
+@section Scripts {
+<script>
+(function () {
+    // Pre-disable boxes where blackout already exists
+    document.querySelectorAll('.blk-checkbox').forEach(async cb => {
+      const pcid = cb.dataset.pcid;
+      const date = cb.dataset.date;
+      try {
+        const res = await fetch(`/Admin/IsBlackout?PCID=${encodeURIComponent(pcid)}&date=${encodeURIComponent(date)}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.isBlackout) {
+            cb.checked = true;
+            cb.disabled = true;
+            cb.title = "Blackout already exists";
+          }
+        }
+      } catch (e) {}
     });
+
+    let activeCheckbox = null;
+
+    document.addEventListener('change', async (ev) => {
+      const cb = ev.target;
+      if (!cb.classList.contains('blk-checkbox')) return;
+      if (!cb.checked) return;
+
+      activeCheckbox = cb;
+      // Show modal
+      document.getElementById("reasonModal").style.display = "block";
+    });
+
+    document.getElementById("confirmReason").onclick = async function () {
+      const cb = activeCheckbox;
+      if (!cb) return;
+
+      const pcid = Number(cb.dataset.pcid);
+      const date = cb.dataset.date;
+      const rowID = cb.dataset.row;
+      const reason = document.getElementById("reasonDropdown").value;
+
+      document.getElementById("reasonModal").style.display = "none";
+
+      try {
+        const res = await fetch('/Admin/AddBlackoutFromAlert', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ pcid, transDate: date, reason })
+        });
+        if (res.ok) {
+          const json = await res.json();
+          alert(json.message || "Blackout added.");
+          cb.disabled = true;
+          const tr = document.getElementById(rowID);
+          if (tr) tr.remove();
+        } else if (res.status === 409) {
+          const json = await res.json();
+          alert(json.message || "Blackout already exists.");
+          cb.checked = true;
+          cb.disabled = true;
+        } else {
+          const text = await res.text();
+          alert("Failed to add blackout:\n" + text);
+          cb.checked = false;
+        }
+      } catch (e) {
+        alert("Network error: " + e.message);
+        cb.checked = false;
+      }
+    };
+
+    document.getElementById("cancelReason").onclick = function () {
+      if (activeCheckbox) activeCheckbox.checked = false;
+      document.getElementById("reasonModal").style.display = "none";
+    };
+  })();
 </script>
 }

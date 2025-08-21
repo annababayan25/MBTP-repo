@@ -15,7 +15,7 @@ namespace MBTP.Models
         public string Reason { get; set; }
     }
 
-     public class ProfitCenters
+    public class ProfitCenters
     {
         public int PCID { get; set; }
         public string Description { get; set; }
@@ -42,5 +42,24 @@ namespace MBTP.Models
         public string BlackoutReason { get; set; }
         public string ExpectedStatus { get; set; }
     }
+
+    public class BlackoutInfo
+    {
+        public int PCID { get; set; }
+        public string ProfitCenterName { get; set; }
+        public string Reason { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public bool IsBlackedOut { get; set; }
+    }
+
+    public class AddBlackoutRequest
+    {
+        public int PCID { get; set; }
+        public DateTime TransDate { get; set; }
+        public string Reason { get; set; }
+
+    }
+        
 
 }
