@@ -55,36 +55,36 @@ namespace MBTP.Retrieval
             if (HasOverlap(blackout.PCID, blackout.StartDate, blackout.EndDate))
                 throw new InvalidOperationException("This blackout period overlaps with an existing blackout");
             try
-                {
-                    using (SqlConnection conn = _dbConnectionService.CreateConnection())
-                    using (SqlCommand cmd = new SqlCommand(@"INSERT INTO BlackoutDates (PCID, StartDate, EndDate, Reason)
+            {
+                using (SqlConnection conn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand(@"INSERT INTO BlackoutDates (PCID, StartDate, EndDate, Reason)
                                                              VALUES (@PCID, @StartDate, @EndDate, @Reason)", conn))
-                    {
-                        cmd.Parameters.AddWithValue("@PCID", blackout.PCID);
-                        cmd.Parameters.AddWithValue("@StartDate", blackout.StartDate);
-                        cmd.Parameters.AddWithValue("@EndDate", blackout.EndDate);
-                        cmd.Parameters.AddWithValue("@Reason", blackout.Reason ?? "");
-
-                        conn.Open();
-                        int result = cmd.ExecuteNonQuery();
-
-                        if (result == 0)
-                            throw new InvalidOperationException("Failed to insert blackout date - 0 rows affected");
-
-                        System.Diagnostics.Debug.WriteLine($"Successly added blackout: PCID={blackout.PCID}, StartDate={blackout.StartDate}, EndDate={blackout.EndDate}");
-                    }
-                }
-                catch (SqlException sqlEx)
                 {
-                    Console.WriteLine("SQL error: " + sqlEx.Message);
-                    throw;
+                    cmd.Parameters.AddWithValue("@PCID", blackout.PCID);
+                    cmd.Parameters.AddWithValue("@StartDate", blackout.StartDate);
+                    cmd.Parameters.AddWithValue("@EndDate", blackout.EndDate);
+                    cmd.Parameters.AddWithValue("@Reason", blackout.Reason ?? "");
+
+                    conn.Open();
+                    int result = cmd.ExecuteNonQuery();
+
+                    if (result == 0)
+                        throw new InvalidOperationException("Failed to insert blackout date - 0 rows affected");
+
+                    System.Diagnostics.Debug.WriteLine($"Successly added blackout: PCID={blackout.PCID}, StartDate={blackout.StartDate}, EndDate={blackout.EndDate}");
                 }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("General error: " + ex.Message);
-                    Console.WriteLine("Stack Trace: " + ex.StackTrace);
-                    throw;
-                }
+            }
+            catch (SqlException sqlEx)
+            {
+                Console.WriteLine("SQL error: " + sqlEx.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("General error: " + ex.Message);
+                Console.WriteLine("Stack Trace: " + ex.StackTrace);
+                throw;
+            }
 
         }
 
@@ -140,7 +140,7 @@ namespace MBTP.Retrieval
             using (SqlConnection conn = _dbConnectionService.CreateConnection())
             using (SqlCommand cmd = new SqlCommand(@"SELECT COUNT(*) FROM BlackoutDates WHERE PCID = @PCID AND StartDate <= @Date AND EndDate >= @Date", conn))
             {
-            
+
                 cmd.Parameters.AddWithValue("@PCID", PCID);
                 cmd.Parameters.AddWithValue("@Date", date);
 
@@ -198,10 +198,10 @@ namespace MBTP.Retrieval
         }
 
         public List<BlackoutDate> GetBlackoutDatesForPeriod(int pcid, DateTime startDate, DateTime endDate)
-    {
-        var blackouts = new List<BlackoutDate>();
-        using (SqlConnection conn = _dbConnectionService.CreateConnection())
-        using (SqlCommand cmd = new SqlCommand(@"
+        {
+            var blackouts = new List<BlackoutDate>();
+            using (SqlConnection conn = _dbConnectionService.CreateConnection())
+            using (SqlCommand cmd = new SqlCommand(@"
             SELECT b.BlackoutID, b.PCID, p.Description AS ProfitCenterName, 
                 b.StartDate, b.EndDate, b.Reason 
             FROM BlackoutDates b
@@ -210,124 +210,113 @@ namespace MBTP.Retrieval
             AND b.StartDate <= @EndDate 
             AND b.EndDate >= @StartDate
             ORDER BY b.StartDate", conn))
-        {
-            cmd.Parameters.AddWithValue("@PCID", pcid);
-            cmd.Parameters.AddWithValue("@StartDate", startDate);
-            cmd.Parameters.AddWithValue("@EndDate", endDate);
-            
-            conn.Open();
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
             {
-                blackouts.Add(new BlackoutDate
-                {
-                    BlackoutID = (int)reader["BlackoutID"],
-                    PCID = (int)reader["PCID"],
-                    ProfitCenterName = reader["ProfitCenterName"].ToString(),
-                    StartDate = (DateTime)reader["StartDate"],
-                    EndDate = (DateTime)reader["EndDate"],
-                    Reason = reader["Reason"].ToString()
-                });
-            }
-        }
-        return blackouts;
-    }
+                cmd.Parameters.AddWithValue("@PCID", pcid);
+                cmd.Parameters.AddWithValue("@StartDate", startDate);
+                cmd.Parameters.AddWithValue("@EndDate", endDate);
 
-    public Dictionary<int, BlackoutInfo> GetBlackoutStatusForDate(DateTime date)
-    {
-        var blackoutStatus = new Dictionary<int, BlackoutInfo>();
-        
-        using (SqlConnection conn = _dbConnectionService.CreateConnection())
-        using (SqlCommand cmd = new SqlCommand(@"
+                conn.Open();
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    blackouts.Add(new BlackoutDate
+                    {
+                        BlackoutID = (int)reader["BlackoutID"],
+                        PCID = (int)reader["PCID"],
+                        ProfitCenterName = reader["ProfitCenterName"].ToString(),
+                        StartDate = (DateTime)reader["StartDate"],
+                        EndDate = (DateTime)reader["EndDate"],
+                        Reason = reader["Reason"].ToString()
+                    });
+                }
+            }
+            return blackouts;
+        }
+
+        public Dictionary<int, BlackoutInfo> GetBlackoutStatusForDate(DateTime date)
+        {
+            var blackoutStatus = new Dictionary<int, BlackoutInfo>();
+
+            using (SqlConnection conn = _dbConnectionService.CreateConnection())
+            using (SqlCommand cmd = new SqlCommand(@"
             SELECT b.PCID, p.Description AS ProfitCenterName, b.Reason, b.StartDate, b.EndDate
             FROM BlackoutDates b
             INNER JOIN ProfitCenters p ON b.PCID = p.PCID
             WHERE b.StartDate <= @Date AND b.EndDate >= @Date
             ORDER BY b.PCID", conn))
+            {
+                cmd.Parameters.AddWithValue("@Date", date);
+                conn.Open();
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    var pcid = (int)reader["PCID"];
+                    blackoutStatus[pcid] = new BlackoutInfo
+                    {
+                        PCID = pcid,
+                        ProfitCenterName = reader["ProfitCenterName"].ToString(),
+                        Reason = reader["Reason"].ToString(),
+                        StartDate = (DateTime)reader["StartDate"],
+                        EndDate = (DateTime)reader["EndDate"],
+                        IsBlackedOut = true
+                    };
+                }
+            }
+
+            var allProfitCenters = GetAllProfitCenters();
+            foreach (var pc in allProfitCenters)
+            {
+                if (!blackoutStatus.ContainsKey(pc.PCID))
+                {
+                    blackoutStatus[pc.PCID] = new BlackoutInfo
+                    {
+                        PCID = pc.PCID,
+                        ProfitCenterName = pc.Description,
+                        IsBlackedOut = false
+                    };
+                }
+            }
+
+            return blackoutStatus;
+        }
+
+
+        public void InsertRecurringBlackouts(int pcid, DateTime startDate, DateTime endDate,
+            DayOfWeek dayOfWeek, string reason)
         {
-            cmd.Parameters.AddWithValue("@Date", date);
-            conn.Open();
+            var blackoutsToInsert = new List<BlackoutDate>();
+
+            // Find all instances of the specified day of week in the date range
+            for (var date = startDate; date <= endDate; date = date.AddDays(1))
+            {
+                if (date.DayOfWeek == dayOfWeek)
+                {
+                    blackoutsToInsert.Add(new BlackoutDate
+                    {
+                        PCID = pcid,
+                        StartDate = date,
+                        EndDate = date,
+                        Reason = reason
+                    });
+                }
+            }
+
+            // Insert all blackouts
+            foreach (var blackout in blackoutsToInsert)
+            {
+                try
+                {
+                    InsertBlackoutDate(blackout);
+                }
+                catch (InvalidOperationException)
+                {
+                    // Skip overlapping dates, continue with others
+                    continue;
+                }
+            }
+        }
             
-            using var reader = cmd.ExecuteReader();
-            while (reader.Read())
-            {
-                var pcid = (int)reader["PCID"];
-                blackoutStatus[pcid] = new BlackoutInfo
-                {
-                    PCID = pcid,
-                    ProfitCenterName = reader["ProfitCenterName"].ToString(),
-                    Reason = reader["Reason"].ToString(),
-                    StartDate = (DateTime)reader["StartDate"],
-                    EndDate = (DateTime)reader["EndDate"],
-                    IsBlackedOut = true
-                };
-            }
-        }
-        
-        var allProfitCenters = GetAllProfitCenters();
-        foreach (var pc in allProfitCenters)
-        {
-            if (!blackoutStatus.ContainsKey(pc.PCID))
-            {
-                blackoutStatus[pc.PCID] = new BlackoutInfo
-                {
-                    PCID = pc.PCID,
-                    ProfitCenterName = pc.Description,
-                    IsBlackedOut = false
-                };
-            }
-        }
-        
-        return blackoutStatus;
-    }
-
-
-    public void InsertRecurringBlackouts(int pcid, DateTime startDate, DateTime endDate, 
-        DayOfWeek dayOfWeek, string reason)
-    {
-        var blackoutsToInsert = new List<BlackoutDate>();
-        
-        // Find all instances of the specified day of week in the date range
-        for (var date = startDate; date <= endDate; date = date.AddDays(1))
-        {
-            if (date.DayOfWeek == dayOfWeek)
-            {
-                blackoutsToInsert.Add(new BlackoutDate
-                {
-                    PCID = pcid,
-                    StartDate = date,
-                    EndDate = date,
-                    Reason = reason
-                });
-            }
-        }
-        
-        // Insert all blackouts
-        foreach (var blackout in blackoutsToInsert)
-        {
-            try
-            {
-                InsertBlackoutDate(blackout);
-            }
-            catch (InvalidOperationException)
-            {
-                // Skip overlapping dates, continue with others
-                continue;
-            }
-        }
-    }
-
-        // Supporting class for blackout information
-        public class BlackoutInfo
-        {
-            public int PCID { get; set; }
-            public string ProfitCenterName { get; set; }
-            public string Reason { get; set; }
-            public DateTime StartDate { get; set; }
-            public DateTime EndDate { get; set; }
-            public bool IsBlackedOut { get; set; }
-        }
-
 
         }
     }

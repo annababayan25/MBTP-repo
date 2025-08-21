@@ -166,12 +166,28 @@ namespace MBTP.Controllers
             string addResult = await _accessLevelsActions.AddNewUser(unameIn, pwdIn, accIDIn);
             return addResult;
         }
+
         [Authorize]
         public IActionResult ReviewDistinctAlerts()
         {
             DataSet ActiveAlerts = _adminActions.ReviewDistinctAlerts();
+
+            var reasons = new List<SelectListItem>
+            {
+                new SelectListItem { Value = "Holiday", Text = "Holiday" },
+                new SelectListItem { Value = "Maintenance", Text = "Maintenance" },
+                new SelectListItem { Value = "Occupancy", Text = "Occupancy" },
+                new SelectListItem { Value = "Seasonal", Text = "Seasonal" },
+                new SelectListItem { Value = "Staffing", Text = "Staffing" },
+                new SelectListItem { Value = "Weather", Text = "Weather" },
+                new SelectListItem { Value = "Other", Text = "Other" }
+            };
+
+            ViewBag.Reasons = reasons;
+
             return View(ActiveAlerts);
         }
+
 
         public IActionResult BlackoutDates()
         {
@@ -188,7 +204,7 @@ namespace MBTP.Controllers
         }
 
         [HttpPost]
-        [Route("Admin/AddBlackout")] 
+        [Route("Admin/AddBlackout")]
         public IActionResult AddBlackout(BlackoutDate blackout)
         {
             try
@@ -236,10 +252,10 @@ namespace MBTP.Controllers
 
                 // Add the blackout
                 _blackoutService.InsertBlackoutDate(blackout);
-                
+
                 var duration = (blackout.EndDate - blackout.StartDate).Days + 1;
                 TempData["SuccessMessage"] = $"Blackout date added successfully for {duration} day{(duration == 1 ? "" : "s")}.";
-                
+
                 return RedirectToAction("BlackoutDates");
             }
             catch (ArgumentException ex)
@@ -304,6 +320,33 @@ namespace MBTP.Controllers
 
         }
 
-    }
-}
+        //For ReviewDistinctAlerts
 
+
+        [HttpPost]
+        public IActionResult AddBlackoutFromAlert([FromBody]AddBlackoutRequest req)
+        {
+
+                var start = req.TransDate.Date;
+                var end = req.TransDate.Date;
+
+                if (_blackoutService.HasOverlap(req.PCID, start, end))
+                {
+                    return Conflict(new { success = false, message = "A blackout already exists for this date." });
+                }
+
+                var blackout = new BlackoutDate
+                {
+                    PCID = req.PCID,
+                    StartDate = start,
+                    EndDate = end,
+                    Reason = req.Reason
+                };
+
+            _blackoutService.InsertBlackoutDate(blackout);
+
+                return Ok(new { sucess = true, message = "Blackout added." });
+        }
+    }
+
+}
