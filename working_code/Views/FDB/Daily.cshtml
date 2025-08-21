@@ -268,7 +268,7 @@
                                 @if (preparedFoodC != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="blue">@String.Format(numformatdashed, preparedFoodC)</td>
+                                    <td class="right">@String.Format(numformatdashed, preparedFoodC)</td>
                                 }
                                 else
                                 {
@@ -282,7 +282,7 @@
                                 @if (merch != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="blue">@String.Format(numformatdashed, merch)</td>
+                                    <td class="right">@String.Format(numformatdashed, merch)</td>
                                 }
                                 else
                                 {
@@ -296,7 +296,7 @@
                                 @if (nonTaxFood != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="blue">@String.Format(numformatdashed, nonTaxFood)</td>
+                                    <td class="right">@String.Format(numformatdashed, nonTaxFood)</td>
                                 }
                                 else
                                 {
@@ -307,7 +307,7 @@
                                 <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Beachy Bean Cafe Sales: </td>
                                 <td>&nbsp;</td>
                                 <td colspan="3">&nbsp;</td>
-                                <td class="bbtotal">@String.Format(numformatdashed, totalSales)</td>
+                                <td class="blue">@String.Format(numformatdashed, totalSales)</td>
                             </tr>
                         }
                         else if (coffeeClosed) // no sales + blackout/closed
