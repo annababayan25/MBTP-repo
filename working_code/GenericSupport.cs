@@ -88,9 +88,6 @@ namespace GenericSupport
 
             workingFilePath = workingFilePath + subDirectoryIn + fileNameIn + repDate + suffixIn;
 
-            GenericRoutines.UpdateAlerts(0, "DEBUG", $"Trying archive path: {workingFilePath}");
-
-
             if (System.IO.File.Exists(workingFilePath))
             {
                 if (modifyCheck)
@@ -473,3 +470,4 @@ namespace GenericSupport
         }
     }
 }
+
