@@ -23,7 +23,7 @@ namespace MBTP
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<IDatabaseConnectionService, DatabaseConnectionService>();
+            services.AddSingleton<IDatabaseConnectionService, DatabaseConnectionService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<DailyService>();
             services.AddScoped<DailyBookingsService>();
@@ -73,6 +73,9 @@ namespace MBTP
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
+
+            var dbService = app.ApplicationServices.GetRequiredService<IDatabaseConnectionService>();
+            GenericSupport.GenericRoutines.Initialize(dbService);
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
