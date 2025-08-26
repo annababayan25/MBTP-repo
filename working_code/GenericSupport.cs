@@ -55,7 +55,6 @@ namespace GenericSupport
     {
         public const string dirPath = @"\\DAVE-800-G3\Users\dgriffis.MBTP\OneDrive - MYRTLE BEACH TRAVEL PARK\Downloads\";
         public const string altPath = @"\\DAVE-800-G3\Users\dgriffis.MBTP\OneDrive - MYRTLE BEACH TRAVEL PARK\Daily Export Files Archives\";
-
         public static string repDateStr;
         public static System.DateTime repDateTmp;
         public static HeartlandRetailFiles storeFiles = new HeartlandRetailFiles();
@@ -88,6 +87,9 @@ namespace GenericSupport
             }
 
             workingFilePath = workingFilePath + subDirectoryIn + fileNameIn + repDate + suffixIn;
+
+            GenericRoutines.UpdateAlerts(0, "DEBUG", $"Trying archive path: {workingFilePath}");
+
 
             if (System.IO.File.Exists(workingFilePath))
             {

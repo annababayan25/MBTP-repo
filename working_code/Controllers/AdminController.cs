@@ -111,7 +111,6 @@ namespace MBTP.Controllers
                 {
                     GenericRoutines.repDateStr = counter.ToString("yyyy-MM-dd");
                     cnvrtResult = System.DateTime.TryParse(GenericRoutines.repDateStr, out GenericRoutines.repDateTmp);
-                    var useTestDb = opts.Contains('T');
                     if (opts.Contains('F'))
                     {
                         NewbookImport newbookImport = new NewbookImport(_dbConnectionService);
