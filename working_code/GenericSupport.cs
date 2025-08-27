@@ -296,7 +296,7 @@ namespace GenericSupport
                             }
                             else
                             {
-                                GenericRoutines.UpdateAlerts(1, "FATAL ERROR", fileCheck.Key + ".xlsx Not Found, NEWBOOK IMPORT ABORTED");
+                                GenericRoutines.UpdateAlerts(1, "FATAL ERROR", fileCheck.Key + repDateTmp.ToString("MMMdd").ToUpper() + ".xlsx Not Found, NEWBOOK IMPORT ABORTED");
                                 return false;
                             }
                         }
