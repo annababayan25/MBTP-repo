@@ -86,61 +86,121 @@
         <table id="external-wrapper-table">
             <tr>
                 <td>
-                <table id="alerts-table"  class="breakdown" style="width:600px">
-                    <thead>
-                        <tr class="dashboardTableHeader">
-                            <td colspan="7">Data Errors From Last 30 Days</td>
+                    <table id="alerts-table"  class="breakdown" style="width:600px">
+                        <thead>
+                            <tr class="dashboardTableHeader">
+                                <td colspan="7">Data Errors From Last 30 Days</td>
+                            </tr>
+                        </thead>
+                        <tr>
+                            <th class="dashboardHead">Date</th>
+                            <th class="dashboardHead">Location</th>
+                            <th class="dashboardHead">Error Description</th>
                         </tr>
-                    </thead>
-                    <tr>
-                        <th class="dashboardHead">Date</th>
-                        <th class="dashboardHead">Location</th>
-                        <th class="dashboardHead">Error Description</th>
-                    </tr>
-                    @if (Model is not null && Model.Tables["Alerts"].Rows.Count > 0)
-                    {
-                        @foreach (DataRow row in Model!.Tables["Alerts"].Rows)
+                        @if (Model is not null && Model.Tables["Alerts"].Rows.Count > 0)
                         {
-                            DateTime transDate = (DateTime) row["TransDate"];
-                            int pcID = (int) row["PCID"];
-                            string location;
-                            if(pcID == 100)
+                            @foreach (DataRow row in Model!.Tables["Alerts"].Rows)
                             {
-                                location = "Front Office";
-                            }
-                            else if(pcID == 0)
-                            {
-                                location = "System Internal";
-                            }
-                            else
-                            {
-                                location = (string)row["Location"];
-                            }
-                            <tr class="dashboardAlt">
-                                <td class="dashboardDate">@transDate.ToShortDateString()</td>
-                                @if(pcID == 100)
+                                DateTime transDate = (DateTime) row["TransDate"];
+                                int pcID = (int) row["PCID"];
+                                string location;
+                                if(pcID == 100)
                                 {
-                                    <td class="dashboardData"><b>@location</b></td>
-                                    <td class="errorText"><b>&nbsp;@row["AlertText"]</b></td>
+                                    location = "Front Office";
+                                }
+                                else if(pcID == 0)
+                                {
+                                    location = "System Internal";
                                 }
                                 else
                                 {
-                                    <td class="dashboardData">@location</td>
-                                    <td class="errorText">&nbsp;@row["AlertText"]</td>
+                                    location = (string)row["Location"];
                                 }
+                                <tr class="dashboardAlt">
+                                    <td class="dashboardDate">@transDate.ToShortDateString()</td>
+                                    @if(pcID == 100)
+                                    {
+                                        <td class="dashboardData"><b>@location</b></td>
+                                        <td class="errorText"><b>&nbsp;@row["AlertText"]</b></td>
+                                    }
+                                    else
+                                    {
+                                        <td class="dashboardData">@location</td>
+                                        <td class="errorText">&nbsp;@row["AlertText"]</td>
+                                    }
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="3">NO ERRORS IN THIS PERIOD</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="3">NO ERRORS IN THIS PERIOD</td>
-                        </tr>
-                    }
-                </table>
+                    </table>
                 </td>
-                <td>&nbsp;</td>
-            </tr>
+                <td>
+                    <table id="aps-table"  class="breakdown" style="width:300px">
+                        <thead>
+                            <tr class="dashboardTableHeader">
+                                <td colspan="3">Guest Wi-Fi Status</td>
+                            </tr>
+                            @if (Model is not null && Model.Tables["APStatus"].Rows.Count > 0)
+                            {
+                                int onlineCount = 0;
+                                @foreach (DataRow row in Model!.Tables["APStatus"].Rows)
+                                {
+                                    bool isConnected = (bool)row["Connected"];
+                                    if (isConnected)    
+                                    {
+                                        onlineCount++;
+                                    }
+                                }
+                                string onlineCountStr = onlineCount.ToString() + " of " + Model.Tables["APStatus"].Rows.Count.ToString() + " Access Points Online";
+                                <tr class="dashboardTableHeader" style="background-color: rgb(2, 180, 2);">
+                                    <td class="dashboardData" colspan="3" style="text-align: center;">@onlineCountStr</td>
+                                </tr>
+                            }
+                        </thead>
+                        @if (Model is not null && Model.Tables["APStatus"].Rows.Count > 0)
+                        {
+                            <tr>
+                                <td class="dashboardTableHeader" style="background-color: #FF746C; border-top: double;" colspan="3">Access Points Not Connected</td>
+                            </tr>
+                            <tr>
+                                <th class="dashboardHead">AP Site</th>
+                                <th class="dashboardHead">AP Hub Location</th>
+                                <th class="dashboardHead">Last&nbsp;Online</th>
+                            </tr>
+                            @foreach (DataRow row in Model!.Tables["APStatus"].Rows)
+                            {
+                                bool isConnected = (bool)row["Connected"];
+                                if (!isConnected)    
+                                {
+                                    // not connected, show it
+                                    string APLocation = row["APLocation"]?.ToString() ?? string.Empty;
+                                    DateTime LastConnectTime = row["LastConnectTime"] is DBNull ? DateTime.MinValue : (DateTime)row["LastConnectTime"];
+                                    int dashPoint = APLocation.IndexOf('-');
+                                    if (dashPoint > 0)
+                                    {
+                                        APLocation = APLocation.Substring(dashPoint+1).Trim();
+                                    }
+                                    <tr class="dashboardAlt">
+                                        <td class="dashboardData">@APLocation</td>
+                                        <td class="dashboardData">@row["HubName"].ToString()</td>
+                                        <td class="dashboardData">@LastConnectTime.ToString("MM/dd/yy hh:mm tt")</td>
+                                    </tr>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <tr class="dashboardAlt">
+                                <td class="dashboardData" colspan="3" style="text-align: center;">No Access Point Data Available At This Time</td>
+                            </tr>
+                        }
+                    </table>
+                </td>
             <tr>
                 <td>&nbsp;</td>
             </tr>
