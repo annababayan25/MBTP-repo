@@ -145,9 +145,11 @@
                             <tr class="dashboardTableHeader">
                                 <td colspan="3">Guest Wi-Fi Status</td>
                             </tr>
+                            @{
+                                int onlineCount = 0;
+                            }
                             @if (Model is not null && Model.Tables["APStatus"].Rows.Count > 0)
                             {
-                                int onlineCount = 0;
                                 @foreach (DataRow row in Model!.Tables["APStatus"].Rows)
                                 {
                                     bool isConnected = (bool)row["Connected"];
@@ -162,7 +164,7 @@
                                 </tr>
                             }
                         </thead>
-                        @if (Model is not null && Model.Tables["APStatus"].Rows.Count > 0)
+                        @if (Model is not null && Model.Tables["APStatus"].Rows.Count > 0 && onlineCount < Model.Tables["APStatus"].Rows.Count)
                         {
                             <tr>
                                 <td class="dashboardTableHeader" style="background-color: #FF746C; border-top: double;" colspan="3">Access Points Not Connected</td>
@@ -193,7 +195,7 @@
                                 }
                             }
                         }
-                        else
+                        else if (Model is not null && Model.Tables["APStatus"].Rows.Count == 0)
                         {
                             <tr class="dashboardAlt">
                                 <td class="dashboardData" colspan="3" style="text-align: center;">No Access Point Data Available At This Time</td>
