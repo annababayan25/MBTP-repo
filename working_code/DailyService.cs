@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using Newtonsoft.Json;
 using MBTP.Models;
+using MBTP.Interfaces;
 
 namespace MBTP.Services
 {
@@ -74,11 +75,11 @@ namespace MBTP.Services
                             DailyCancelledList.Add(new DailyBookingC { Day = item.Key, Cancelled = item.Value });
                         }
                         return new DailyBookingReport
-                            {
-                                Month = periodFrom,
-                                DailyPlaced = DailyPlacedList,
-                                DailyCancelled = DailyCancelledList
-                            };
+                        {
+                            Month = periodFrom,
+                            DailyPlaced = DailyPlacedList,
+                            DailyCancelled = DailyCancelledList
+                        };
                     }
                 }
 

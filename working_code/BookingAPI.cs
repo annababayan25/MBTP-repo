@@ -88,6 +88,8 @@ namespace MBTP.Services
                 command.Parameters.AddWithValue("@EquipmentLength", booking.EquipmentLength ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@FirstName", booking.Firstname ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@LastName", booking.Lastname ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlate", booking.CarLicensePlate ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlateExtra", booking.CarLicensePlateExtra ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Wristbands", booking.Wristbands);
                 command.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
                 command.Parameters["@status"].Direction = ParameterDirection.Output;
@@ -244,6 +246,8 @@ namespace MBTP.Services
                     Console.WriteLine("API response indicates failure.");
                     return new List<Booking>();
                 }
+                
+
 
                 foreach (var item in result.data)
                 {
@@ -282,6 +286,14 @@ namespace MBTP.Services
                         booking.StateName = "Unknown";
                     }
 
+                    if (booking.Equipment != null && booking.Equipment.Count > 0)
+                    {
+                        if (!string.IsNullOrEmpty(booking.Equipment[0].equipment_registration))
+                        {
+                            booking.CarLicensePlate = booking.Equipment[0].equipment_registration;
+                        }
+                    }
+
                     if (booking.CustomFields != null && booking.CustomFields.Count > 0)
                     {
                         for (int cField = 0; cField <= booking.CustomFields.Count - 1; cField++)
@@ -294,8 +306,16 @@ namespace MBTP.Services
                                     if (booking.Equipment[0].equipment_make is not null) { booking.EquipmentMake = booking.Equipment[0].equipment_make; }
                                     if (booking.Equipment[0].equipment_model is not null) { booking.EquipmentModel = booking.Equipment[0].equipment_model; }
                                     if (booking.Equipment[0].equipment_length is not null) { booking.EquipmentLength = booking.Equipment[0].equipment_length; }
+
+                                    if (!string.IsNullOrEmpty(booking.Equipment[0].equipment_registration))
+                                    {
+                                        booking.CarLicensePlate = booking.Equipment[0].equipment_registration;
+                                    }
                                 }
+
+
                             }
+
                             else if (booking.CustomFields[cField].Label == "Camper being delivered by outside company? (if yes, enter company name)")
                             {
                                 booking.StoredOutside = booking.CustomFields[cField].Value;
@@ -310,7 +330,7 @@ namespace MBTP.Services
                                 else
                                 {
                                     booking.Wristbands = 0;
-                                 }
+                                }
                             }
                         }
                     }

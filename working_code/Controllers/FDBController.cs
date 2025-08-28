@@ -34,24 +34,28 @@ namespace MBTP.Controllers
     
         [Authorize]
         public async Task<IActionResult> Daily(string date)
-    {
-        DateTime selectedDate;
-        if (!DateTime.TryParse(date, out selectedDate))
         {
-            // Fallback to yesterday's date if the parsing fails
-            selectedDate = DateTime.Today.AddDays(-1);
-        }
-            var dailyReport = new DailyReport(_dbConnectionService);
-            DataSet reportData = await dailyReport.RetrieveData(selectedDate);
-            DateTime finalDate = selectedDate;
-        // Assign the weather condition and report data to ViewBag
-            ViewBag.FinalDate = finalDate;
-        //ViewBag.WasItRaining = wasItRaining ? 1 : 0;
-        //ViewBag.Temperature = temperature;
-        //ViewBag.ReportData = reportData;
+            DateTime selectedDate;
+            if (!DateTime.TryParse(date, out selectedDate))
+            {
+                // Fallback to yesterday's date if the parsing fails
+                selectedDate = DateTime.Today.AddDays(-1);
+            }
 
-        return View(reportData);
-    }
+                var dailyReport = new DailyReport(_dbConnectionService);
+                DataSet reportData = await dailyReport.RetrieveData(selectedDate);
+                DateTime finalDate = selectedDate;
+
+                // Assign the weather condition and report data to ViewBag
+                ViewBag.FinalDate = finalDate;
+                
+                //ViewBag.WasItRaining = wasItRaining ? 1 : 0;
+                //ViewBag.Temperature = temperature;
+                //ViewBag.ReportData = reportData;
+
+                return View(reportData);
+        }
+
         [Authorize]
         public async Task<IActionResult> DailyReservation(string date)
         {

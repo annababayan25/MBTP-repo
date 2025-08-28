@@ -5,6 +5,7 @@ namespace MBTP.Models
         public string equipment_make { get; set; }
         public string equipment_model { get; set; }
         public string equipment_length { get; set; }
+        public string equipment_registration { get; set; }
     }
 
     public class Guests
@@ -51,5 +52,7 @@ namespace MBTP.Models
         public string? Firstname { get; set; }
         public string? Lastname { get; set; }
         public int Wristbands { get; set; }
+        public string CarLicensePlate {get; set;}
+        public string CarLicensePlateExtra { get; set; }
     }
 }
