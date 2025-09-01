@@ -73,7 +73,7 @@ dotnet run
 
   - To stage and commit your changes: `git add.` and `git commit -m "Add feature: some function"
   - Push to the remote repo (git): `git push origin my-branch-name`
-  - Pull to the remote repo (git): `git push origin my-branch-name`
+  - Pull to the remote repo (git): `git pull origin my-branch-name`
 
 
 ### View commit history 
