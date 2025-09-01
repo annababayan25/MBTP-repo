@@ -67,14 +67,20 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
-.fyLabel {
-    padding-left: 10px; 
-    vertical-align: middle;
-    height: 30px; 
+
+.nav-item.fyNav {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 10px;
 }
+
+.fyLabel {
+    margin: 0;
+    height: auto; 
+}
+
 .fyInput {
-    padding-left: 10px; 
-    vertical-align: middle;
     width: 60px;  
     height: 30px; 
     border: 1px solid black;
@@ -157,12 +163,12 @@ input:checked + .slider:before {
                                         <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Snapshot">Snapshots</a>
                                     </li>
                                     <li class="nav-item">
-                                    <a class="nav-link text-dark fyLabel">
-                                        <label for="yearSelect" class="nav-item text-dark fyLabel">Fiscal Year Selected: &nbsp;</label>
+                                    <a class="nav-link text-dark fyNav">
+                                        <label for="yearSelect" class="fyLabel">Fiscal Year Selected: &nbsp;</label>
                                         @{
                                             var fiscalYear = Context.Session.GetString("FiscalYear") ?? "2024";
                                         }
-                                        <input class="nav-item fyInput" type="number" value=@fiscalYear min="2022" max="2024" step="1" id="yearSelect" />
+                                        <input class="fyInput" type="number" value=@fiscalYear min="2022" max="2024" step="1" id="yearSelect" />
                                     </a>
                                     </li>
                                 }
@@ -298,3 +304,4 @@ input:checked + .slider:before {
     @RenderSection("Scripts", required: false)
 </body>
 </html>
+
