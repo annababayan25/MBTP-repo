@@ -88,6 +88,8 @@ namespace MBTP.Services
                 command.Parameters.AddWithValue("@EquipmentLength", booking.EquipmentLength ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@FirstName", booking.Firstname ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@LastName", booking.Lastname ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlate", booking.CarLicensePlate ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlateExtra", booking.CarLicensePlateExtra ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Wristbands", booking.Wristbands);
                 command.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
                 command.Parameters["@status"].Direction = ParameterDirection.Output;
@@ -244,9 +246,12 @@ namespace MBTP.Services
                     Console.WriteLine("API response indicates failure.");
                     return new List<Booking>();
                 }
+                
+
 
                 foreach (var item in result.data)
                 {
+
                     var booking = new Booking
                     {
                         BookingID = item.booking_id,
@@ -270,6 +275,17 @@ namespace MBTP.Services
                         CustomFields = JsonConvert.DeserializeObject<List<CustomFields>>(item.custom_fields.ToString()), // Deserialize the custom fields list
                         Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()) // Deserialize the equipment fields list
                     };
+
+                    if (booking.Guests != null && booking.Guests.Count > 0)
+                    {
+                        var carPlate = booking.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
+
+                        var licenseNotes = booking.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Notes;
+
+                        booking.CarLicensePlate = carPlate;
+                        booking.CarLicensePlateExtra = licenseNotes;
+                    }
+
                     // Assign the state property from the first guest in the list (if any)
                     if (booking.Guests != null && booking.Guests.Count > 0)
                     {
@@ -295,7 +311,10 @@ namespace MBTP.Services
                                     if (booking.Equipment[0].equipment_model is not null) { booking.EquipmentModel = booking.Equipment[0].equipment_model; }
                                     if (booking.Equipment[0].equipment_length is not null) { booking.EquipmentLength = booking.Equipment[0].equipment_length; }
                                 }
+
+
                             }
+
                             else if (booking.CustomFields[cField].Label == "Camper being delivered by outside company? (if yes, enter company name)")
                             {
                                 booking.StoredOutside = booking.CustomFields[cField].Value;
@@ -310,7 +329,7 @@ namespace MBTP.Services
                                 else
                                 {
                                     booking.Wristbands = 0;
-                                 }
+                                }
                             }
                         }
                     }
