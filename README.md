@@ -38,14 +38,14 @@ This repository houses the web-application for Myrtle Beach Travel Park. We are 
 - In terminal, enter: `cd mbtp_repo`
 - Open the cloned repository in VS Code
 
-#### Restore NuGet dependencies 
-dotnet restore
-
-#### Build the project
-dotnet build
-
-#### Run the project
-dotnet run
+  #### Restore NuGet dependencies 
+  dotnet restore
+  
+  #### Build the project
+  dotnet build
+  
+  #### Run the project
+  dotnet run
 
 --- 
 
@@ -73,7 +73,7 @@ dotnet run
 
   - To stage and commit your changes: `git add.` and `git commit -m "Add feature: some function"
   - Push to the remote repo (git): `git push origin my-branch-name`
-  - Pull to the remote repo (git): `git push origin my-branch-name`
+  - Pull to the remote repo (git): `git pull origin my-branch-name`
 
 
 ### View commit history 
@@ -83,4 +83,4 @@ dotnet run
 
 - `git push --force origin main`: This forcefully overwrites history on the remote branch. It can erase previous commits.
 - `git clean -fd`: Deletes untracked files
-- `git rebase -i`: Reqrites commit history. 
+- `git rebase -i`: Rewrites commit history. 
