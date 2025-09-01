@@ -1,4 +1,5 @@
 ﻿@using IronPdf
+@using Microsoft.AspNetCore.Http;
 <!DOCTYPE html>
 <html lang="en">
 @{
@@ -66,6 +67,31 @@ input:checked + .slider:before {
 .slider.round:before {
   border-radius: 50%;
 }
+
+.nav-item.fyNav {
+    display: flex;
+    align-items: center;
+    gap: 6px;  
+    padding: 0 .5rem; 
+}
+
+.fyLabel {
+    color: black !important;
+    font-weight: 500;
+    white-space: nowrap; 
+}
+
+.fyInput {
+    width: 70px;
+    height: 30px;
+    border: 1px solid black;
+    text-align: center;
+    background-color: #fffd8c;
+    color: red;
+    font-weight: bold;
+    border-radius: 15px;
+}
+
 </style>
 <head>
     <meta charset="utf-8" />
@@ -137,6 +163,13 @@ input:checked + .slider:before {
                                 {
                                     <li class="nav-item">
                                         <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Snapshot">Snapshots</a>
+                                    </li>
+                                    <li class="nav-item fyNav">
+                                        <label for="yearSelect" class="fyLabel">Fiscal Year Selected:</label>
+                                        @{
+                                            var fiscalYear = Context.Session.GetString("FiscalYear") ?? "2024";
+                                        }
+                                        <input class="fyInput" type="number" value="@fiscalYear" min="2022" max="2024" step="1" id="yearSelect" />
                                     </li>
                                 }
                             }
@@ -217,7 +250,6 @@ input:checked + .slider:before {
 <script>
     $(document).ready(function () {
         var mySlider = document.getElementById('dbSlider');
-
         if (mySlider) {
             mySlider.addEventListener('change', function () {
                 $.post("/Home/ToggleSqlConnection", function (response) {
@@ -227,6 +259,31 @@ input:checked + .slider:before {
                         alert("Toggle failed.");
                     }
                 });
+            });
+        }
+        var myFYSelect = document.getElementById('yearSelect');
+        if (myFYSelect) {
+            myFYSelect.addEventListener('change', function () {
+                $.ajax(
+                    {
+                        type: "POST", 
+                        url: "/FDB/SetFiscalYear",
+                        dataType: "json",
+                        data: { "newFiscalYear": this.value},
+                        success: function(response) 
+                        {
+                            location.reload(); // this applies the new DB connection
+                        },
+                        failure: function(response) 
+                        {
+                            alert(response.responseText);
+                        },
+                        error: function(response) 
+                        {
+                            alert(response.responseText);
+                        },
+                    }
+                );
             });
         }
     });
@@ -247,3 +304,4 @@ input:checked + .slider:before {
     @RenderSection("Scripts", required: false)
 </body>
 </html>
+
