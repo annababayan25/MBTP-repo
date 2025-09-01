@@ -38,14 +38,14 @@ This repository houses the web-application for Myrtle Beach Travel Park. We are 
 - In terminal, enter: `cd mbtp_repo`
 - Open the cloned repository in VS Code
 
-#### Restore NuGet dependencies 
-dotnet restore
-
-#### Build the project
-dotnet build
-
-#### Run the project
-dotnet run
+  #### Restore NuGet dependencies 
+  dotnet restore
+  
+  #### Build the project
+  dotnet build
+  
+  #### Run the project
+  dotnet run
 
 --- 
 
