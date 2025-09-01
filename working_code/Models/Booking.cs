@@ -1,3 +1,5 @@
+using Newtonsoft.Json;
+
 namespace MBTP.Models
 {
     public class EquipmentFields
@@ -7,13 +9,47 @@ namespace MBTP.Models
         public string equipment_length { get; set; }
     }
 
+
+    public class ContactDetail
+    {
+        [JsonProperty("type")]
+        public string Type { get; set; }
+
+        [JsonProperty("content")]
+        public string Content { get; set; }
+
+        [JsonProperty("notes")]
+        public string Notes { get; set; }
+
+        [JsonProperty("allow_transactional")]
+        public int AllowTransactional { get; set; }
+
+        [JsonProperty("allow_marketing")]
+        public int AllowMarketing { get; set; }
+    }
+
     public class Guests
     {
-        public string? State { get; set; }
-        public string? Lastname { get; set; }
+        [JsonProperty("firstname")]
         public string? Firstname { get; set; }
-        // Add other properties if necessary
+
+        [JsonProperty("lastname")]
+        public string? Lastname { get; set; }
+
+        [JsonProperty("state")]
+        public string? State { get; set; }
+
+        [JsonProperty("contact_details")]
+        public List<ContactDetail> ContactDetails { get; set; }
+
+        [JsonIgnore] 
+        public string? CarLicensePlate => ContactDetails?.FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
+
+        [JsonIgnore]
+        public string? CarLicensePlateExtra => ContactDetails?.FirstOrDefault(cd => cd.Type == "car_rego")?.Notes;
     }
+
+
     public class CustomFields
     {
         public string Label { get; set; }
@@ -51,5 +87,7 @@ namespace MBTP.Models
         public string? Firstname { get; set; }
         public string? Lastname { get; set; }
         public int Wristbands { get; set; }
+        public string? CarLicensePlate { get; set; }
+        public string? CarLicensePlateExtra { get; set; }
     }
 }
