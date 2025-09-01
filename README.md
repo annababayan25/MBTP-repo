@@ -83,4 +83,4 @@ dotnet run
 
 - `git push --force origin main`: This forcefully overwrites history on the remote branch. It can erase previous commits.
 - `git clean -fd`: Deletes untracked files
-- `git rebase -i`: Reqrites commit history. 
+- `git rebase -i`: Rewrites commit history. 
