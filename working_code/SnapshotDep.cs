@@ -15,9 +15,16 @@ namespace MBTP.Retrieval
             _dbConnectionService = dbConnectionService;
         }
 
-        public DataSet SnapshotDepRetrieve(DateTime startDate, DateTime endDate)
+        public DataSet SnapshotDepRetrieve(string? fiscalYear, ref DateTime startDate, ref DateTime endDate)
         {
             DataSet myDSD = new DataSet();
+            if (!string.IsNullOrEmpty(fiscalYear) && int.TryParse(fiscalYear, out int fy))
+            {
+                startDate = (startDate.Month >= 10)
+                    ? new DateTime(fy, startDate.Month, 1) // use the fiscal year as the calendar year if on or after October
+                    : new DateTime(fy + 1, startDate.Month, 1); // add one to the fiscal year for the correct calendar year
+                endDate = new DateTime(startDate.Year, endDate.Month, endDate.Day); // ensure the end date is in the same calendar year as the start date
+            }
             //actualDate = startDate;
             try
             {

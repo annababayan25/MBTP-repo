@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 using System.Drawing.Text;
 using MBTP.Controllers;
 using MBTP.Interfaces;
-
+using Microsoft.AspNetCore.Http;
 namespace MBTP.Retrieval
 {
     public class YearlyReport
@@ -16,7 +16,7 @@ namespace MBTP.Retrieval
         {
             _dbConnectionService = dbConnectionService;
         }
-    public DataSet GetYearly(DateTime? startDate, DateTime? endDate, out bool isPositive, out decimal currentYearTotal)
+    public DataSet GetYearly(string? fiscalYear, out DateTime startDate, out DateTime endDate, out bool isPositive, out decimal currentYearTotal)
         {
             DataSet currentYearData = new DataSet();
             isPositive = true;
@@ -24,21 +24,33 @@ namespace MBTP.Retrieval
 
             try
             {
-                // Dynamically calculate the fiscal year start and end if not provided
-                DateTime now = DateTime.Now;
-
-                // Determine fiscal year start dynamically
-                if (!startDate.HasValue || !endDate.HasValue)
+                // Dynamically calculate the fiscal year start and end dates
+                if (!string.IsNullOrEmpty(fiscalYear) && int.TryParse(fiscalYear, out int fy))
                 {
-                    // Ensure startDate aligns with the current fiscal year
+                    startDate = new DateTime(fy, 10, 1); // October 1 of the selected fiscal year
+                    // determine the current fiscal year so we don't go past today's date if we are returning to current FY from prior FY
+                    DateTime now = DateTime.Now;
+                    if(startDate.AddYears(1) > now)
+                    {
+                        // if the selected FY end date is in the future, set it to today
+                        endDate = now.AddDays(-1);
+                    }
+                    else
+                    {
+                        endDate = new DateTime(fy + 1, 9, 30); // September 30 of the selected fiscal year
+                    }
+                }
+                else
+                {
+                    // Default to current fiscal year if no valid fiscal year is provided
+                    DateTime now = DateTime.Now;
                     startDate = (now.Month >= 10)
                         ? new DateTime(now.Year, 10, 1) // October 1, current year
                         : new DateTime(now.Year - 1, 10, 1); // October 1, last year
-
-                    // End date is the current date
-                    endDate = now;
+                    // End date is yesterday to avoid partial data for today
+                    endDate = now.AddDays(-1);
                 }
-
+                // Open database connection
                 using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 {
                     sqlConn.Open();
@@ -47,8 +59,8 @@ namespace MBTP.Retrieval
                     using (SqlCommand cmd = new SqlCommand("dbo.GetTotals", sqlConn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add("@StartDate", SqlDbType.Date).Value = startDate.Value;
-                        cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = endDate.Value;
+                        cmd.Parameters.Add("@StartDate", SqlDbType.Date).Value = startDate;
+                        cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = endDate;
                         SqlDataAdapter myDA = new SqlDataAdapter(cmd);
                         myDA.Fill(currentYearData);
                     }
@@ -81,14 +93,8 @@ namespace MBTP.Retrieval
                 return 0;
             }
         }
-    public DataSet GetMonthlyBreakdownData(DateTime fiscalYearStartDate)
+    public DataSet GetMonthlyBreakdownData(string? fiscalYear, out DateTime fiscalYearStartDate)
 {
-    // Force fiscalYearStartDate to always align with the current fiscal year
-    DateTime now = DateTime.Now;
-    fiscalYearStartDate = (now.Month >= 10)
-        ? new DateTime(now.Year, 10, 1)  // Current fiscal year's October
-        : new DateTime(now.Year - 1, 10, 1); // Last fiscal year's October
-
     DataSet allMonthlyData = new DataSet();
 
     try
@@ -97,13 +103,37 @@ namespace MBTP.Retrieval
                 {
                     sqlConn.Open();
 
-                    // Calculate the end of the fiscal year
-                    DateTime fiscalYearEndDate = fiscalYearStartDate.AddMonths(12).AddDays(-1); // End of fiscal year
+                    // Dynamically calculate the fiscal year start and end dates
+                    DateTime fiscalYearEndDate;
+                    DateTime now = DateTime.Now;
+                    if (!string.IsNullOrEmpty(fiscalYear) && int.TryParse(fiscalYear, out int fy))
+                    {
+                        fiscalYearStartDate = new DateTime(fy, 10, 1); // October 1 of the selected fiscal year
+                                                             // determine the current fiscal year so we don't go past today's date if we are returning to current FY from prior FY
+                        if (fiscalYearStartDate.AddYears(1) > now)
+                        {
+                            // if the selected FY end date is in the future, set it to today
+                            fiscalYearEndDate = now.AddDays(-1);
+                        }
+                        else
+                        {
+                            fiscalYearEndDate = new DateTime(fy + 1, 9, 30); // September 30 of the selected fiscal year
+                        }
+                    }
+                    else
+                    {
+                        // Default to current fiscal year if no valid fiscal year is provided
+                        fiscalYearStartDate = (now.Month >= 10)
+                            ? new DateTime(now.Year, 10, 1) // October 1, current year
+                            : new DateTime(now.Year - 1, 10, 1); // October 1, last year
+                                                                 // End date is yesterday to avoid partial data for today
+                        fiscalYearEndDate = now.AddDays(-1);
+                    }
                     DateTime startDate = fiscalYearStartDate;
                     DateTime endDate = startDate.AddMonths(1).AddDays(-1);
 
-                    // Loop through months in the current fiscal year, stopping at today's date
-                    while (startDate <= fiscalYearEndDate && startDate <= now)
+                    // Loop through months in the selected fiscal year, stopping at today's date if current FY
+                    while (startDate <= fiscalYearEndDate)
                     {
                         DataSet monthlyData = new DataSet();
                         using (SqlCommand cmd = new SqlCommand("dbo.GetTotals", sqlConn))
@@ -139,11 +169,37 @@ namespace MBTP.Retrieval
 
     return allMonthlyData;
 }
-    public DataSet GetDailyBreakdownData(DateTime date, DateTime fiscalYearStartDate)
+    public DataSet GetDailyBreakdownData(string? fiscalYear, DateTime date, out DateTime fiscalYearStartDate)
 {
     DataSet dailyData = new DataSet();
     try
     {
+        // Dynamically calculate the month and fiscal start dates based on the provided date and fiscal year
+        DateTime now = DateTime.Now;
+        if (!string.IsNullOrEmpty(fiscalYear) && int.TryParse(fiscalYear, out int fy))
+        {
+            fiscalYearStartDate = new DateTime(fy, 10, 1); // October 1 of the selected fiscal year
+            if(date.Month >= 10)
+            {
+                // if the selected date is in or after October, ensure the fiscal year matches
+                date = new DateTime(fy, date.Month, date.Day); // Adjust date to the selected fiscal year
+            }
+            else 
+            {
+                // if the selected date is before October, it belongs to the next calendar year of the fiscal year
+                date = new DateTime(fy + 1, date.Month, date.Day); // Adjust date to the selected fiscal year
+            }
+        }
+        else
+        {
+            // Default to current fiscal year if no valid fiscal year is provided
+            fiscalYearStartDate = (now.Month >= 10)
+                ? new DateTime(now.Year, 10, 1) // October 1, current year
+                : new DateTime(now.Year - 1, 10, 1); // October 1, last year
+            date = (now.Month >= 10)
+                ? new DateTime(now.Year, date.Month, date.Day) // Adjust date to current fiscal year
+                : new DateTime(now.Year - 1, date.Month, date.Day); // Adjust date to last fiscal year
+        }
         using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
         {
             sqlConn.Open();
@@ -164,9 +220,6 @@ namespace MBTP.Retrieval
                 myDA3 = new SqlDataAdapter(cmd);
                 myDA3.Fill(dailyData, "Prior2");
                 // now get YTD totals for help with full month projections
-                DateTime fiscalYearStartDate2 = (date.Month >= 10)
-                    ? new DateTime(date.Year, 10, 1)  // Current fiscal year's October
-                    : new DateTime(date.Year - 1, 10, 1); // Last fiscal year's October
                 cmd.Parameters.RemoveAt(0);
                 cmd.CommandText = "dbo.GetTotals";
                 cmd.Parameters.Add("@StartDate", SqlDbType.Date).Value = fiscalYearStartDate;
