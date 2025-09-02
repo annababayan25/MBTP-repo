@@ -15,7 +15,7 @@ namespace MBTP.Retrieval
             _dbConnectionService = dbConnectionService;
         }
 
-        public DataSet GetMonthly(DateTime startDate, DateTime endDate, out bool isPositive, out decimal currentMonthTotal)
+        public DataSet GetMonthly(string? fiscalYear, ref DateTime startDate, ref DateTime endDate, out bool isPositive, out decimal currentMonthTotal)
         {
             DataSet currentMonthData = new DataSet();
             DataSet previousMonthData = new DataSet();
@@ -27,6 +27,13 @@ namespace MBTP.Retrieval
             {
                 using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
                 {
+                    if (!string.IsNullOrEmpty(fiscalYear) && int.TryParse(fiscalYear, out int fy))
+                    {
+                        startDate = (startDate.Month >= 10)
+                            ? new DateTime(fy, startDate.Month, 1) // use the fiscal year as the calendar year if on or after October
+                            : new DateTime(fy + 1, startDate.Month, 1); // add one to the fiscal year for the correct calendar year
+                        endDate = new DateTime(startDate.Year, endDate.Month, endDate.Day); // ensure the end date is in the same calendar year as the start date
+                    }
                     sqlConn.Open();
 
                     // Get data for the current month

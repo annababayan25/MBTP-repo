@@ -20,20 +20,24 @@
     bool isPdf = ViewData["IsPdf"] is not null && (bool)ViewData["IsPdf"];
 
     // Dynamic date calculations
-    var currentMonth = ViewBag.StartDate.ToString("MMM yyyy");
-    var lastMonth = ViewBag.StartDate.AddYears(-1).ToString("MMM yyyy");
-    var lastYear = ViewBag.StartDate.AddYears(-1).ToString("MMM yyyy");
-    var twoYearsAgo = ViewBag.StartDate.AddYears(-2).ToString("MMM yyyy");
-    //var currentMonth = DateTime.Now.ToString("MMM yyyy");
-    //var lastMonth = DateTime.Now.AddYears(-1).ToString("MMM yyyy");
-    //var lastYear = DateTime.Now.AddYears(-1).ToString("MMM yyyy");
-    //var twoYearsAgo = DateTime.Now.AddYears(-2).ToString("MMM yyyy");
-    //var fiscalYear = DateTime.Now.Year;
-    var fiscalYear = ViewBag.StartDate.Year;
+    var startDate = ViewBag.StartDate != null ? (DateTime)ViewBag.StartDate : DateTime.Now;
+    var currentMonth = startDate.ToString("MMM yyyy");
+    var lastMonth = startDate.AddYears(-1).ToString("MMM yyyy");
+    var lastYear = startDate.AddYears(-1).ToString("MMM yyyy");
+    var twoYearsAgo = startDate.AddYears(-2).ToString("MMM yyyy");
+    var fiscalYear = startDate.Year;
     var lastFiscalYear = fiscalYear - 1;
     var twoFiscalYearsAgo = fiscalYear - 2;
     var whichMonth = ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current" ? "Prior" : "Current";
-    var monthText = ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current" ? "View Previous Month" : "View Current Month";
+    string monthText;
+    if(ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current")
+    {
+        monthText = "View " + startDate.AddMonths(-1).ToString("MMM yyyy");
+    }
+    else
+    {
+        monthText = "View " + startDate.AddMonths(+1).ToString("MMM yyyy");
+    }
     var fyChangeHdr = "FY"+ lastFiscalYear.ToString().Substring(2) + "/FY" + twoFiscalYearsAgo.ToString().Substring(2) + " +/-";
 }
 <script>

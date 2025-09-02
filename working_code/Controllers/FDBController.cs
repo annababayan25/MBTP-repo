@@ -31,27 +31,27 @@ namespace MBTP.Controllers
             _specialAddonsService = specialAddonsService;
             _httpContextAccessor = httpContextAccessor;
         }
-    
+
         [Authorize]
         public async Task<IActionResult> Daily(string date)
-    {
-        DateTime selectedDate;
-        if (!DateTime.TryParse(date, out selectedDate))
         {
-            // Fallback to yesterday's date if the parsing fails
-            selectedDate = DateTime.Today.AddDays(-1);
-        }
+            DateTime selectedDate;
+            if (!DateTime.TryParse(date, out selectedDate))
+            {
+                // Fallback to yesterday's date if the parsing fails
+                selectedDate = DateTime.Today.AddDays(-1);
+            }
             var dailyReport = new DailyReport(_dbConnectionService);
             DataSet reportData = await dailyReport.RetrieveData(selectedDate);
             DateTime finalDate = selectedDate;
-        // Assign the weather condition and report data to ViewBag
+            // Assign the weather condition and report data to ViewBag
             ViewBag.FinalDate = finalDate;
-        //ViewBag.WasItRaining = wasItRaining ? 1 : 0;
-        //ViewBag.Temperature = temperature;
-        //ViewBag.ReportData = reportData;
+            //ViewBag.WasItRaining = wasItRaining ? 1 : 0;
+            //ViewBag.Temperature = temperature;
+            //ViewBag.ReportData = reportData;
 
-        return View(reportData);
-    }
+            return View(reportData);
+        }
         [Authorize]
         public async Task<IActionResult> DailyReservation(string date)
         {
@@ -69,27 +69,40 @@ namespace MBTP.Controllers
             ViewBag.FinalDate = finalDate;
             return View(dataSetter);
         }
-        [Authorize] 
+        [Authorize]
         public IActionResult Monthly(string whichMonth)
         {
+            string? fiscalYear = HttpContext.Session.GetString("FiscalYear");
             MonthlyReport report = new MonthlyReport(_dbConnectionService);
             DateTime startDate, endDate;
+            DateTime today = DateTime.Today;
             if (whichMonth == null || whichMonth == "Current")
             {
-                startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-                endDate = DateTime.Today.AddDays(-1);
-                //endDate = startDate.AddMonths(1).AddDays(-1);
+                startDate = new DateTime(today.Year, today.Month, 1);
+                // if it's the first day of the month, go back to the previous month since there is no data yet for the current month
+                if (today.Day == 1)
+                {
+                    startDate = startDate.AddMonths(-1);
+                }
+                endDate = today.AddDays(-1);
             }
             else
             {
-                startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
+                if (today.Day == 1)
+                {
+                    startDate = new DateTime(today.Year, today.Month, 1).AddMonths(-2);
+                }
+                else
+                {
+                    startDate = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
+                }
                 endDate = startDate.AddMonths(1).AddDays(-1);
             }
 
             bool isPositive;
             decimal currentMonthTotal;
-            DataSet dataSetted = report.GetMonthly(startDate, endDate, out isPositive, out currentMonthTotal);
-            
+            DataSet dataSetted = report.GetMonthly(fiscalYear, ref startDate, ref endDate, out isPositive, out currentMonthTotal);
+
             ViewBag.StartDate = startDate;
             ViewBag.EndDate = endDate;
             ViewBag.IsPositive = isPositive;
@@ -99,29 +112,21 @@ namespace MBTP.Controllers
         }
         [Authorize]
         public IActionResult Yearly()
-{
-    YearlyReport report = new YearlyReport(_dbConnectionService);
+        {
+            YearlyReport report = new YearlyReport(_dbConnectionService);
 
-    // Pass null for startDate and endDate to let the method calculate dynamically
-    bool isPositive;
-    decimal currentYearTotal;
-    DataSet dataSets = report.GetYearly(null, null, out isPositive, out currentYearTotal);
+            string? fiscalYear = HttpContext.Session.GetString("FiscalYear");
+            DataSet dataSets = report.GetYearly(fiscalYear, out DateTime startDate, out DateTime endDate, out bool isPositive, out decimal currentYearTotal);
 
-    // Extract the dynamically calculated start and end dates for display purposes
-    DateTime now = DateTime.Now;
-    DateTime startDate = (now.Month >= 10)
-        ? new DateTime(now.Year, 10, 1) // Current fiscal year's October
-        : new DateTime(now.Year - 1, 10, 1); // Last fiscal year's October
-    DateTime endDate = now; // End at today's date
-
-    // Pass calculated values to the view
-    ViewBag.StartDate = startDate;
-    ViewBag.EndDate = endDate;
-    ViewBag.IsPositive = isPositive;
-    ViewBag.CurrentYearTotal = currentYearTotal;
-    return View(dataSets);
-}
-        [Authorize] 
+            // Pass calculated values to the view
+            ViewBag.StartDate = startDate;
+            ViewBag.EndDate = endDate;
+            ViewBag.IsPositive = isPositive;
+            ViewBag.CurrentYearTotal = currentYearTotal;
+            ViewBag.FiscalYear = fiscalYear;
+            return View(dataSets);
+        }
+        [Authorize]
         public async Task<IActionResult> GeneratePDF(string date)
         {
             DateTime selectedDate;
@@ -154,7 +159,7 @@ namespace MBTP.Controllers
             byte[] fileBytes = System.IO.File.ReadAllBytes(outputPath);
             return File(fileBytes, "application/pdf", $"DailyReport-Other_{finalDate.ToString("yyyy-MM-dd")}.pdf");
         }
-        [Authorize] 
+        [Authorize]
         public async Task<IActionResult> GeneratePDF2(string date)
         {
             DateTime selectedDate;
@@ -188,7 +193,7 @@ namespace MBTP.Controllers
             return File(fileBytes, "application/pdf", $"DailyReport-Office_{finalDate.ToString("yyyy-MM-dd")}.pdf");
 
         }
-        [Authorize] 
+        [Authorize]
         private string RenderViewToString(string viewName, object model, bool isPdf)
         {
             ViewData.Model = model;
@@ -212,227 +217,101 @@ namespace MBTP.Controllers
                 return writer.GetStringBuilder().ToString();
             }
         }
-        public IActionResult DailyBreakdownF(DateTime ? date, string whichMonth)
-    {
-        DateTime effectiveDate = date ?? DateTime.Now;
-
-        YearlyReport report = new YearlyReport(_dbConnectionService);
-        DateTime fiscalYearStartDate = (effectiveDate.Month >= 10)
-            ? new DateTime(effectiveDate.Year, 10, 1)  // Current fiscal year's October
-            : new DateTime(effectiveDate.Year - 1, 10, 1); // Last fiscal year's October
-
-        DataSet data = report.GetDailyBreakdownData(effectiveDate, fiscalYearStartDate);
-
-        ViewBag.date = effectiveDate;
-        ViewBag.fiscalYearStartDate = fiscalYearStartDate;
-        ViewBag.WhichMonth = whichMonth;
-        return View(data);
-    }
-        [Authorize] 
-        public IActionResult DailyBreakdownR(DateTime ? date, string whichMonth)
-    {
-        DateTime effectiveDate = date ?? DateTime.Now;
-
-        YearlyReport report = new YearlyReport(_dbConnectionService);
-        DateTime fiscalYearStartDate = (effectiveDate.Month >= 10)
-            ? new DateTime(effectiveDate.Year, 10, 1)  // Current fiscal year's October
-            : new DateTime(effectiveDate.Year - 1, 10, 1); // Last fiscal year's October
-
-        DataSet data = report.GetDailyBreakdownData(effectiveDate, fiscalYearStartDate);
-
-        ViewBag.date = effectiveDate;
-        ViewBag.fiscalYearStartDate = fiscalYearStartDate;
-        ViewBag.WhichMonth = whichMonth;
-        return View(data);
-    }
-        [Authorize] 
-        public IActionResult DailyBreakdownA(DateTime ? date, string whichMonth)
-    {
-        DateTime effectiveDate = date ?? DateTime.Now;
-
-        YearlyReport report = new YearlyReport(_dbConnectionService);
-        DateTime fiscalYearStartDate = (effectiveDate.Month >= 10)
-            ? new DateTime(effectiveDate.Year, 10, 1)  // Current fiscal year's October
-            : new DateTime(effectiveDate.Year - 1, 10, 1); // Last fiscal year's October
-
-        DataSet data = report.GetDailyBreakdownData(effectiveDate, fiscalYearStartDate);
-
-        ViewBag.date = effectiveDate;
-        ViewBag.fiscalYearStartDate = fiscalYearStartDate;
-        ViewBag.WhichMonth = whichMonth;
-        return View(data);
-    }
-        [Authorize] 
-        public IActionResult DailyBreakdownC(DateTime ? date, string whichMonth)
-    {
-        DateTime effectiveDate = date ?? DateTime.Now;
-
-        YearlyReport report = new YearlyReport(_dbConnectionService);
-        DateTime fiscalYearStartDate = (effectiveDate.Month >= 10)
-            ? new DateTime(effectiveDate.Year, 10, 1)  // Current fiscal year's October
-            : new DateTime(effectiveDate.Year - 1, 10, 1); // Last fiscal year's October
-
-        DataSet data = report.GetDailyBreakdownData(effectiveDate, fiscalYearStartDate);
-
-        ViewBag.date = effectiveDate;
-        ViewBag.fiscalYearStartDate = fiscalYearStartDate;
-        ViewBag.WhichMonth = whichMonth;
-        return View(data);
-    }
-        [Authorize] 
-        public IActionResult DailyBreakdownG(DateTime ? date, string whichMonth)
-    {
-         DateTime effectiveDate = date ?? DateTime.Now;
-
-        YearlyReport report = new YearlyReport(_dbConnectionService);
-        DateTime fiscalYearStartDate = (effectiveDate.Month >= 10)
-            ? new DateTime(effectiveDate.Year, 10, 1)  // Current fiscal year's October
-            : new DateTime(effectiveDate.Year - 1, 10, 1); // Last fiscal year's October
-
-        DataSet data = report.GetDailyBreakdownData(effectiveDate, fiscalYearStartDate);
-
-        ViewBag.date = effectiveDate;
-        ViewBag.fiscalYearStartDate = fiscalYearStartDate;
-        ViewBag.WhichMonth = whichMonth;
-        return View(data);
-    }
-        [Authorize] 
-        public IActionResult DailyBreakdownK(DateTime  ? date, string whichMonth)
-    {
-         DateTime effectiveDate = date ?? DateTime.Now;
-
-        YearlyReport report = new YearlyReport(_dbConnectionService);
-        DateTime fiscalYearStartDate = (effectiveDate.Month >= 10)
-            ? new DateTime(effectiveDate.Year, 10, 1)  // Current fiscal year's October
-            : new DateTime(effectiveDate.Year - 1, 10, 1); // Last fiscal year's October
-
-        DataSet data = report.GetDailyBreakdownData(effectiveDate, fiscalYearStartDate);
-
-        ViewBag.date = effectiveDate;
-        ViewBag.fiscalYearStartDate = fiscalYearStartDate;
-        ViewBag.WhichMonth = whichMonth;
-        return View(data);
-    }
-        [Authorize] 
-        public IActionResult DailyBreakdownM(DateTime ? date, string whichMonth)
-    {
-        DateTime effectiveDate = date ?? DateTime.Now;
-
-        YearlyReport report = new YearlyReport(_dbConnectionService);
-        DateTime fiscalYearStartDate = (effectiveDate.Month >= 10)
-            ? new DateTime(effectiveDate.Year, 10, 1)  // Current fiscal year's October
-            : new DateTime(effectiveDate.Year - 1, 10, 1); // Last fiscal year's October
-
-        DataSet data = report.GetDailyBreakdownData(effectiveDate, fiscalYearStartDate);
-
-        ViewBag.date = effectiveDate;
-        ViewBag.fiscalYearStartDate = fiscalYearStartDate;
-        ViewBag.WhichMonth = whichMonth;
-        return View(data);
-    }
-        [Authorize] 
+        public IActionResult DailyBreakdownF(DateTime? date, string whichMonth)
+        {
+            return View(FetchDailyReportData(date, whichMonth));
+        }
+        [Authorize]
+        public IActionResult DailyBreakdownR(DateTime? date, string whichMonth)
+        {
+            return View(FetchDailyReportData(date, whichMonth));
+        }
+        [Authorize]
+        public IActionResult DailyBreakdownA(DateTime? date, string whichMonth)
+        {
+            return View(FetchDailyReportData(date, whichMonth));
+      }
+        [Authorize]
+        public IActionResult DailyBreakdownC(DateTime? date, string whichMonth)
+        {
+            return View(FetchDailyReportData(date, whichMonth));
+        }
+        [Authorize]
+        public IActionResult DailyBreakdownG(DateTime? date, string whichMonth)
+        {
+            return View(FetchDailyReportData(date, whichMonth));
+        }
+        [Authorize]
+        public IActionResult DailyBreakdownK(DateTime? date, string whichMonth)
+        {
+            return View(FetchDailyReportData(date, whichMonth));
+        }
+        [Authorize]
+        public IActionResult DailyBreakdownM(DateTime? date, string whichMonth)
+        {
+            return View(FetchDailyReportData(date, whichMonth));
+        }
+        [Authorize]
         public IActionResult MonthlyBreakdownF()
         {
-            // Define the start of the fiscal year. Adjust this date according to your fiscal year start.
-                DateTime fiscalYearStartDate = new DateTime(DateTime.Now.Year-1, 10, 1);
-                
-
-                YearlyReport report = new YearlyReport(_dbConnectionService);
-                DataSet data = report.GetMonthlyBreakdownData(fiscalYearStartDate);
-
-                ViewBag.FiscalYearStartDate = fiscalYearStartDate;
-                return View(data);
+            return View(FetchMonthlyReportData());
         }
         [Authorize]
         public IActionResult MonthlyBreakdownA()
         {
-            // Define the start of the fiscal year. Adjust this date according to your fiscal year start.
-            DateTime fiscalYearStartDate = new DateTime(DateTime.Now.Year - 1, 10, 1);
-
-
-            YearlyReport report = new YearlyReport(_dbConnectionService);
-            DataSet data = report.GetMonthlyBreakdownData(fiscalYearStartDate);
-
-            ViewBag.FiscalYearStartDate = fiscalYearStartDate;
-            return View(data);
+            return View(FetchMonthlyReportData());
         }
-        [Authorize] 
+        [Authorize]
         public IActionResult MonthlyBreakdownR()
         {
-                // Define the start of the fiscal year. Adjust this date according to your fiscal year start.
-                DateTime fiscalYearStartDate = new DateTime(DateTime.Now.Year-1, 10, 1);
-                
-
-                YearlyReport report = new YearlyReport(_dbConnectionService);
-                DataSet data = report.GetMonthlyBreakdownData(fiscalYearStartDate);
-
-                ViewBag.FiscalYearStartDate = fiscalYearStartDate;
-                return View(data);
-        } 
-        [Authorize] 
+            return View(FetchMonthlyReportData());
+        }
+        [Authorize]
         public IActionResult MonthlyBreakdownC()
         {
-                // Define the start of the fiscal year. Adjust this date according to your fiscal year start.
-                DateTime fiscalYearStartDate = new DateTime(DateTime.Now.Year-1, 10, 1);
-                
-
-                YearlyReport report = new YearlyReport(_dbConnectionService);
-                DataSet data = report.GetMonthlyBreakdownData(fiscalYearStartDate);
-
-                ViewBag.FiscalYearStartDate = fiscalYearStartDate;
-                return View(data);
+            return View(FetchMonthlyReportData());
         }
-        [Authorize] 
+        [Authorize]
         public IActionResult MonthlyBreakdownG()
         {
-                               // Define the start of the fiscal year. Adjust this date according to your fiscal year start.
-                DateTime fiscalYearStartDate = new DateTime(DateTime.Now.Year-1, 10, 1);
-                
-
-                YearlyReport report = new YearlyReport(_dbConnectionService);
-                DataSet data = report.GetMonthlyBreakdownData(fiscalYearStartDate);
-
-                ViewBag.FiscalYearStartDate = fiscalYearStartDate;
-                return View(data);
+            return View(FetchMonthlyReportData());
         }
         [Authorize]
         public IActionResult MonthlyBreakdownK()
         {
-            // Define the start of the fiscal year. Adjust this date according to your fiscal year start.
-            DateTime fiscalYearStartDate = new DateTime(DateTime.Now.Year - 1, 10, 1);
-
-
-            YearlyReport report = new YearlyReport(_dbConnectionService);
-            DataSet data = report.GetMonthlyBreakdownData(fiscalYearStartDate);
-
-            ViewBag.FiscalYearStartDate = fiscalYearStartDate;
-            return View(data);
+            return View(FetchMonthlyReportData());
         }
-        [Authorize] 
+        [Authorize]
         public IActionResult MonthlyBreakdownM()
         {
-                                // Define the start of the fiscal year. Adjust this date according to your fiscal year start.
-                DateTime fiscalYearStartDate = new DateTime(DateTime.Now.Year-1, 10, 1);
-                
-
-                YearlyReport report = new YearlyReport(_dbConnectionService);
-                DataSet data = report.GetMonthlyBreakdownData(fiscalYearStartDate);
-
-                ViewBag.FiscalYearStartDate = fiscalYearStartDate;
-                return View(data);
+            return View(FetchMonthlyReportData());
         }
         [Authorize]
         public IActionResult Snapshot(string whichMonth)
         {
+            string? fiscalYear = HttpContext.Session.GetString("FiscalYear");
             DateTime startDate, endDate;
+            DateTime today = DateTime.Today;
             if (whichMonth == null || whichMonth == "Current")
             {
-                startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
-                endDate = DateTime.Today.AddDays(-1);
+                startDate = new DateTime(today.Year, today.Month, 1);
+                // if it's the first day of the month, go back to the previous month since there is no data yet for the current month
+                if (today.Day == 1)
+                {
+                    startDate = startDate.AddMonths(-1);
+                }
+                endDate = today.AddDays(-1);
             }
             else
             {
-                startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-1);
+                if (today.Day == 1)
+                {
+                    startDate = new DateTime(today.Year, today.Month, 1).AddMonths(-2);
+                }
+                else
+                {
+                    startDate = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
+                }
                 endDate = startDate.AddMonths(1).AddDays(-1);
             }
             var curMonthIncomeList = new List<dynamic>();
@@ -441,7 +320,7 @@ namespace MBTP.Controllers
             var priorYearIncomeList = new List<dynamic>();
 
             var snapshotReport = new SnapshotReport(_dbConnectionService);
-            DataSet ds = snapshotReport.SnapshotRetrieve(startDate, endDate);
+            DataSet ds = snapshotReport.SnapshotRetrieve(fiscalYear, ref startDate, ref endDate);
 
             if (ds != null && ds.Tables.Count > 0)
             {
@@ -584,7 +463,7 @@ namespace MBTP.Controllers
             var twoYearIncomeListD = new List<dynamic>();
 
             var snapshotDepReport = new SnapshotDepReport(_dbConnectionService);
-            DataSet dsd = snapshotDepReport.SnapshotDepRetrieve(startDate, endDate);
+            DataSet dsd = snapshotDepReport.SnapshotDepRetrieve(fiscalYear, ref startDate, ref endDate);
             System.Diagnostics.Debug.WriteLine($"TaxableReservationsD Count: {taxableReservationsListD.Count}");
             if (dsd != null && dsd.Tables.Count > 0)
             {
@@ -676,7 +555,7 @@ namespace MBTP.Controllers
             ViewBag.TwoYearIncomeD = twoYearIncomeListD;
 
             return View(1);
-        
+
         }
         [Authorize]
         public IActionResult ManageMisc()
@@ -697,11 +576,46 @@ namespace MBTP.Controllers
                 else
                 {
                     addResult = "FAILURE";
-                    GenericRoutines.UpdateAlerts(6, "FATAL ERROR",  "GL Code " + glIn + " was found in Special Addons on " + dateIn.ToShortDateString() + ", IMPORT ABORTED");
+                    GenericRoutines.UpdateAlerts(6, "FATAL ERROR", "GL Code " + glIn + " was found in Special Addons on " + dateIn.ToShortDateString() + ", IMPORT ABORTED");
                 }
             }
             return addResult;
         }
+        [HttpPost]
+        public IActionResult SetFiscalYear(string newFiscalYear)
+        {
+            HttpContext.Session.SetString("FiscalYear", newFiscalYear);
+            // now determine if this is the current fiscal year
+            int fiscalYearStartYear = int.Parse(newFiscalYear.Substring(0, 4));
+            int currentYear = DateTime.Now.Year;
+            int currentMonth = DateTime.Now.Month;
+            bool isCurrentFiscalYear = (currentMonth >= 10) ? (fiscalYearStartYear == currentYear) : (fiscalYearStartYear == currentYear - 1);
+            HttpContext.Session.SetString("IsCurrentFiscalYear", isCurrentFiscalYear.ToString());
+            return Json(new { success = true });
+        }
+        private DataSet FetchDailyReportData(DateTime? reportDate, string whichMonth)
+        {
+            string? fiscalYear = HttpContext.Session.GetString("FiscalYear");
+            YearlyReport report = new YearlyReport(_dbConnectionService);
+            DateTime effectiveDate = reportDate ?? DateTime.Now;
+            DataSet data = report.GetDailyBreakdownData(fiscalYear, effectiveDate, out DateTime fiscalYearStartDate);
+            effectiveDate = (effectiveDate.Month >= 10)
+                ? new DateTime(fiscalYearStartDate.Year, effectiveDate.Month, effectiveDate.Day) // Adjust date to current fiscal year
+                : new DateTime(fiscalYearStartDate.Year + 1, effectiveDate.Month, effectiveDate.Day); // Adjust date to last fiscal year
+            ViewBag.date = effectiveDate;
+            ViewBag.fiscalYearStartDate = fiscalYearStartDate;
+            ViewBag.WhichMonth = whichMonth;
+            return data;
+        }
+        private DataSet FetchMonthlyReportData()
+        {
+            string? fiscalYear = HttpContext.Session.GetString("FiscalYear");
+            YearlyReport report = new YearlyReport(_dbConnectionService);
+            DataSet data = report.GetMonthlyBreakdownData(fiscalYear, out DateTime fiscalYearStartDate);
+
+            ViewBag.FiscalYearStartDate = fiscalYearStartDate;
+            ViewBag.FiscalYear = fiscalYear;
+            return data;
     }
 }
 
