@@ -65,8 +65,10 @@ namespace MBTP.Retrieval
                 currentMonthTotal = ComputeTotal(currentMonthData);
                 previousMonthTotal = ComputeTotal(previousMonthData);
 
+                // Commented out 9/2/25 by Dave because this comparison is incomplete, only relying on Site Totals. It's also deceptive
+                // because certain months will always be lower than others due to seasonality.
                 // Determine if the current month is positive compared to the previous month
-                isPositive = currentMonthTotal >= previousMonthTotal;
+                //isPositive = currentMonthTotal >= previousMonthTotal;
             }
             catch (SqlException sqlEx)
             {
