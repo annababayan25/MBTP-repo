@@ -2,6 +2,7 @@
 @using MBTP.Controllers
 @using MBTP.Retrieval
 @using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Http;
 @attribute [Authorize]
 
 <head>
@@ -12,9 +13,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var startDate = ViewBag.StartDate != null ? (DateTime)ViewBag.StartDate : DateTime.Now;
     var endDate = ViewBag.EndDate != null ? (DateTime)ViewBag.EndDate : DateTime.Now.AddDays(-1);
-
+    string? fiscalYear = Context.Session.GetString("FiscalYear");
+    string? isCurrentFiscalYear = Context.Session.GetString("IsCurrentFiscalYear");
     var yearName = startDate.ToString("yyyy");
-    var dateRange = $"{startDate:MM/dd/yyyy}-{DateTime.Now.AddDays(-1):MM/dd/yyyy}";
+    var dateRange = $"{startDate:MM/dd/yyyy}-{endDate:MM/dd/yyyy}";
     var accID = User.FindFirst("AccID")?.Value;
     int accIDInt = 0;
     int.TryParse(accID, out accIDInt);
@@ -107,7 +109,14 @@
 
 <body class="@backgroundColorClass">
    <div class='head-container'>
-       <h1>Year-To-Date Information for Fiscal Year @yearName <h4>@dateRange</h4></h1>
+        @if(isCurrentFiscalYear is null || isCurrentFiscalYear.ToLower() == "true")
+        {
+            <h1>Year-To-Date Information for Fiscal Year @yearName <h4>@dateRange</h4></h1>
+        }
+        else
+        {
+            <h1>Completed Year Information for Fiscal Year @yearName <h4>@dateRange</h4></h1>
+        }
        <p>single click a table for its monthly breakdown</p>
        <div class="dropdown">
            <button class="dropbtn" id="table-dropdown" style="display:none">Select a table</button>

@@ -8,7 +8,15 @@
     var startDate = ViewBag.StartDate != null ? (DateTime)ViewBag.StartDate : DateTime.Now;
     var endDate = ViewBag.EndDate != null ? (DateTime)ViewBag.EndDate : DateTime.Now.AddDays(-1);
     var whichMonth = ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current" ? "Prior" : "Current";
-    var monthText = ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current" ? "View Previous Month" : "View Current Month";
+    string monthText;
+    if(ViewBag.WhichMonth == null || ViewBag.WhichMonth == "Current")
+    {
+        monthText = "View " + startDate.AddMonths(-1).ToString("MMM yyyy");
+    }
+    else
+    {
+        monthText = "View " + startDate.AddMonths(+1).ToString("MMM yyyy");
+    }
     string urlF, urlG, urlA, urlC, urlR, urlK, urlM;
     if(ViewBag.WhichMonth == "Prior")
     {
@@ -128,7 +136,7 @@
         <h1>Month-To-Date Information for @monthName @yearName <h4>@dateRange</h4></h1>
         <p>single click a table for its daily breakdown</p>
         <div class="button-container">
-            <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
+            <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Jump to Yearly</a>
             <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Monthly" asp-route-whichMonth=@whichMonth>@monthText</a>
             <div class="dropdown">
                 <button class="dropbtn" id="table-dropdown" style="display:none">Select a table</button>
