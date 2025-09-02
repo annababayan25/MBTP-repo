@@ -5,7 +5,8 @@
 
 @{
  DateTime startDate = (DateTime)ViewBag.FiscalYearStartDate;
- var yearName = startDate.ToString("yyyy");
+    string? fiscalYear = Context.Session.GetString("FiscalYear");
+    string? isCurrentFiscalYear = Context.Session.GetString("IsCurrentFiscalYear");
     DateTime currentDate = DateTime.Now;
     int monthIndex = 0;
 
@@ -28,7 +29,7 @@
     decimal totalNetChange4 = 0;
 }
 <div class='head-container'>
-    <h1>Month-By-Month Information for Fiscal Year @yearName</h1>
+    <h1>Month-By-Month Information for Fiscal Year @fiscalYear</h1>
     <p>&nbsp;</p>
     <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
     <p>&nbsp;</p>
@@ -87,7 +88,7 @@
     var RDT = (decimal)row["RentalTaken"]+(decimal)row["RentalTakenFuture"];
     var RDA = (decimal)row["RentalApplied"];
     var RDMRG = (decimal)row["RentalDerpMRG"];
-    var GDT = (decimal)row["GolfTaken"];
+    var GDT = (decimal)row["GolfTaken"]+(decimal)row["GolfTakenFuture"];
     var GDA = (decimal)row["GolfApplied"];
     var GDMRG = (decimal)row["GolfDepMRG"];
     var VP = (decimal)row["VouchersPurch"];

@@ -1,13 +1,14 @@
 @using System.Data
 @using MBTP.Controllers
 @using MBTP.Retrieval
+@using Microsoft.AspNetCore.Http;
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 @{
-   DateTime startDate = (DateTime)ViewBag.FiscalYearStartDate;
-   var yearName = startDate.ToString("yyyy");
-   DateTime currentDate = DateTime.Now;
-   int monthIndex = 0;
+    DateTime startDate = (DateTime)ViewBag.FiscalYearStartDate;
+    var yearName = startDate.ToString("yyyy");
+    DateTime currentDate = DateTime.Now;
+    int monthIndex = 0;
 
    decimal totalSites = 0;
    decimal totalRentals = 0;
@@ -36,13 +37,13 @@
    decimal totalNonTax = 0;
    decimal totalNetRevenue1 = 0;
 }
-<div class='head-container'>
-    <h1>Month-By-Month Information for Fiscal Year @yearName</h1>
-    <p>&nbsp;</p>
-    <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
-    <p>&nbsp;</p>
-    <p>single click a specific month for its daily breakdown</p>
-</div>
+    <div class='head-container'>
+        <h1>Month-By-Month Information for Fiscal Year @yearName</h1>
+        <p>&nbsp;</p>
+        <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Back to yearly</a>
+        <p>&nbsp;</p>
+        <p>single click a specific month for its daily breakdown</p>
+    </div>
 
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)

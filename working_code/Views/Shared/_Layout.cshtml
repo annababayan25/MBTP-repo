@@ -1,3 +1,4 @@
+﻿
 ﻿@using IronPdf
 @using Microsoft.AspNetCore.Http;
 <!DOCTYPE html>
@@ -71,25 +72,27 @@ input:checked + .slider:before {
 .nav-item.fyNav {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 0 10px;
+    gap: 6px;  
+    padding: 0 .5rem; 
 }
 
 .fyLabel {
-    margin: 0;
-    height: auto; 
+    color: black !important;
+    font-weight: 500;
+    white-space: nowrap; 
 }
 
 .fyInput {
-    width: 60px;  
-    height: 30px; 
+    width: 70px;
+    height: 30px;
     border: 1px solid black;
     text-align: center;
-    background-color:#fffd8c;
-    color: red; 
-    font-weight: bold; 
+    background-color: #fffd8c;
+    color: red;
+    font-weight: bold;
     border-radius: 15px;
 }
+
 </style>
 <head>
     <meta charset="utf-8" />
@@ -162,14 +165,12 @@ input:checked + .slider:before {
                                     <li class="nav-item">
                                         <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Snapshot">Snapshots</a>
                                     </li>
-                                    <li class="nav-item">
-                                    <a class="nav-link text-dark fyNav">
-                                        <label for="yearSelect" class="fyLabel">Fiscal Year Selected: &nbsp;</label>
+                                    <li class="nav-item fyNav">
+                                        <label for="yearSelect" class="fyLabel">Fiscal Year Selected:</label>
                                         @{
                                             var fiscalYear = Context.Session.GetString("FiscalYear") ?? "2024";
                                         }
-                                        <input class="fyInput" type="number" value=@fiscalYear min="2022" max="2024" step="1" id="yearSelect" />
-                                    </a>
+                                        <input class="fyInput" type="number" value="@fiscalYear" min="2022" max="2024" step="1" id="yearSelect" />
                                     </li>
                                 }
                             }
