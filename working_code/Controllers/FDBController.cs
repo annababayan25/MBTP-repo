@@ -616,6 +616,7 @@ namespace MBTP.Controllers
             ViewBag.FiscalYearStartDate = fiscalYearStartDate;
             ViewBag.FiscalYear = fiscalYear;
             return data;
+        }
     }
 }
 

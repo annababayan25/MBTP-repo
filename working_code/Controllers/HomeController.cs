@@ -74,6 +74,15 @@ namespace MBTP.Controllers
         }
         public IActionResult FDB()
         {
+            string? fiscalYear = HttpContext.Session.GetString("FiscalYear");
+            if (string.IsNullOrEmpty(fiscalYear))
+            {
+                DateTime today = DateTime.Today;
+                fiscalYear = (today.Month >= 10) ? $"{today.Year}" : $"{today.Year - 1}";
+                HttpContext.Session.SetString("FiscalYear", fiscalYear);
+                HttpContext.Session.SetString("ThisFiscalYear", fiscalYear);
+                HttpContext.Session.SetString("IsCurrentFiscalYear", "true");
+            }
             return View();
         }
         public IActionResult Newbook()
@@ -416,7 +425,9 @@ namespace MBTP.Controllers
         [HttpPost]
         public async Task<IActionResult> Logout()
         {
-
+            HttpContext.Session.Remove("FiscalYear");
+            HttpContext.Session.Remove("ThisFiscalYear");
+            HttpContext.Session.Remove("IsCurrentFiscalYear");
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login");
         }

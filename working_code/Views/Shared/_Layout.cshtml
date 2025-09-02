@@ -169,8 +169,9 @@ input:checked + .slider:before {
                                         <label for="yearSelect" class="fyLabel">Fiscal Year Selected:</label>
                                         @{
                                             var fiscalYear = Context.Session.GetString("FiscalYear") ?? "2024";
+                                            var thisFiscalYear = Context.Session.GetString("ThisFiscalYear");
                                         }
-                                        <input class="fyInput" type="number" value="@fiscalYear" min="2022" max="2024" step="1" id="yearSelect" />
+                                        <input class="fyInput" type="number" value="@fiscalYear" min="2022" max="@thisFiscalYear" step="1" id="yearSelect" />
                                     </li>
                                 }
                             }
