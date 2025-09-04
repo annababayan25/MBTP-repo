@@ -74,7 +74,12 @@ This repository houses the web-application for Myrtle Beach Travel Park. We are 
   - To stage and commit your changes: `git add.` and `git commit -m "Add feature: some function"
   - Push to the remote repo (git): `git push origin my-branch-name`
   - Pull to the remote repo (git): `git pull origin my-branch-name`
- 
+
+### Stash before switching between branches
+- To stash: `git stash`
+- To unstash: `git stash pop`
+- To unstash a specific stash: `git stash pop stash@{1}`
+  
 ### Update branch with main 
 - Make sure you're on your branch: `git checkout your-branch`
 - Fetch contents from main: `git fetch main`
