@@ -74,6 +74,11 @@ This repository houses the web-application for Myrtle Beach Travel Park. We are 
   - To stage and commit your changes: `git add.` and `git commit -m "Add feature: some function"
   - Push to the remote repo (git): `git push origin my-branch-name`
   - Pull to the remote repo (git): `git pull origin my-branch-name`
+ 
+### Update branch with main 
+- Make sure you're on your branch: `git checkout your-branch`
+- Fetch contents from main: `git fetch main`
+- Merge main into your branch: `git merge origin/main`
 
 
 ### View commit history 
