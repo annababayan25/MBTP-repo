@@ -26,19 +26,19 @@ namespace MBTP.Services
             _dbConnectionService = dbConnectionService;
         }
 
-       public async Task PopulateBookings(DateTime startDate, DateTime endDate)
+        public async Task PopulateBookings(DateTime startDate, DateTime endDate)
         {
             Console.WriteLine("Run method started.");
             var bookings = await FetchAllBookingsAsync(startDate, endDate);
-//            var bookingsBase = await FetchBookingsAsync(startDate, endDate, "all");
-//            var bookingsC = await FetchBookingsAsync(startDate, endDate, "cancelled");
-//            var bookingsN = await FetchBookingsAsync(startDate, endDate, "no_show");
-//            var bookingsA = await FetchBookingsAsync(startDate, endDate, "arrived");
-//            var bookingsD = await FetchBookingsAsync(startDate, endDate, "departed");
-//            bookings.AddRange(bookingsC);
-//            bookings.AddRange(bookingsN);
-//            bookings.AddRange(bookingsA);
-//            bookings.AddRange(bookingsD);
+            //            var bookingsBase = await FetchBookingsAsync(startDate, endDate, "all");
+            //            var bookingsC = await FetchBookingsAsync(startDate, endDate, "cancelled");
+            //            var bookingsN = await FetchBookingsAsync(startDate, endDate, "no_show");
+            //            var bookingsA = await FetchBookingsAsync(startDate, endDate, "arrived");
+            //            var bookingsD = await FetchBookingsAsync(startDate, endDate, "departed");
+            //            bookings.AddRange(bookingsC);
+            //            bookings.AddRange(bookingsN);
+            //            bookings.AddRange(bookingsA);
+            //            bookings.AddRange(bookingsD);
             if (bookings.Count > 0)
             {
                 SqlConnection sqlConn = _dbConnectionService.CreateConnection();
@@ -47,6 +47,7 @@ namespace MBTP.Services
                 {
                     //Console.WriteLine($"Booking ID: {booking.BookingID}, ExpressCheckIn: {booking.ExpressCheckin}");
                     await InsertBookingAsync(booking, sqlConn);
+                    await InsertCheckedInAsync(booking, sqlConn);
                 }
                 sqlConn.Close();
                 Console.WriteLine("Total Bookings: " + bookings.Count.ToString());
@@ -98,6 +99,32 @@ namespace MBTP.Services
             }
         }
 
+        private async Task InsertCheckedInAsync(Booking booking, SqlConnection sqlConn)
+        {
+            using (SqlCommand command = new SqlCommand("dbo.UpdateCheckedInTable", sqlConn))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@BookingId", booking.BookingID);
+                command.Parameters.AddWithValue("@Firstname", booking.Firstname ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Lastname", booking.Lastname ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@SiteName", booking.SiteName ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@BookingArrival", booking.BookingArrival ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@BookingDeparture", booking.BookingDeparture ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@BookingStatus", booking.BookingStatus ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@BookingTotal", booking.BookingTotal);
+                command.Parameters.AddWithValue("@AccountBalance", booking.AccountBalance);
+                command.Parameters.AddWithValue("@DepositsHeld", booking.DepositsHeld ?? 0m);
+                command.Parameters.AddWithValue("@CarLicensePlate", booking.CarLicensePlate ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlateExtra", booking.CarLicensePlateExtra ?? (object)DBNull.Value);
+
+                command.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
+
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+
         private async Task<List<Booking>> FetchBookingsAsync(DateTime startDate, DateTime endDate, string listType)
         {
             var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
@@ -110,7 +137,7 @@ namespace MBTP.Services
                 period_to = periodTo,
                 list_type = listType
             };
-            
+
             using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(20) };
             var authToken = Encoding.ASCII.GetBytes($"{username}:{password}");
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authToken));
@@ -186,7 +213,7 @@ namespace MBTP.Services
             var dataCount = 100;
             var dataTotal = 100000;
             var bookings = new List<Booking>();
-            while(dataOffset < dataTotal)
+            while (dataOffset < dataTotal)
             {
                 var requestBody = new
                 {
@@ -224,7 +251,7 @@ namespace MBTP.Services
                         break;
                     }
                 }
-                
+
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 JObject jsonObject = JObject.Parse(jsonResponse);
                 List<string> jsonTokens = new List<string>();
@@ -246,7 +273,7 @@ namespace MBTP.Services
                     Console.WriteLine("API response indicates failure.");
                     return new List<Booking>();
                 }
-                
+
 
 
                 foreach (var item in result.data)
@@ -276,6 +303,7 @@ namespace MBTP.Services
                         Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()) // Deserialize the equipment fields list
                     };
 
+
                     if (booking.Guests != null && booking.Guests.Count > 0)
                     {
                         var carPlate = booking.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
@@ -285,6 +313,7 @@ namespace MBTP.Services
                         booking.CarLicensePlate = carPlate;
                         booking.CarLicensePlateExtra = licenseNotes;
                     }
+
 
                     // Assign the state property from the first guest in the list (if any)
                     if (booking.Guests != null && booking.Guests.Count > 0)
@@ -345,5 +374,154 @@ namespace MBTP.Services
             }
             return bookings;
         }
+
+        public async Task<List<Booking>> FetchAllCheckedInAsync(DateTime startDate, DateTime endDate)
+        {
+            var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
+            var periodTo = endDate.ToString("yyyy-MM-dd HH:mm:ss");
+            var dataOffset = 0;
+            var dataCount = 100;
+            var dataTotal = 100000;
+            var bookings = new List<Booking>();
+
+            while (dataOffset < dataTotal)
+            {
+                var requestBody = new
+                {
+                    region = region,
+                    api_key = apiKey,
+                    period_from = periodFrom,
+                    period_to = periodTo,
+                    list_type = "arrived", 
+                    data_offset = dataOffset,
+                    data_count = dataCount
+                };
+
+                int loopCount = 0;
+                HttpResponseMessage response = new HttpResponseMessage();
+
+                while (loopCount < 5)
+                {
+                    using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(20) };
+                    var authToken = Encoding.ASCII.GetBytes($"{username}:{password}");
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authToken));
+
+                    var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+                    Console.WriteLine("Sending HTTP POST request for data offset " + dataOffset.ToString() + "...");
+
+                    response = await httpClient.PostAsync(apiUrl, content);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"HTTP request failed with status code: {response.StatusCode}");
+                        loopCount++;
+                        if (loopCount == 5)
+                        {
+                            return bookings;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                JObject jsonObject = JObject.Parse(jsonResponse);
+
+                foreach (var jsonToken in jsonObject.Children<JProperty>())
+                {
+                    if (jsonToken.Name == "data_total")
+                        dataTotal = (int)jsonToken.Value;
+                    else if (jsonToken.Name == "data_count")
+                        dataOffset += (int)jsonToken.Value;
+                }
+
+                var result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+
+                if (result is null || result.success != "true")
+                {
+                    Console.WriteLine("API response indicates failure.");
+                    return new List<Booking>();
+                }
+
+                foreach (var item in result.data)
+                {
+                    var booking = new Booking
+                    {
+                        BookingID = item.booking_id,
+                        Firstname = item.firstname,
+                        Lastname = item.lastname,
+                        SiteName = item.site_name,
+                        BookingArrival = item.booking_arrival,
+                        BookingDeparture = item.booking_departure,
+                        BookingStatus = item.booking_status,
+                        BookingTotal = (decimal?)item.booking_total ?? 0m,
+                        AccountBalance = (decimal?)item.account_balance ?? 0m,
+                        CalculatedStayCost = 0,
+                        DepositsHeld = 0,
+                        InventoryItems = JsonConvert.DeserializeObject<List<InventoryItem>>(item.inventory.ToString()),
+                        Deposits = JsonConvert.DeserializeObject<List<Deposit>>(item.deposit.ToString()),
+                        TariffsQuoted = JsonConvert.DeserializeObject<List<TariffQuoted>>(item.tariff.ToString())
+                    };
+
+                    var inventoryItems = new List<InventoryItem>();
+                    if (item.inventory_items != null)
+                    {
+                        if (item.inventory_items is JObject obj)
+                        {
+                            inventoryItems = obj.Properties().Select(p => p.Value.ToObject<InventoryItem>()).ToList();
+                        }
+                        else if (item.inventory_items is JArray arr)
+                        {
+                            inventoryItems = arr.ToObject<List<InventoryItem>>();
+                        }
+                    }
+                    booking.InventoryItems = inventoryItems;
+
+                        booking.LockFee = booking.InventoryItems
+                    .Where(i => i.Description != null &&
+                                i.Description.Contains("lock fee", StringComparison.OrdinalIgnoreCase))
+                    .Sum(i => i.Amount);
+
+                var deposits = new List<Deposit>();
+                if (item.deposits != null)
+                {
+                    if (item.deposits is JObject depObj)
+                    {
+                        deposits = depObj.Properties().Select(p => p.Value.ToObject<Deposit>()).ToList();
+                    }
+                    else if (item.deposits is JArray depArr)
+                    {
+                        deposits = depArr.ToObject<List<Deposit>>();
+                    }
+                }
+                booking.Deposits = deposits;
+                booking.DepositsHeld = deposits.Sum(d => d.Amount);
+
+                var tariffs = new List<TariffQuoted>();
+                if (item.tariffs_quoted != null)
+                {
+                    if (item.tariffs_quoted is JObject tarObj)
+                    {
+                        tariffs = tarObj.Properties()
+                            .Select(p => p.Value.ToObject<TariffQuoted>())
+                            .ToList();
+                    }
+                    else if (item.tariffs_quoted is JArray tarArr)
+                    {
+                        tariffs = tarArr.ToObject<List<TariffQuoted>>();
+                    }
+                }
+                booking.TariffsQuoted = tariffs;
+
+                var taxable = booking.BookingTotal - booking.LockFee;
+                booking.CalculatedStayCost = taxable + (taxable * 0.12m) + booking.LockFee;
+
+                bookings.Add(booking);
+            }
+        }
+        return bookings;
+    }
+
     }
 }
