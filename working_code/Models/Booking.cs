@@ -42,7 +42,7 @@ namespace MBTP.Models
         [JsonProperty("contact_details")]
         public List<ContactDetail> ContactDetails { get; set; }
 
-        [JsonIgnore]
+        [JsonIgnore] 
         public string? CarLicensePlate => ContactDetails?.FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
 
         [JsonIgnore]
@@ -66,11 +66,11 @@ namespace MBTP.Models
         public int BookingAdults { get; set; }
         public int BookingChildren { get; set; }
         public decimal BookingInfants { get; set; }
-        public decimal? BookingTotal { get; set; }
+        public decimal BookingTotal { get; set; }
         public string BookingMethodName { get; set; }
         public string BookingSourceName { get; set; }
         public string BookingReasonName { get; set; }
-        public decimal? AccountBalance { get; set; }
+        public decimal AccountBalance { get; set; }
         public string BookingPlaced { get; set; }
         public List<Guests> Guests { get; set; } // Add this property to represent the nested guests object
         public string? StateName { get; set; }
@@ -89,75 +89,5 @@ namespace MBTP.Models
         public int Wristbands { get; set; }
         public string? CarLicensePlate { get; set; }
         public string? CarLicensePlateExtra { get; set; }
-        public decimal? LockFee { get; set; }
-
-        [JsonProperty("tariffs_quoted")]
-        public List<TariffQuoted> TariffsQuoted { get; set; }
-
-        [JsonProperty("inventory_items")]
-        public List<InventoryItem> InventoryItems { get; set; }
-
-        [JsonProperty("deposits")]
-        public List<Deposit> Deposits { get; set; }
-        public decimal?  CalculatedStayCost { get; set; }
-        public decimal? DepositsHeld { get; set; }
     }
-    
-    public class TariffQuoted
-    {
-        [JsonProperty("original_amount")]
-        public decimal OriginalAmount { get; set; }
-
-        [JsonProperty("calculated_amount")]
-        public decimal CalculatedAmount { get; set; }
-
-        [JsonProperty("charge_amount")]
-        public decimal ChargeAmount { get; set; }
-
-        [JsonProperty("occupant_charges")]
-        public List<OccupantCharge> OccupantCharges { get; set; }
-
-        [JsonProperty("taxes")]
-        public List<Tax> Taxes { get; set; }
-    }
-
-    public class OccupantCharge
-    {
-        [JsonProperty("price")]
-        public decimal Price { get; set; }
-
-        [JsonProperty("occupants")]
-        public int Occupants { get; set; }
-    }
-
-    public class InventoryItem
-    {
-        [JsonProperty("description")]
-        public string Description { get; set; }
-
-        [JsonProperty("amount")]
-        public decimal Amount { get; set; }
-
-        [JsonProperty("included_in_stay_cost")]
-        public bool IncludedInStayCost { get; set; }
-    }
-
-    public class Tax
-    {
-        [JsonProperty("tax_name")]
-        public string TaxName { get; set; }
-
-        [JsonProperty("tax_amount")]
-        public decimal TaxAmount { get; set; }
-
-        [JsonProperty("tax_inclusive")]
-        public bool TaxInclusive { get; set; }
-    }
-
-    public class Deposit
-    {
-        [JsonProperty("amount")]
-        public decimal Amount { get; set; }
-    }
-
 }
