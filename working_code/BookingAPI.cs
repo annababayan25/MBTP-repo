@@ -31,9 +31,8 @@ namespace MBTP.Services
             Console.WriteLine("Run method started.");
 
             var bookings = await FetchAllBookingsAsync(startDate, endDate);
-            var checkedInList = await FetchAllCheckedInAsync(startDate, endDate);
 
-            if (bookings.Count > 0 || checkedInList.Count > 0)
+            if (bookings.Count > 0)
             {
                 using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
                 await sqlConn.OpenAsync();
@@ -44,14 +43,7 @@ namespace MBTP.Services
                     await InsertBookingAsync(booking, sqlConn);
                 }
 
-                // Insert checked in
-                foreach (var checkedIn in checkedInList)
-                {
-                    await InsertCheckedInAsync(checkedIn, sqlConn);
-                }
-
                 Console.WriteLine("Total Bookings: " + bookings.Count);
-                Console.WriteLine("Total CheckedIn: " + checkedInList.Count);
             }
             else
             {
@@ -59,6 +51,29 @@ namespace MBTP.Services
             }
 
             Console.WriteLine("Run method finished.");
+        }
+
+        public async Task PopulateCheckIns(DateTime startDate, DateTime endDate)
+        {
+            Console.WriteLine("Run method started.");
+            var checkedInList = await FetchAllCheckedInAsync(startDate, endDate);
+            if (checkedInList.Count > 0)
+            {
+                using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
+                await sqlConn.OpenAsync();
+
+                // Insert checked in
+                foreach (var checkedIn in checkedInList)
+                {
+                    await InsertCheckedInAsync(checkedIn, sqlConn);
+                }
+
+                Console.WriteLine("Total Checked In: " + checkedInList.Count);
+            }
+            else
+            {
+                Console.WriteLine("No check-ins to display");
+            }
         }
 
         private async Task InsertBookingAsync(Booking booking, SqlConnection sqlConn)
@@ -101,13 +116,13 @@ namespace MBTP.Services
             }
         }
 
-        private async Task InsertCheckedInAsync(CheckedIn checkedIn, SqlConnection sqlConn)
+        private async Task InsertCheckedInAsync(Booking checkedIn, SqlConnection sqlConn)
         {
             using (SqlCommand command = new SqlCommand("dbo.UpdateCheckedInTable", sqlConn))
             {
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("@BookingId", checkedIn.BookingID);
-                command.Parameters.AddWithValue("@BookingName", $"{checkedIn.Firstname} {checkedIn.Lastname}");
+                command.Parameters.AddWithValue("@BookingName", (object?)checkedIn.BookingName ?? DBNull.Value);
                 command.Parameters.AddWithValue("@SiteName", checkedIn.SiteName ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@BookingStatus", checkedIn.BookingStatus ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@CalculatedStayCost", checkedIn.CalculatedStayCost);
@@ -374,14 +389,14 @@ namespace MBTP.Services
             return bookings;
         }
 
-        public async Task<List<CheckedIn>> FetchAllCheckedInAsync(DateTime startDate, DateTime endDate)
+        public async Task<List<Booking>> FetchAllCheckedInAsync(DateTime startDate, DateTime endDate)
         {
             var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
             var periodTo = endDate.ToString("yyyy-MM-dd HH:mm:ss");
             var dataOffset = 0;
             var dataCount = 100;
             var dataTotal = 100000;
-            var checkedInList = new List<CheckedIn>();
+            var checkedInList = new List<Booking>();
 
             while (dataOffset < dataTotal)
             {
@@ -441,7 +456,7 @@ namespace MBTP.Services
                 if (result is null || result.success != "true")
                 {
                     Console.WriteLine("API response indicates failure.");
-                    return new List<CheckedIn>();
+                    return new List<Booking>();
                 }
 
                 foreach (var item in result.data)
@@ -450,7 +465,7 @@ namespace MBTP.Services
                     Console.WriteLine("TARIFFS JSON: " + item.tariffs_quoted?.ToString());
                     Console.WriteLine("DEPOSITS JSON: " + item.deposits?.ToString());
 
-                    var checkedIn = new CheckedIn
+                    var checkedIn = new Booking
                     {
                         BookingID = item.booking_id,
                         Firstname = item.firstname,
@@ -461,79 +476,44 @@ namespace MBTP.Services
                         BookingStatus = item.booking_status,
                         BookingTotal = (decimal)item.booking_total,
                         AccountBalance = (decimal)item.account_balance,
-                        CalculatedStayCost = 0,
-                        DepositsHeld = 0,
                         InventoryItems = JsonConvert.DeserializeObject<List<InventoryItem>>(item.inventory_items?.ToString() ?? "[]"),
-                        Deposits = JsonConvert.DeserializeObject<List<Deposit>>(item.deposits?.ToString() ?? "[]"),
                         TariffsQuoted = JsonConvert.DeserializeObject<List<TariffQuoted>>(item.tariffs_quoted?.ToString() ?? "[]"),
-                        Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests?.ToString() ?? "[]")
+                        Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests?.ToString() ?? "[]"),
+                        DepositsDict = JsonConvert.DeserializeObject<Dictionary<string, Deposit>>(item.deposits?.ToString() ?? "{}")
                     };
 
-                    decimal baseStayCost = 0;
-                    if (checkedIn.TariffsQuoted != null)
-                    {
-                        baseStayCost = checkedIn.TariffsQuoted.Sum(t => t.CalculatedAmount);
-                    }
+                    checkedIn.BookingName = !string.IsNullOrWhiteSpace(checkedIn.Firstname) || !string.IsNullOrWhiteSpace(checkedIn.Lastname)
+                    ? $"{checkedIn.Firstname} {checkedIn.Lastname}".Trim()
+                    : (checkedIn.Guests?.FirstOrDefault() is Guests g
+                        ? $"{g.Firstname} {g.Lastname}".Trim()
+                        : null);
 
-
-                    // Apply 12% accommodation tax
+                    decimal baseStayCost = checkedIn.TariffsQuoted?.Sum(t => t.CalculatedAmount) ?? 0;
                     decimal taxTotal = baseStayCost * 0.12m;
+                    decimal lockFee = checkedIn.InventoryItems?.Where(i => i.Description?.Contains("lock fee", StringComparison.OrdinalIgnoreCase) == true).Sum(i => i.Amount) ?? 0;
 
-                    // Lock fee (if exists)
-                    decimal lockFee = 0;
-                    if (checkedIn.InventoryItems != null)
-                    {
-                        lockFee = checkedIn.InventoryItems
-                            .Where(i => !string.IsNullOrEmpty(i.Description) &&
-                                        i.Description.Contains("lock fee", StringComparison.OrdinalIgnoreCase))
-                            .Sum(i => i.Amount);
-                    }
-
-                    var depositsList = new List<Deposit>();
-
-                    var depositsToken = item.deposits;
-                    if (depositsToken != null && depositsToken.HasValues)
-                    {
-                        var depositsDict = depositsToken.ToObject<Dictionary<string, Deposit>>();
-                        depositsList = depositsDict.Values.ToList();
-
-                        foreach (var dep in depositsList)
-                        {
-                            Console.WriteLine($"Deposit ID: {dep.Id}, Amount: {dep.Amount}, Due: {dep.DueDate}, Rule: {dep.FromType} ({dep.FromTypeId})");
-                        }
-                    }
-
-                    checkedIn.Deposits = depositsList;
-                    checkedIn.DepositsHeld = depositsList.Sum(d => d.Amount);
+                    checkedIn.CalculatedStayCost = baseStayCost + taxTotal + lockFee;
+                    checkedIn.DepositsHeld = checkedIn.Deposits.Sum(d => d.Amount);
 
 
-                    // Guests → Car plate
+                    // License Plate info
                     if (checkedIn.Guests != null && checkedIn.Guests.Count > 0)
                     {
-                        checkedIn.StateName = checkedIn.Guests[0].State;
-                        checkedIn.Firstname = checkedIn.Guests[0].Firstname;
-                        checkedIn.Lastname = checkedIn.Guests[0].Lastname;
+                        var carPlate = checkedIn.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
 
-                        var carPlate = checkedIn.Guests
-                            .SelectMany(g => g.ContactDetails ?? new List<ContactDetail>())
-                            .FirstOrDefault(cd => cd.Type == "car_rego");
+                        var licenseNotes = checkedIn.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Notes;
 
-                        checkedIn.CarLicensePlate = carPlate?.Content;
-                        checkedIn.CarLicensePlateExtra = carPlate?.Notes;
-                    }
-                    else
-                    {
-                        checkedIn.StateName = "Unknown";
+                        checkedIn.CarLicensePlate = carPlate;
+                        checkedIn.CarLicensePlateExtra = licenseNotes;
                     }
 
                     // Final total
-                    checkedIn.CalculatedStayCost = baseStayCost + taxTotal + lockFee;
 
                     checkedInList.Add(checkedIn);
                 }
             }
             return checkedInList;
-            }
+        }
 
      }
 }
