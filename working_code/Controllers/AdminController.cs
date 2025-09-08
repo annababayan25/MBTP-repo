@@ -159,6 +159,21 @@ namespace MBTP.Controllers
             }
             return View();
         }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateCheckIns(DateTime? month)
+        {
+            var selectedMonth = month ?? DateTime.Today;
+            ViewBag.SelectedMonth = selectedMonth;
+            var periodFrom = new DateTime(selectedMonth.Year, selectedMonth.Month, 1);
+            var periodTo = periodFrom.AddMonths(1);
+            if (month is not null)
+            {
+                await _newBookService.PopulateCheckIns(periodFrom, periodTo);
+            }
+            return View();
+        }
+        
         [HttpPost]
         public async Task<string> AddNewUser(string unameIn, string pwdIn, int accIDIn)
         {

@@ -42,7 +42,7 @@ namespace MBTP.Models
         [JsonProperty("contact_details")]
         public List<ContactDetail> ContactDetails { get; set; }
 
-        [JsonIgnore] 
+        [JsonIgnore]
         public string? CarLicensePlate => ContactDetails?.FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
 
         [JsonIgnore]
@@ -89,5 +89,122 @@ namespace MBTP.Models
         public int Wristbands { get; set; }
         public string? CarLicensePlate { get; set; }
         public string? CarLicensePlateExtra { get; set; }
+        public string? BookingName { get; set; }
+        public decimal? LockFee { get; set; }
+
+        [JsonProperty("tariffs_quoted")]
+        public List<TariffQuoted> TariffsQuoted { get; set; }
+
+        [JsonProperty("deposits")]
+        public Dictionary<string, Deposit> DepositsDict { get; set; }
+        [JsonIgnore]
+        public List<Deposit> Deposits => DepositsDict?.Values.ToList() ?? new List<Deposit>();
+
+        [JsonProperty("inventory_items")]
+        public List<InventoryItem> InventoryItems { get; set; }
+        public decimal? CalculatedStayCost { get; set; }
+        public decimal? DepositsHeld { get; set; }
     }
+
+    public class TariffQuoted
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("stay_date")]
+        public string StayDate { get; set; }
+
+        [JsonProperty("label")]
+        public string Label { get; set; }
+
+        [JsonProperty("original_amount")]
+        public decimal OriginalAmount { get; set; }
+
+        [JsonProperty("calculated_amount")]
+        public decimal CalculatedAmount { get; set; }
+    }
+
+
+    public class OccupantCharge
+    {
+        [JsonProperty("price")]
+        public decimal Price { get; set; }
+
+        [JsonProperty("occupants")]
+        public int Occupants { get; set; }
+    }
+
+    public class InventoryItem
+    {
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal Amount { get; set; }
+
+        [JsonProperty("tax_free")]
+        public string TaxFree { get; set; }
+    }
+
+
+    public class Tax
+    {
+        [JsonProperty("tax_name")]
+        public string TaxName { get; set; }
+
+        [JsonProperty("tax_amount")]
+        public decimal TaxAmount { get; set; }
+
+        [JsonProperty("tax_inclusive")]
+        public bool TaxInclusive { get; set; }
+    }
+
+    public class Deposit
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("booking_id")]
+        public string BookingId { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal Amount { get; set; }
+
+        [JsonProperty("original_amount")]
+        public decimal OriginalAmount { get; set; }
+
+        [JsonProperty("due_date")]
+        public DateTime? DueDate { get; set; }   // ← nullable
+
+        [JsonProperty("from_type")]
+        public string FromType { get; set; }
+
+        [JsonProperty("from_type_id")]
+        public string FromTypeId { get; set; }
+
+        [JsonProperty("remove")]
+        public string Remove { get; set; }
+    }
+
+
+    public class Payment
+    {
+        [JsonProperty("id")]
+        public string Id { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal Amount { get; set; }
+
+        [JsonProperty("deposit")]
+        public string Deposit { get; set; } // "1" = deposit, "0" = normal payment
+
+        [JsonProperty("generated_when")]
+        public DateTime GeneratedWhen { get; set; }
+    }
+
+
+
 }
