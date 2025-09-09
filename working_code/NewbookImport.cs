@@ -608,21 +608,35 @@ namespace FinancialC_
                         }
                         if (tmpAction.IndexOf("Balance Transf") != -1)
                         {
-                            transferArray = SupportRoutines.AddTransfer(transferArray, "GolfCarts", flowStr, tmpVal);
-                            if (arrDate >= System.DateTime.Parse(GenericRoutines.repDateStr)) { depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", jCnt, flowStr, tmpVal); }
+                            if (arrDate >= System.DateTime.Parse(GenericRoutines.repDateStr))
+                            {
+                                transferArray = SupportRoutines.AddTransfer(transferArray, "GolfDepositsT", flowStr, tmpVal);
+                                depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", jCnt, flowStr, tmpVal);
+                            }
                             else
                             {
                                 int returnedVal = SupportRoutines.CheckForCancel(tmpClient);
-                                if (returnedVal == 1) { depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", jCnt, flowStr, tmpVal); } // If cancel back out of deposits even if earlier date
-                                else if (returnedVal == 0) { revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", flowStr, tmpVal); }
-                                else { return; }; // stop processing. Alert written in CheckForCancel
+                                if (returnedVal == 1) // If cancel back out of deposits even if earlier date
+                                {
+                                    transferArray = SupportRoutines.AddTransfer(transferArray, "GolfDepositsT", flowStr, tmpVal);
+                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", jCnt, flowStr, tmpVal);
+                                }
+                                else if (returnedVal == 0)
+                                {
+                                    transferArray = SupportRoutines.AddTransfer(transferArray, "GolfCarts", flowStr, tmpVal);
+                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", flowStr, tmpVal);
+                                }
+                                else // stop processing. Alert written in CheckForCancel
+                                {
+                                    return;
+                                }
                             }
                         }
                         else
                         {
                             if (arrDate == System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") == -1) 
                             { 
-                                if (reconMatchFound == false || SameDayArrival(tmpClient.Substring(10,6)) || tmpDesc.IndexOf("WALKIN") != -1)
+                                if ((reconMatchFound == false && SameDayArrival(tmpClient.Substring(10,6))) || tmpDesc.IndexOf("WALKIN") != -1)
                                 {
                                     appliedArray = SupportRoutines.AddApplied(appliedArray, "GolfDepApp", flowStr, tmpVal);
                                     revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", flowStr, tmpVal);
@@ -1333,6 +1347,7 @@ namespace FinancialC_
             XLWorkbook localCheckedBook = new XLWorkbook(GenericRoutines.nbfiles.Checkedin);
             IXLWorksheet localCheckedSheet = localCheckedBook.Worksheet(1);
             int idColc = 3;
+            bool notFound = true;
             for (int iCnt = 2; iCnt <= localCheckedSheet.LastRowUsed()!.RowNumber(); iCnt++)  // skip the header row
             {
                 if (localCheckedSheet.Row(iCnt).Cell(idColc).Value.ToString() == bookingIn)
@@ -1344,11 +1359,12 @@ namespace FinancialC_
                     }
                     else
                     {
-                        return false;
+                        notFound = false;
+                        break;
                     }
                 }
             }
-            return false;
+            return notFound;
         } // END OF sameDayArrival
     } // END OF CLASS
 } // END OF NAMESPACE
