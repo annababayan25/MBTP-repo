@@ -31,7 +31,7 @@ namespace MBTP
             services.AddScoped<DailyReport>();
             services.AddSingleton<WeatherService>();
             services.AddScoped<LoginClass>();
-            services.AddScoped<NewBookService>();
+            services.AddScoped<BookingAPI>();
             services.AddScoped<BookingRepository>();
             services.AddScoped<TrailerMovesReport>();
             services.AddScoped<ExpressCheckinsReport>();

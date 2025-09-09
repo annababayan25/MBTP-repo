@@ -40,7 +40,7 @@ namespace MBTP.Controllers
         private readonly IConfiguration _configuration;
         private readonly IDatabaseConnectionService _dbConnectionService;
         private readonly AccessLevelsActions _accessLevelsActions;
-        private readonly NewBookService _newBookService;
+        private readonly BookingAPI _bookingAPI;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
@@ -52,7 +52,7 @@ namespace MBTP.Controllers
             IDatabaseConnectionService dbConnectionService,
             ICompositeViewEngine viewEngine,
             AccessLevelsActions accessLevelsActions,
-            NewBookService newBookService,
+            BookingAPI bookingAPI,
             IHttpContextAccessor httpContextAccessor,
             AdministrationService adminActions,
             RetailService retailService,
@@ -63,7 +63,7 @@ namespace MBTP.Controllers
             _configuration = configuration;
             _dbConnectionService = dbConnectionService;
             _accessLevelsActions = accessLevelsActions;
-            _newBookService = newBookService;
+            _bookingAPI = bookingAPI;
             _httpContextAccessor = httpContextAccessor;
             _adminActions = adminActions;
             _retailService = retailService;
@@ -155,7 +155,7 @@ namespace MBTP.Controllers
             var periodTo = periodFrom.AddMonths(1);
             if (month is not null)
             {
-                await _newBookService.PopulateBookings(periodFrom, periodTo);
+                await _bookingAPI.PopulateBookings(periodFrom, periodTo);
             }
             return View();
         }
@@ -169,7 +169,7 @@ namespace MBTP.Controllers
             var periodTo = periodFrom.AddMonths(1);
             if (month is not null)
             {
-                await _newBookService.PopulateCheckIns(periodFrom, periodTo);
+                await _bookingAPI.PopulateCheckIns(periodFrom, periodTo);
             }
             return View();
         }
