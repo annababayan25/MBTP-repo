@@ -987,18 +987,21 @@ else
                  window.location.href = url;
             }
         });
-        document.getElementById('opsButton').addEventListener('click', function (){
-            var currentUrl = new URL(window.location.href);
-            var dateParam = currentUrl.searchParams.get("date");
-            if (dateParam)
-                {
-                    window.location.href = '@Url.Action("Daily", "FDB")' + '?date=' + dateParam;
-                }
-                else
-                {
-                    window.location.href = '@Url.Action("Daily", "FDB")';
-                }
-        });
+        var opsButton = document.getElementById('opsButton');
+        if(opsButton){
+            document.getElementById('opsButton').addEventListener('click', function (){
+                var currentUrl = new URL(window.location.href);
+                var dateParam = currentUrl.searchParams.get("date");
+                if (dateParam)
+                    {
+                        window.location.href = '@Url.Action("Daily", "FDB")' + '?date=' + dateParam;
+                    }
+                    else
+                    {
+                        window.location.href = '@Url.Action("Daily", "FDB")';
+                    }
+            });
+        }
         document.getElementById('generatePdfButton').addEventListener('click', function ()
         {
             var currentUrl = new URL(window.location.href);
