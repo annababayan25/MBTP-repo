@@ -13,7 +13,7 @@ using MBTP.Interfaces;
 
 namespace MBTP.Services
 {
-    public class NewBookService
+    public class BookingAPI
     {
         private readonly string apiUrl = "https://api.newbook.cloud/rest/bookings_list";
         private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
@@ -21,11 +21,12 @@ namespace MBTP.Services
         private readonly string username = "myrtle_beach";
         private readonly string password = "Gemb$np(QqEnB9V3";
         private readonly IDatabaseConnectionService _dbConnectionService;
-        public NewBookService(IDatabaseConnectionService dbConnectionService)
+        public BookingAPI(IDatabaseConnectionService dbConnectionService)
         {
             _dbConnectionService = dbConnectionService;
         }
-
+        
+        // For Bookings Table in DB
         public async Task PopulateBookings(DateTime startDate, DateTime endDate)
         {
             Console.WriteLine("Run method started.");
@@ -53,28 +54,6 @@ namespace MBTP.Services
             Console.WriteLine("Run method finished.");
         }
 
-        public async Task PopulateCheckIns(DateTime startDate, DateTime endDate)
-        {
-            Console.WriteLine("Run method started.");
-            var checkedInList = await FetchAllCheckedInAsync(startDate, endDate);
-            if (checkedInList.Count > 0)
-            {
-                using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
-                await sqlConn.OpenAsync();
-
-                // Insert checked in
-                foreach (var checkedIn in checkedInList)
-                {
-                    await InsertCheckedInAsync(checkedIn, sqlConn);
-                }
-
-                Console.WriteLine("Total Checked In: " + checkedInList.Count);
-            }
-            else
-            {
-                Console.WriteLine("No check-ins to display");
-            }
-        }
 
         private async Task InsertBookingAsync(Booking booking, SqlConnection sqlConn)
         {
@@ -113,29 +92,6 @@ namespace MBTP.Services
                 command.Parameters["@status"].Direction = ParameterDirection.Output;
                 await command.ExecuteNonQueryAsync();
                 //Console.WriteLine(command.Parameters["@status"].Value.ToString());
-            }
-        }
-
-        private async Task InsertCheckedInAsync(Booking checkedIn, SqlConnection sqlConn)
-        {
-            using (SqlCommand command = new SqlCommand("dbo.UpdateCheckedInTable", sqlConn))
-            {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@BookingId", checkedIn.BookingID);
-                command.Parameters.AddWithValue("@BookingName", (object?)checkedIn.BookingName ?? DBNull.Value);
-                command.Parameters.AddWithValue("@SiteName", checkedIn.SiteName ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@BookingStatus", checkedIn.BookingStatus ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@CalculatedStayCost", checkedIn.CalculatedStayCost);
-                command.Parameters.AddWithValue("@DepositsHeld", checkedIn.DepositsHeld);
-                command.Parameters.AddWithValue("@AccountBalance", checkedIn.AccountBalance == null ? (object)DBNull.Value : checkedIn.AccountBalance);
-                command.Parameters.AddWithValue("@BookingArrival", checkedIn.BookingArrival ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@BookingDeparture", checkedIn.BookingDeparture ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@CarLicensePlate", checkedIn.CarLicensePlate ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@CarLicensePlateExtra", checkedIn.CarLicensePlateExtra ?? (object)DBNull.Value);
-
-                command.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
-
-                await command.ExecuteNonQueryAsync();
             }
         }
 
@@ -389,6 +345,54 @@ namespace MBTP.Services
             return bookings;
         }
 
+        // For CheckedIn table in DB 
+        public async Task PopulateCheckIns(DateTime startDate, DateTime endDate)
+        {
+            Console.WriteLine("Run method started.");
+            var checkedInList = await FetchAllCheckedInAsync(startDate, endDate);
+            if (checkedInList.Count > 0)
+            {
+                using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
+                await sqlConn.OpenAsync();
+
+                // Insert checked in
+                foreach (var checkedIn in checkedInList)
+                {
+                    await InsertCheckedInAsync(checkedIn, sqlConn);
+                }
+
+                Console.WriteLine("Total Checked In: " + checkedInList.Count);
+            }
+            else
+            {
+                Console.WriteLine("No check-ins to display");
+            }
+        }
+
+
+        private async Task InsertCheckedInAsync(Booking checkedIn, SqlConnection sqlConn)
+        {
+            using (SqlCommand command = new SqlCommand("dbo.UpdateCheckedInTable", sqlConn))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@BookingId", checkedIn.BookingID);
+                command.Parameters.AddWithValue("@BookingName", (object?)checkedIn.BookingName ?? DBNull.Value);
+                command.Parameters.AddWithValue("@SiteName", checkedIn.SiteName ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@BookingStatus", checkedIn.BookingStatus ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CalculatedStayCost", checkedIn.CalculatedStayCost);
+                command.Parameters.AddWithValue("@DepositsHeld", checkedIn.DepositsHeld);
+                command.Parameters.AddWithValue("@AccountBalance", checkedIn.AccountBalance == null ? (object)DBNull.Value : checkedIn.AccountBalance);
+                command.Parameters.AddWithValue("@BookingArrival", checkedIn.BookingArrival ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@BookingDeparture", checkedIn.BookingDeparture ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlate", checkedIn.CarLicensePlate ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlateExtra", checkedIn.CarLicensePlateExtra ?? (object)DBNull.Value);
+
+                command.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
         public async Task<List<Booking>> FetchAllCheckedInAsync(DateTime startDate, DateTime endDate)
         {
             var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
@@ -408,7 +412,9 @@ namespace MBTP.Services
                     period_to = periodTo,
                     list_type = "arrived",
                     data_offset = dataOffset,
-                    data_count = dataCount
+                    data_count = dataCount,
+                    client_account_booking_details = true,
+                    client_account_booking_breakdown = true
                 };
 
                 int loopCount = 0;
@@ -464,6 +470,8 @@ namespace MBTP.Services
                     Console.WriteLine("INVENTORY JSON: " + item.inventory_items?.ToString());
                     Console.WriteLine("TARIFFS JSON: " + item.tariffs_quoted?.ToString());
                     Console.WriteLine("DEPOSITS JSON: " + item.deposits?.ToString());
+                    Console.WriteLine("CLIENT ACCOUNT DETAILS JSON: " + item.client_account_booking_details?.ToString());
+                    Console.WriteLine("CLIENT ACCOUNT BREAKDOWN JSON: " + item.client_account_booking_breakdown?.ToString());
 
                     var checkedIn = new Booking
                     {
@@ -493,7 +501,21 @@ namespace MBTP.Services
                     decimal lockFee = checkedIn.InventoryItems?.Where(i => i.Description?.Contains("lock fee", StringComparison.OrdinalIgnoreCase) == true).Sum(i => i.Amount) ?? 0;
 
                     checkedIn.CalculatedStayCost = baseStayCost + taxTotal + lockFee;
-                    checkedIn.DepositsHeld = checkedIn.Deposits.Sum(d => d.Amount);
+
+                    var deposits = 0m;
+
+                    if (item.client_account_booking_details != null)
+                    {
+                        foreach (var accountItem in item.client_account_booking_details)
+                        {
+                            if (accountItem.type == "deposit")
+                            {
+                                deposits += Convert.ToDecimal(accountItem.amount);
+                            }
+                        }
+                    }
+
+                    checkedIn.DepositsHeld = deposits;
 
 
                     // License Plate info

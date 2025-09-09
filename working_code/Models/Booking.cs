@@ -104,6 +104,10 @@ namespace MBTP.Models
         public List<InventoryItem> InventoryItems { get; set; }
         public decimal? CalculatedStayCost { get; set; }
         public decimal? DepositsHeld { get; set; }
+        [JsonProperty("client_account_booking_details")]
+        public decimal? ClientAccountBookingDetails { get; set; }
+        [JsonProperty("client_account_booking_breakdown")]
+        public decimal? ClientAccountBookingBreakdown { get; set; }
     }
 
     public class TariffQuoted
