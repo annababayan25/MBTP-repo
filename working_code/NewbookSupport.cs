@@ -468,13 +468,13 @@ namespace NewbookSupport
             {
                 bookingParam = "GUEST";
             }
-            if(Math.Abs(amtIn) == 30.24)
+            //if(Math.Abs(amtIn) == 30.24)
             //if(assignedIn.IndexOf("Golf") != -1)
             //if(assignedIn.IndexOf("GolfDepApp") != -1 || assignedIn.IndexOf("GolfCartRentals") != -1)
             //if (actionIn.IndexOf("344287") != -1 || actionIn.IndexOf("352158") != -1)
-            {
-                System.Diagnostics.Debug.WriteLine(assignedParam + actionIn + " " + amtIn.ToString("C") + " " + bookingParam);
-            }
+            //{
+            //    System.Diagnostics.Debug.WriteLine(assignedParam + actionIn + " " + amtIn.ToString("C") + " " + bookingParam);
+            //}
             return;
         }
         public static List<Checks> AddCheck(List<Checks> checkArrayIn, string checkCatIn, string checkFlowIn, double flowValIn)
