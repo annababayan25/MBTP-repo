@@ -12,7 +12,7 @@
     const string numformatdashed = "{0:#,##0.00;(#,##0.00);------}";
     bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
     string rightnow = DateTime.Now.ToString("MM/dd/yyyy h:mm tt");
-    string opsButtonText = "Reservations Report for " + ViewBag.FinalDate.ToString("MMM dd, yyyy");
+    string resButtonText = "Reservations Report for " + ViewBag.FinalDate.ToString("MMM dd, yyyy");
     bool storeClosed = false;
     bool arcadeClosed = false;
     bool coffeeClosed = false;
@@ -32,7 +32,7 @@
     <input class="pdfButton" type="button" id="generatePdfButton" value="Generate PDF" />
     @if(accID != "4" && accID != "5")
     {
-        <input class="pdfButton" type="button" id="opsButton" value="@(opsButtonText)" />
+        <input class="pdfButton" type="button" id="resButton" value="@(resButtonText)" />
     }
     <p></p>
 }
@@ -836,18 +836,21 @@ else
                  window.location.href = url;
             }
         });
-        document.getElementById('opsButton').addEventListener('click', function (){
-            var currentUrl = new URL(window.location.href);
-            var dateParam = currentUrl.searchParams.get("date");
-            if (dateParam)
-                {
-                    window.location.href = '@Url.Action("DailyReservation", "FDB")' + '?date=' + dateParam;
-                }
-                else
-                {
-                    window.location.href = '@Url.Action("DailyReservation", "FDB")';
-                }
-        });
+        var resButton = document.getElementById('resButton');
+        if(resButton){
+            document.getElementById('resButton').addEventListener('click', function (){
+                var currentUrl = new URL(window.location.href);
+                var dateParam = currentUrl.searchParams.get("date");
+                if (dateParam)
+                    {
+                        window.location.href = '@Url.Action("DailyReservation", "FDB")' + '?date=' + dateParam;
+                    }
+                    else
+                    {
+                        window.location.href = '@Url.Action("DailyReservation", "FDB")';
+                    }
+            });
+        }
         document.getElementById('generatePdfButton').addEventListener('click', function () 
         {
             var currentUrl = new URL(window.location.href);
