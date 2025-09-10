@@ -10,6 +10,8 @@ using MBTP.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MBTP.Interfaces;
+using System.Net;
+
 
 namespace MBTP.Services
 {
@@ -194,8 +196,11 @@ namespace MBTP.Services
                     period_to = periodTo,
                     list_type = "all",
                     data_offset = dataOffset,
-                    data_count = dataCount
+                    data_count = dataCount,
+                    client_account_booking_details = true,
+                    client_account_booking_breakdown = true
                 };
+
                 int loopCount = 0;
                 HttpResponseMessage response = new HttpResponseMessage();
                 while (loopCount < 5)
@@ -246,9 +251,9 @@ namespace MBTP.Services
                 }
 
 
-
                 foreach (var item in result.data)
                 {
+
                     var booking = new Booking
                     {
                         BookingID = item.booking_id,
@@ -270,7 +275,7 @@ namespace MBTP.Services
                         ExpressCheckin = item.booking_demographic_name,
                         Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests.ToString()), // Deserialize the guests list
                         CustomFields = JsonConvert.DeserializeObject<List<CustomFields>>(item.custom_fields.ToString()), // Deserialize the custom fields list
-                        Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()) // Deserialize the equipment fields list
+                        Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()), // Deserialize the equipment fields list
                     };
 
 
@@ -284,7 +289,6 @@ namespace MBTP.Services
                         booking.CarLicensePlateExtra = licenseNotes;
                     }
 
-
                     // Assign the state property from the first guest in the list (if any)
                     if (booking.Guests != null && booking.Guests.Count > 0)
                     {
@@ -296,6 +300,7 @@ namespace MBTP.Services
                     {
                         booking.StateName = "Unknown";
                     }
+
 
                     if (booking.CustomFields != null && booking.CustomFields.Count > 0)
                     {
@@ -367,6 +372,7 @@ namespace MBTP.Services
             {
                 Console.WriteLine("No check-ins to display");
             }
+            Console.WriteLine("Run method finished.");
         }
 
 
@@ -414,7 +420,8 @@ namespace MBTP.Services
                     data_offset = dataOffset,
                     data_count = dataCount,
                     client_account_booking_details = true,
-                    client_account_booking_breakdown = true
+                    client_account_item_breakdown = true,
+                    account_breakdown = true
                 };
 
                 int loopCount = 0;
@@ -467,11 +474,9 @@ namespace MBTP.Services
 
                 foreach (var item in result.data)
                 {
-                    Console.WriteLine("INVENTORY JSON: " + item.inventory_items?.ToString());
-                    Console.WriteLine("TARIFFS JSON: " + item.tariffs_quoted?.ToString());
-                    Console.WriteLine("DEPOSITS JSON: " + item.deposits?.ToString());
-                    Console.WriteLine("CLIENT ACCOUNT DETAILS JSON: " + item.client_account_booking_details?.ToString());
-                    Console.WriteLine("CLIENT ACCOUNT BREAKDOWN JSON: " + item.client_account_booking_breakdown?.ToString());
+                    // Console.WriteLine("INVENTORY JSON: " + item.inventory_items?.ToString());
+                    // Console.WriteLine("TARIFFS JSON: " + item.tariffs_quoted?.ToString());
+
 
                     var checkedIn = new Booking
                     {
@@ -484,10 +489,10 @@ namespace MBTP.Services
                         BookingStatus = item.booking_status,
                         BookingTotal = (decimal)item.booking_total,
                         AccountBalance = (decimal)item.account_balance,
+                        DepositsHeld = 0,
                         InventoryItems = JsonConvert.DeserializeObject<List<InventoryItem>>(item.inventory_items?.ToString() ?? "[]"),
                         TariffsQuoted = JsonConvert.DeserializeObject<List<TariffQuoted>>(item.tariffs_quoted?.ToString() ?? "[]"),
                         Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests?.ToString() ?? "[]"),
-                        DepositsDict = JsonConvert.DeserializeObject<Dictionary<string, Deposit>>(item.deposits?.ToString() ?? "{}")
                     };
 
                     checkedIn.BookingName = !string.IsNullOrWhiteSpace(checkedIn.Firstname) || !string.IsNullOrWhiteSpace(checkedIn.Lastname)
@@ -502,20 +507,14 @@ namespace MBTP.Services
 
                     checkedIn.CalculatedStayCost = baseStayCost + taxTotal + lockFee;
 
-                    var deposits = 0m;
 
-                    if (item.client_account_booking_details != null)
+
+                    foreach (var guest in checkedIn.Guests)
                     {
-                        foreach (var accountItem in item.client_account_booking_details)
-                        {
-                            if (accountItem.type == "deposit")
-                            {
-                                deposits += Convert.ToDecimal(accountItem.amount);
-                            }
-                        }
+
+                        Console.WriteLine("Guest raw JSON: " + JsonConvert.SerializeObject(guest, Formatting.Indented));
                     }
 
-                    checkedIn.DepositsHeld = deposits;
 
 
                     // License Plate info

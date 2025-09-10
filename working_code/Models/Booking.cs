@@ -9,7 +9,6 @@ namespace MBTP.Models
         public string equipment_length { get; set; }
     }
 
-
     public class ContactDetail
     {
         [JsonProperty("type")]
@@ -30,11 +29,14 @@ namespace MBTP.Models
 
     public class Guests
     {
+        [JsonProperty("guest_id")]
+        public string GuestId { get; set; } = string.Empty;
+
         [JsonProperty("firstname")]
-        public string? Firstname { get; set; }
+        public string? Firstname { get; set; } = string.Empty;
 
         [JsonProperty("lastname")]
-        public string? Lastname { get; set; }
+        public string? Lastname { get; set; } = string.Empty;
 
         [JsonProperty("state")]
         public string? State { get; set; }
@@ -47,9 +49,12 @@ namespace MBTP.Models
 
         [JsonIgnore]
         public string? CarLicensePlateExtra => ContactDetails?.FirstOrDefault(cd => cd.Type == "car_rego")?.Notes;
+
+        [JsonProperty("account_breakdown")]
+        public Dictionary<string, AccountBreakdown> AccountBreakdown { get; set; }
+
+
     }
-
-
     public class CustomFields
     {
         public string Label { get; set; }
@@ -72,6 +77,7 @@ namespace MBTP.Models
         public string BookingReasonName { get; set; }
         public decimal AccountBalance { get; set; }
         public string BookingPlaced { get; set; }
+
         public List<Guests> Guests { get; set; } // Add this property to represent the nested guests object
         public string? StateName { get; set; }
         public string? CategoryName { get; set; }
@@ -95,19 +101,22 @@ namespace MBTP.Models
         [JsonProperty("tariffs_quoted")]
         public List<TariffQuoted> TariffsQuoted { get; set; }
 
-        [JsonProperty("deposits")]
-        public Dictionary<string, Deposit> DepositsDict { get; set; }
-        [JsonIgnore]
-        public List<Deposit> Deposits => DepositsDict?.Values.ToList() ?? new List<Deposit>();
-
         [JsonProperty("inventory_items")]
         public List<InventoryItem> InventoryItems { get; set; }
         public decimal? CalculatedStayCost { get; set; }
-        public decimal? DepositsHeld { get; set; }
-        [JsonProperty("client_account_booking_details")]
-        public decimal? ClientAccountBookingDetails { get; set; }
-        [JsonProperty("client_account_booking_breakdown")]
-        public decimal? ClientAccountBookingBreakdown { get; set; }
+        public decimal? DepositsHeld { get; set; } 
+    }
+
+    public class AccountBreakdown
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("gl_category_id")]
+        public string? GlCategoryId { get; set; }
+
+        [JsonProperty("balance")]
+        public string Balance { get; set; } 
     }
 
     public class TariffQuoted
@@ -127,7 +136,6 @@ namespace MBTP.Models
         [JsonProperty("calculated_amount")]
         public decimal CalculatedAmount { get; set; }
     }
-
 
     public class OccupantCharge
     {
@@ -150,7 +158,6 @@ namespace MBTP.Models
         public string TaxFree { get; set; }
     }
 
-
     public class Tax
     {
         [JsonProperty("tax_name")]
@@ -164,31 +171,32 @@ namespace MBTP.Models
     }
 
     public class Deposit
-    {
-        [JsonProperty("id")]
-        public string Id { get; set; }
+{
+    [JsonProperty("id")]
+    public string Id { get; set; }
 
-        [JsonProperty("booking_id")]
-        public string BookingId { get; set; }
+    [JsonProperty("booking_id")]
+    public string BookingId { get; set; }
 
-        [JsonProperty("amount")]
-        public decimal Amount { get; set; }
+    [JsonProperty("amount")]
+    public decimal Amount { get; set; }
 
-        [JsonProperty("original_amount")]
-        public decimal OriginalAmount { get; set; }
+    [JsonProperty("original_amount")]
+    public decimal OriginalAmount { get; set; }
 
-        [JsonProperty("due_date")]
-        public DateTime? DueDate { get; set; }   // ← nullable
+    [JsonProperty("due_date")]
+    public DateTime? DueDate { get; set; }
 
-        [JsonProperty("from_type")]
-        public string FromType { get; set; }
+    [JsonProperty("from_type")]
+    public string FromType { get; set; }
 
-        [JsonProperty("from_type_id")]
-        public string FromTypeId { get; set; }
+    [JsonProperty("from_type_id")]
+    public string FromTypeId { get; set; }
 
-        [JsonProperty("remove")]
-        public string Remove { get; set; }
-    }
+    [JsonProperty("remove")]
+    public string Remove { get; set; }
+}
+
 
 
     public class Payment
