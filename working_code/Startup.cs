@@ -23,6 +23,7 @@ namespace MBTP
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<TransactionFlowAPI>();
             services.AddSingleton<IDatabaseConnectionService, DatabaseConnectionService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<DailyService>();
