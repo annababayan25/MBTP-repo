@@ -16,6 +16,7 @@ namespace MBTP.Services
     public class BookingAPI
     {
         private readonly string apiUrl = "https://api.newbook.cloud/rest/bookings_list";
+        private readonly string paymentApiUrl = "https://api.newbook.cloud/rest/payments_list";
         private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
         private readonly string region = "us";
         private readonly string username = "myrtle_beach";
@@ -25,7 +26,7 @@ namespace MBTP.Services
         {
             _dbConnectionService = dbConnectionService;
         }
-        
+
         // For Bookings Table in DB
         public async Task PopulateBookings(DateTime startDate, DateTime endDate)
         {
@@ -350,6 +351,8 @@ namespace MBTP.Services
         {
             Console.WriteLine("Run method started.");
             var checkedInList = await FetchAllCheckedInAsync(startDate, endDate);
+            await FetchAllPaymentsAsync(startDate, endDate); 
+
             if (checkedInList.Count > 0)
             {
                 using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
@@ -414,7 +417,7 @@ namespace MBTP.Services
                     data_offset = dataOffset,
                     data_count = dataCount,
                     client_account_booking_details = true,
-                    client_account_booking_breakdown = true
+                    client_account_booking_breakdown = true,
                 };
 
                 int loopCount = 0;
@@ -464,14 +467,27 @@ namespace MBTP.Services
                     Console.WriteLine("API response indicates failure.");
                     return new List<Booking>();
                 }
+                
+                var payments = await FetchAllPaymentsAsync(startDate, endDate);
+
+                var depositsByBooking = payments
+                .Where(p => p.AccountFor == "bookings" && p.VoidedWhen == null)
+                .GroupBy(p => p.AccountForId) // AccountForId == BookingID
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Sum(p => p.Amount)
+                );
+
+
 
                 foreach (var item in result.data)
                 {
+                    /*
+                    Console.WriteLine("BOOKINGID JSON: " + item.booking_id?.ToString());
                     Console.WriteLine("INVENTORY JSON: " + item.inventory_items?.ToString());
                     Console.WriteLine("TARIFFS JSON: " + item.tariffs_quoted?.ToString());
-                    Console.WriteLine("DEPOSITS JSON: " + item.deposits?.ToString());
-                    Console.WriteLine("CLIENT ACCOUNT DETAILS JSON: " + item.client_account_booking_details?.ToString());
-                    Console.WriteLine("CLIENT ACCOUNT BREAKDOWN JSON: " + item.client_account_booking_breakdown?.ToString());
+                    Console.WriteLine("DISCOUNTS JSON: " + item.discount_name?.ToString());
+                    */
 
                     var checkedIn = new Booking
                     {
@@ -484,11 +500,13 @@ namespace MBTP.Services
                         BookingStatus = item.booking_status,
                         BookingTotal = (decimal)item.booking_total,
                         AccountBalance = (decimal)item.account_balance,
+                        DepositsHeld = 0,
                         InventoryItems = JsonConvert.DeserializeObject<List<InventoryItem>>(item.inventory_items?.ToString() ?? "[]"),
                         TariffsQuoted = JsonConvert.DeserializeObject<List<TariffQuoted>>(item.tariffs_quoted?.ToString() ?? "[]"),
                         Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests?.ToString() ?? "[]"),
-                        DepositsDict = JsonConvert.DeserializeObject<Dictionary<string, Deposit>>(item.deposits?.ToString() ?? "{}")
                     };
+
+
 
                     checkedIn.BookingName = !string.IsNullOrWhiteSpace(checkedIn.Firstname) || !string.IsNullOrWhiteSpace(checkedIn.Lastname)
                     ? $"{checkedIn.Firstname} {checkedIn.Lastname}".Trim()
@@ -502,21 +520,19 @@ namespace MBTP.Services
 
                     checkedIn.CalculatedStayCost = baseStayCost + taxTotal + lockFee;
 
-                    var deposits = 0m;
-
-                    if (item.client_account_booking_details != null)
+                    if (depositsByBooking.TryGetValue(item.booking_id?.ToString(), out decimal depositTotal))
                     {
-                        foreach (var accountItem in item.client_account_booking_details)
-                        {
-                            if (accountItem.type == "deposit")
-                            {
-                                deposits += Convert.ToDecimal(accountItem.amount);
-                            }
-                        }
+                        checkedIn.DepositsHeld = depositTotal;
+                    }
+                    else
+                    {
+                        checkedIn.DepositsHeld = 0;
                     }
 
-                    checkedIn.DepositsHeld = deposits;
-
+                    if (checkedIn.DepositsHeld != 0)
+                    {
+                        Console.WriteLine("DEPOSITS HELD (calculated): " + checkedIn.DepositsHeld);
+                    }
 
                     // License Plate info
                     if (checkedIn.Guests != null && checkedIn.Guests.Count > 0)
@@ -535,6 +551,72 @@ namespace MBTP.Services
                 }
             }
             return checkedInList;
+        }
+        
+       public async Task<List<Payment>> FetchAllPaymentsAsync(DateTime startDate, DateTime endDate)
+        {
+            var payments = new List<Payment>();
+            var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
+            var periodTo = endDate.ToString("yyyy-MM-dd HH:mm:ss");
+
+            var requestBody = new
+            {
+                
+                region = region,
+                api_key = apiKey,
+                period_from = periodFrom,
+                period_to = periodTo
+            };
+
+            using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
+            var authToken = Encoding.ASCII.GetBytes($"{username}:{password}");
+            httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authToken));
+
+            var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+            var response = await httpClient.PostAsync(paymentApiUrl, content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Console.WriteLine($"Payments API failed: {response.StatusCode}");
+                return payments;
+            }
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+
+             foreach (var item in result.data)
+            {
+                
+                Console.WriteLine("-------------------------------------------------------------------");
+                Console.WriteLine("Id JSON: " + item.id?.ToString());
+                Console.WriteLine("AccountId JSON: " + item.account_id?.ToString());
+                Console.WriteLine("AccountFor JSON: " + item.account_for?.ToString());
+                Console.WriteLine("AccountForID JSON: " + item.account_for_id?.ToString());
+                Console.WriteLine("AccountForName JSON: " + item.account_for_name?.ToString());
+                Console.WriteLine("Description JSON: " + item.description?.ToString());
+                Console.WriteLine("Amount JSON: " + item.amount?.ToString());
+                // Console.WriteLine("DISCOUNTS JSON: " + item.link_type?.ToString());
+                Console.WriteLine("-------------------------------------------------------------------");           
+
+
+                var paymentsList = new Payment
+                {
+                    Id = item.id,
+                    AccountId = item.account_id,
+                    AccountFor = item.account_for,
+                    AccountForId = item.account_for_id,
+                    AccountForName = item.account_for_name,
+                    Description = item.description,
+                    Amount = item.amount,
+                    AppliedItems = JsonConvert.DeserializeObject<List<AppliedItem>>(item.applied_items?.ToString() ?? "[]"),
+                    Credits = JsonConvert.DeserializeObject<List<Credit>>(item.credits?.ToString() ?? "[]")
+                };
+
+                payments.Add(paymentsList);
+            }
+
+            return payments;
         }
 
      }
