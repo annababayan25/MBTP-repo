@@ -10,10 +10,12 @@ using MBTP.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MBTP.Interfaces;
+using System.Net;
+
 
 namespace MBTP.Services
 {
-    public class NewBookService
+    public class BookingAPI
     {
         private readonly string apiUrl = "https://api.newbook.cloud/rest/bookings_list";
         private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
@@ -21,42 +23,39 @@ namespace MBTP.Services
         private readonly string username = "myrtle_beach";
         private readonly string password = "Gemb$np(QqEnB9V3";
         private readonly IDatabaseConnectionService _dbConnectionService;
-        public NewBookService(IDatabaseConnectionService dbConnectionService)
+        public BookingAPI(IDatabaseConnectionService dbConnectionService)
         {
             _dbConnectionService = dbConnectionService;
         }
-
-       public async Task PopulateBookings(DateTime startDate, DateTime endDate)
+        
+        // For Bookings Table in DB
+        public async Task PopulateBookings(DateTime startDate, DateTime endDate)
         {
             Console.WriteLine("Run method started.");
+
             var bookings = await FetchAllBookingsAsync(startDate, endDate);
-//            var bookingsBase = await FetchBookingsAsync(startDate, endDate, "all");
-//            var bookingsC = await FetchBookingsAsync(startDate, endDate, "cancelled");
-//            var bookingsN = await FetchBookingsAsync(startDate, endDate, "no_show");
-//            var bookingsA = await FetchBookingsAsync(startDate, endDate, "arrived");
-//            var bookingsD = await FetchBookingsAsync(startDate, endDate, "departed");
-//            bookings.AddRange(bookingsC);
-//            bookings.AddRange(bookingsN);
-//            bookings.AddRange(bookingsA);
-//            bookings.AddRange(bookingsD);
+
             if (bookings.Count > 0)
             {
-                SqlConnection sqlConn = _dbConnectionService.CreateConnection();
-                sqlConn.Open();
+                using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
+                await sqlConn.OpenAsync();
+
+                // Insert bookings
                 foreach (var booking in bookings)
                 {
-                    //Console.WriteLine($"Booking ID: {booking.BookingID}, ExpressCheckIn: {booking.ExpressCheckin}");
                     await InsertBookingAsync(booking, sqlConn);
                 }
-                sqlConn.Close();
-                Console.WriteLine("Total Bookings: " + bookings.Count.ToString());
+
+                Console.WriteLine("Total Bookings: " + bookings.Count);
             }
             else
             {
                 Console.WriteLine("No bookings to display.");
             }
+
             Console.WriteLine("Run method finished.");
         }
+
 
         private async Task InsertBookingAsync(Booking booking, SqlConnection sqlConn)
         {
@@ -98,6 +97,7 @@ namespace MBTP.Services
             }
         }
 
+
         private async Task<List<Booking>> FetchBookingsAsync(DateTime startDate, DateTime endDate, string listType)
         {
             var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
@@ -110,7 +110,7 @@ namespace MBTP.Services
                 period_to = periodTo,
                 list_type = listType
             };
-            
+
             using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(20) };
             var authToken = Encoding.ASCII.GetBytes($"{username}:{password}");
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authToken));
@@ -186,7 +186,7 @@ namespace MBTP.Services
             var dataCount = 100;
             var dataTotal = 100000;
             var bookings = new List<Booking>();
-            while(dataOffset < dataTotal)
+            while (dataOffset < dataTotal)
             {
                 var requestBody = new
                 {
@@ -196,8 +196,11 @@ namespace MBTP.Services
                     period_to = periodTo,
                     list_type = "all",
                     data_offset = dataOffset,
-                    data_count = dataCount
+                    data_count = dataCount,
+                    client_account_booking_details = true,
+                    client_account_booking_breakdown = true
                 };
+
                 int loopCount = 0;
                 HttpResponseMessage response = new HttpResponseMessage();
                 while (loopCount < 5)
@@ -224,7 +227,7 @@ namespace MBTP.Services
                         break;
                     }
                 }
-                
+
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 JObject jsonObject = JObject.Parse(jsonResponse);
                 List<string> jsonTokens = new List<string>();
@@ -246,7 +249,6 @@ namespace MBTP.Services
                     Console.WriteLine("API response indicates failure.");
                     return new List<Booking>();
                 }
-                
 
 
                 foreach (var item in result.data)
@@ -273,8 +275,9 @@ namespace MBTP.Services
                         ExpressCheckin = item.booking_demographic_name,
                         Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests.ToString()), // Deserialize the guests list
                         CustomFields = JsonConvert.DeserializeObject<List<CustomFields>>(item.custom_fields.ToString()), // Deserialize the custom fields list
-                        Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()) // Deserialize the equipment fields list
+                        Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()), // Deserialize the equipment fields list
                     };
+
 
                     if (booking.Guests != null && booking.Guests.Count > 0)
                     {
@@ -297,6 +300,7 @@ namespace MBTP.Services
                     {
                         booking.StateName = "Unknown";
                     }
+
 
                     if (booking.CustomFields != null && booking.CustomFields.Count > 0)
                     {
@@ -345,5 +349,192 @@ namespace MBTP.Services
             }
             return bookings;
         }
-    }
+
+        // For CheckedIn table in DB 
+        public async Task PopulateCheckIns(DateTime startDate, DateTime endDate)
+        {
+            Console.WriteLine("Run method started.");
+            var checkedInList = await FetchAllCheckedInAsync(startDate, endDate);
+            if (checkedInList.Count > 0)
+            {
+                using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
+                await sqlConn.OpenAsync();
+
+                // Insert checked in
+                foreach (var checkedIn in checkedInList)
+                {
+                    await InsertCheckedInAsync(checkedIn, sqlConn);
+                }
+
+                Console.WriteLine("Total Checked In: " + checkedInList.Count);
+            }
+            else
+            {
+                Console.WriteLine("No check-ins to display");
+            }
+            Console.WriteLine("Run method finished.");
+        }
+
+
+        private async Task InsertCheckedInAsync(Booking checkedIn, SqlConnection sqlConn)
+        {
+            using (SqlCommand command = new SqlCommand("dbo.UpdateCheckedInTable", sqlConn))
+            {
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.AddWithValue("@BookingId", checkedIn.BookingID);
+                command.Parameters.AddWithValue("@BookingName", (object?)checkedIn.BookingName ?? DBNull.Value);
+                command.Parameters.AddWithValue("@SiteName", checkedIn.SiteName ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@BookingStatus", checkedIn.BookingStatus ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CalculatedStayCost", checkedIn.CalculatedStayCost);
+                command.Parameters.AddWithValue("@DepositsHeld", checkedIn.DepositsHeld);
+                command.Parameters.AddWithValue("@AccountBalance", checkedIn.AccountBalance == null ? (object)DBNull.Value : checkedIn.AccountBalance);
+                command.Parameters.AddWithValue("@BookingArrival", checkedIn.BookingArrival ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@BookingDeparture", checkedIn.BookingDeparture ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlate", checkedIn.CarLicensePlate ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@CarLicensePlateExtra", checkedIn.CarLicensePlateExtra ?? (object)DBNull.Value);
+
+                command.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
+        public async Task<List<Booking>> FetchAllCheckedInAsync(DateTime startDate, DateTime endDate)
+        {
+            var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
+            var periodTo = endDate.ToString("yyyy-MM-dd HH:mm:ss");
+            var dataOffset = 0;
+            var dataCount = 100;
+            var dataTotal = 100000;
+            var checkedInList = new List<Booking>();
+
+            while (dataOffset < dataTotal)
+            {
+                var requestBody = new
+                {
+                    region = region,
+                    api_key = apiKey,
+                    period_from = periodFrom,
+                    period_to = periodTo,
+                    list_type = "arrived",
+                    data_offset = dataOffset,
+                    data_count = dataCount,
+                    client_account_booking_details = true,
+                    client_account_item_breakdown = true,
+                    account_breakdown = true
+                };
+
+                int loopCount = 0;
+                HttpResponseMessage response = new HttpResponseMessage();
+
+                while (loopCount < 5)
+                {
+                    using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(20) };
+                    var authToken = Encoding.ASCII.GetBytes($"{username}:{password}");
+                    httpClient.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Basic", Convert.ToBase64String(authToken));
+
+                    var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
+                    Console.WriteLine("Sending HTTP POST request for data offset " + dataOffset + "...");
+
+                    response = await httpClient.PostAsync(apiUrl, content);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"HTTP request failed with status code: {response.StatusCode}");
+                        loopCount++;
+                        if (loopCount == 5)
+                        {
+                            return checkedInList;
+                        }
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                JObject jsonObject = JObject.Parse(jsonResponse);
+
+                foreach (var jsonToken in jsonObject.Children<JProperty>())
+                {
+                    if (jsonToken.Name == "data_total")
+                        dataTotal = (int)jsonToken.Value;
+                    else if (jsonToken.Name == "data_count")
+                        dataOffset += (int)jsonToken.Value;
+                }
+
+                var result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+
+                if (result is null || result.success != "true")
+                {
+                    Console.WriteLine("API response indicates failure.");
+                    return new List<Booking>();
+                }
+
+                foreach (var item in result.data)
+                {
+                    // Console.WriteLine("INVENTORY JSON: " + item.inventory_items?.ToString());
+                    // Console.WriteLine("TARIFFS JSON: " + item.tariffs_quoted?.ToString());
+
+
+                    var checkedIn = new Booking
+                    {
+                        BookingID = item.booking_id,
+                        Firstname = item.firstname,
+                        Lastname = item.lastname,
+                        SiteName = item.site_name,
+                        BookingArrival = item.booking_arrival,
+                        BookingDeparture = item.booking_departure,
+                        BookingStatus = item.booking_status,
+                        BookingTotal = (decimal)item.booking_total,
+                        AccountBalance = (decimal)item.account_balance,
+                        DepositsHeld = 0,
+                        InventoryItems = JsonConvert.DeserializeObject<List<InventoryItem>>(item.inventory_items?.ToString() ?? "[]"),
+                        TariffsQuoted = JsonConvert.DeserializeObject<List<TariffQuoted>>(item.tariffs_quoted?.ToString() ?? "[]"),
+                        Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests?.ToString() ?? "[]"),
+                    };
+
+                    checkedIn.BookingName = !string.IsNullOrWhiteSpace(checkedIn.Firstname) || !string.IsNullOrWhiteSpace(checkedIn.Lastname)
+                    ? $"{checkedIn.Firstname} {checkedIn.Lastname}".Trim()
+                    : (checkedIn.Guests?.FirstOrDefault() is Guests g
+                        ? $"{g.Firstname} {g.Lastname}".Trim()
+                        : null);
+
+                    decimal baseStayCost = checkedIn.TariffsQuoted?.Sum(t => t.CalculatedAmount) ?? 0;
+                    decimal taxTotal = baseStayCost * 0.12m;
+                    decimal lockFee = checkedIn.InventoryItems?.Where(i => i.Description?.Contains("lock fee", StringComparison.OrdinalIgnoreCase) == true).Sum(i => i.Amount) ?? 0;
+
+                    checkedIn.CalculatedStayCost = baseStayCost + taxTotal + lockFee;
+
+
+
+                    foreach (var guest in checkedIn.Guests)
+                    {
+
+                        Console.WriteLine("Guest raw JSON: " + JsonConvert.SerializeObject(guest, Formatting.Indented));
+                    }
+
+
+
+                    // License Plate info
+                    if (checkedIn.Guests != null && checkedIn.Guests.Count > 0)
+                    {
+                        var carPlate = checkedIn.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
+
+                        var licenseNotes = checkedIn.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Notes;
+
+                        checkedIn.CarLicensePlate = carPlate;
+                        checkedIn.CarLicensePlateExtra = licenseNotes;
+                    }
+
+                    // Final total
+
+                    checkedInList.Add(checkedIn);
+                }
+            }
+            return checkedInList;
+        }
+
+     }
 }

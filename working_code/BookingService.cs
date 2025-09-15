@@ -57,5 +57,15 @@ namespace MBTP.Retrieval
                 throw;
             }
         }
+
+        private object SqlDateOrNull(DateTime? date)
+        {
+            if (!date.HasValue) return DBNull.Value;
+            if (date.Value < (DateTime)System.Data.SqlTypes.SqlDateTime.MinValue ||
+                date.Value > (DateTime)System.Data.SqlTypes.SqlDateTime.MaxValue)
+                return DBNull.Value;
+            return date.Value;
+        }
+
     }
 }
