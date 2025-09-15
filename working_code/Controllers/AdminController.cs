@@ -40,11 +40,12 @@ namespace MBTP.Controllers
         private readonly IConfiguration _configuration;
         private readonly IDatabaseConnectionService _dbConnectionService;
         private readonly AccessLevelsActions _accessLevelsActions;
-        private readonly NewBookService _newBookService;
+        private readonly BookingAPI _bookingAPI;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
         private readonly BlackoutService _blackoutService;
+        private readonly TransactionFlowAPI _transactionFlowAPI;
 
         public AdminController(
             ILogger<HomeController> logger,
@@ -52,7 +53,8 @@ namespace MBTP.Controllers
             IDatabaseConnectionService dbConnectionService,
             ICompositeViewEngine viewEngine,
             AccessLevelsActions accessLevelsActions,
-            NewBookService newBookService,
+            BookingAPI bookingAPI,
+            TransactionFlowAPI transactionFlowAPI,
             IHttpContextAccessor httpContextAccessor,
             AdministrationService adminActions,
             RetailService retailService,
@@ -63,7 +65,8 @@ namespace MBTP.Controllers
             _configuration = configuration;
             _dbConnectionService = dbConnectionService;
             _accessLevelsActions = accessLevelsActions;
-            _newBookService = newBookService;
+            _bookingAPI = bookingAPI;
+            _transactionFlowAPI = transactionFlowAPI;
             _httpContextAccessor = httpContextAccessor;
             _adminActions = adminActions;
             _retailService = retailService;
@@ -155,10 +158,43 @@ namespace MBTP.Controllers
             var periodTo = periodFrom.AddMonths(1);
             if (month is not null)
             {
-                await _newBookService.PopulateBookings(periodFrom, periodTo);
+                await _bookingAPI.PopulateBookings(periodFrom, periodTo);
             }
             return View();
         }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateCheckIns(DateTime? month)
+        {
+            var selectedMonth = month ?? DateTime.Today;
+            ViewBag.SelectedMonth = selectedMonth;
+            var periodFrom = new DateTime(selectedMonth.Year, selectedMonth.Month, 1);
+            var periodTo = periodFrom.AddMonths(1);
+            if (month is not null)
+            {
+                await _bookingAPI.PopulateCheckIns(periodFrom, periodTo);
+            }
+            return View();
+        }
+        [Authorize]
+        public async Task<IActionResult> PopulateTransactions(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+
+            // One full day range
+            var periodFrom = selectedDay.Date; // midnight
+            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
+
+            if (day is not null)
+            {
+                await _transactionFlowAPI.PopulateTransactions(periodFrom, periodTo);
+            }
+
+            return View();
+        }
+
+        
         [HttpPost]
         public async Task<string> AddNewUser(string unameIn, string pwdIn, int accIDIn)
         {

@@ -44,14 +44,14 @@ namespace MBTP.Controllers
         private readonly DailyService _dailyService;
         private readonly DailyBookingsService _dailyBookingsService;
         private readonly LoginClass _loginClass;
-        private readonly NewBookService _newBookService;
+        private readonly BookingAPI _bookingAPI;
         private readonly BookingRepository _bookingRepository;
         private readonly TrailerMovesReport _trailerMovesReport;
         private readonly ExpressCheckinsReport _expressCheckinsReport;
 
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration, IDatabaseConnectionService dbConnectionService, ICompositeViewEngine viewEngine, WeatherService weatherService,
                                 OccupancyService occupancyService, DailyService dailyService, DailyBookingsService dailyBookingsService,
-                                NewBookService newBookService, BookingRepository bookingRepository, TrailerMovesReport trailermovesReport,
+                                BookingAPI bookingAPI, BookingRepository bookingRepository, TrailerMovesReport trailermovesReport,
                                 ExpressCheckinsReport expressCheckinsReport)
         {
             _viewEngine = viewEngine;
@@ -62,7 +62,7 @@ namespace MBTP.Controllers
             _dailyService = dailyService;
             _dailyBookingsService = dailyBookingsService;
             _loginClass = new LoginClass(_dbConnectionService);
-            _newBookService = newBookService;
+            _bookingAPI = bookingAPI;
             _bookingRepository = bookingRepository;
             _trailerMovesReport = trailermovesReport;
             _expressCheckinsReport = expressCheckinsReport;

@@ -230,7 +230,7 @@ namespace MBTP.Controllers
         public IActionResult DailyBreakdownA(DateTime? date, string whichMonth)
         {
             return View(FetchDailyReportData(date, whichMonth));
-      }
+        }
         [Authorize]
         public IActionResult DailyBreakdownC(DateTime? date, string whichMonth)
         {
@@ -618,5 +618,5 @@ namespace MBTP.Controllers
             return data;
         }
     }
-}
 
+}
