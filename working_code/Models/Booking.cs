@@ -88,32 +88,20 @@ namespace MBTP.Models
         public string? CarLicensePlate { get; set; }
         public string? CarLicensePlateExtra { get; set; }
         public string? BookingName { get; set; }
-        public decimal? LockFee { get; set; }
+        public decimal? CalculatedStayCost { get; set; }
+        public decimal? DepositsHeld { get; set; }
 
         [JsonProperty("tariffs_quoted")]
         public List<TariffQuoted>? TariffsQuoted { get; set; }
 
-        [JsonProperty("deposits")]
-        public Dictionary<string, Deposit>? DepositsDict { get; set; }
-
-        [JsonIgnore]
-        public List<Deposit> Deposits => DepositsDict?.Values.ToList() ?? new List<Deposit>();
-
         [JsonProperty("inventory_items")]
         public List<InventoryItem>? InventoryItems { get; set; }
-        public decimal? CalculatedStayCost { get; set; }
-        public decimal? DepositsHeld { get; set; }
+        public decimal? Amount { get; set; }  // grand total of all payments for this booking
+        public Dictionary<int, decimal> PaymentBreakdownById { get; set; } = new Dictionary<int, decimal>();
 
-    
-    }
-
-    public class Credit
-    {
-
-        [JsonProperty("link_type")]
-        public string? DiscountsQuoted { get; set; }
 
     }
+
 
     public class TariffQuoted
     {
@@ -148,7 +136,7 @@ namespace MBTP.Models
         public string? Description { get; set; }
 
         [JsonProperty("amount")]
-        public decimal Amount { get; set; }
+        public decimal? Amount { get; set; }
 
         [JsonProperty("tax_free")]
         public string? TaxFree { get; set; }
@@ -174,8 +162,9 @@ namespace MBTP.Models
         [JsonProperty("booking_id")]
         public string? BookingId { get; set; }
 
+
         [JsonProperty("amount")]
-        public decimal Amount { get; set; }
+        public decimal? Amount { get; set; }
 
         [JsonProperty("original_amount")]
         public decimal OriginalAmount { get; set; }
@@ -193,10 +182,13 @@ namespace MBTP.Models
         public string? Remove { get; set; }
     }
 
-    public class AppliedItem
+    public class AppliedItems
     {
         [JsonProperty("charges")]
         public List<Charges>? Charges { get; set; }
+
+        [JsonProperty("credits")]
+        public List<Credits>? Credits { get; set; }
     }
 
     public class Charges
@@ -215,12 +207,34 @@ namespace MBTP.Models
 
         [JsonProperty("taxes")]
         public List<Tax>? Taxes { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal? Amount { get; set; }
+    }
+
+    public class Credits
+    {
+        [JsonProperty("id")]
+        public string? Id { get; set; }
+
+        [JsonProperty("account_id")]
+        public string? AccountId { get; set; }
+
+        [JsonProperty("description")]
+        public string? Description { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal? Amount { get; set; }
+
+        [JsonProperty("taxes")]
+        public List<Tax>? Taxes { get; set; }
+
     }
 
     public class Payment
     {
         [JsonProperty("id")]
-        public string? Id { get; set; }
+        public int? Id { get; set; }
 
         [JsonProperty("account_id")]
         public string? AccountId { get; set; }
@@ -229,7 +243,7 @@ namespace MBTP.Models
         public string? AccountFor { get; set; }
 
         [JsonProperty("account_for_id")]
-        public string? AccountForId { get; set; }
+        public int? AccountForId { get; set; }
 
         [JsonProperty("account_for_name")]
         public string? AccountForName { get; set; }
@@ -247,7 +261,13 @@ namespace MBTP.Models
         public string? Description { get; set; }
 
         [JsonProperty("amount")]
-        public decimal Amount { get; set; }
+        public decimal? Amount { get; set; }
+
+        [JsonProperty("link_period_from")]
+        public decimal PeriodFrom { get; set; }
+
+        [JsonProperty("link_period_to")]
+        public decimal PeriodTo { get; set; }
 
         [JsonProperty("generated_when")]
         public DateTime GeneratedWhen { get; set; }
@@ -256,9 +276,24 @@ namespace MBTP.Models
         public DateTime? VoidedWhen { get; set; }
 
         [JsonProperty("applied_items")]
-        public List<AppliedItem>? AppliedItems { get; set; }
+        public List<AppliedItems>? AppliedItems { get; set; }
+
+        [JsonProperty("charges")]
+        public List<Charges>? Charges { get; set; }
 
         [JsonProperty("credits")]
-        public List<Credit>? Credits { get; set; }
+        public List<Credits>? Credits { get; set; }
+
+        public decimal? DepositsHeld { get; set; }
+
+        [JsonProperty("gl_category_id")]
+        public int? GlCategoryId { get; set; }
+
+        [JsonProperty("gl_category_name")]
+        public string? GlCategoryName { get; set; }   
+        
+        public bool? IsBookingDeposit { get; set; }
     }
+    
+    
 }
