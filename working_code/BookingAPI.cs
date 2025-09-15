@@ -196,7 +196,9 @@ namespace MBTP.Services
                     period_to = periodTo,
                     list_type = "all",
                     data_offset = dataOffset,
-                    data_count = dataCount
+                    data_count = dataCount,
+                    client_account_booking_details = true,
+                    client_account_item_breakdown = true,
                 };
                 int loopCount = 0;
                 HttpResponseMessage response = new HttpResponseMessage();
@@ -251,6 +253,8 @@ namespace MBTP.Services
 
                 foreach (var item in result.data)
                 {
+                    Console.WriteLine("Full Booking Info: " + item.ToString());
+
                     var booking = new Booking
                     {
                         BookingID = item.booking_id,
@@ -417,25 +421,19 @@ namespace MBTP.Services
         var checkedInList = new List<Booking>();
 
         var depositsByBooking = payments
-        .Where(p => p.AccountFor == "bookings"
-                && p.AccountForId.HasValue
-                && p.VoidedWhen == null)
+        .Where(p => p.AccountForId.HasValue 
+                && p.VoidedWhen == null
+                && (
+                    p.AccountFor == "bookings" 
+                    || (p.Description != null && p.Description.Contains("deposit", StringComparison.OrdinalIgnoreCase))
+                )
+        )
         .GroupBy(p => p.AccountForId.Value)
         .ToDictionary(
-            g => g.Key, // BookingID
-            g => g.Sum(p =>
-            {
-                // Prefer detailed charges/credits if available
-                var charges = p.Charges?.Sum(c => c.Amount) ?? 0m;
-                var credits = p.Credits?.Sum(c => c.Amount) ?? 0m;
-
-                if (charges != 0m || credits != 0m)
-                    return charges - credits;
-
-                // Otherwise, just use top-level payment amount
-                return p.Amount ?? 0m;
-            })
+            g => g.Key,
+            g => g.Sum(payment => payment.Amount ?? 0m)
         );
+
 
 
         while (dataOffset < dataTotal)
@@ -520,13 +518,14 @@ namespace MBTP.Services
                 };
                 
                 if (depositsByBooking.TryGetValue(checkedIn.BookingID, out var totalDeposits))
-                    {
-                        checkedIn.DepositsHeld = totalDeposits;
-                    }
-                    else
-                    {
-                        checkedIn.DepositsHeld = 0m;
-                    }
+                {
+                    checkedIn.DepositsHeld = totalDeposits;
+                }
+                else
+                {
+                    checkedIn.DepositsHeld = 0m;
+                }
+
 
 
                 checkedIn.BookingName = !string.IsNullOrWhiteSpace(checkedIn.Firstname) || !string.IsNullOrWhiteSpace(checkedIn.Lastname)
@@ -573,7 +572,9 @@ namespace MBTP.Services
                 region = region,
                 api_key = apiKey,
                 period_from = periodFrom,
-                period_to = periodTo
+                period_to = periodTo,
+                get_applied_items = "true",
+                get_invoice_id = "true"
             };
 
             using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(10) };
@@ -605,15 +606,16 @@ namespace MBTP.Services
                 Console.WriteLine("Description JSON: " + item.description?.ToString());
                 Console.WriteLine("Amount JSON: " + item.amount?.ToString());
                 Console.WriteLine("-------------------------------------------------------------------");           
-                */
+                *//*
                 if (item.account_for_id == "365440" || item.account_for_id == 365440)
                 {
                     Console.WriteLine("Full Payment JSON: " + item.ToString());
                 }
-
+                    */
 
                 var paymentsList = new Payment
                 {
+                    
                     Id = int.TryParse((string?)item.id, out var idVal) ? idVal : (int?)null,
                     AccountId = item.account_id,
                     AccountFor = item.account_for,
@@ -623,8 +625,7 @@ namespace MBTP.Services
                     GlCategoryName = item.gl_category_name,
                     Description = item.description,
                     Amount = item.amount,
-                    AppliedItems = JsonConvert.DeserializeObject<List<AppliedItems>>(item.applied_items?.ToString() ?? "[]"),
-                    Charges = JsonConvert.DeserializeObject<List<Charges>>(item.charges?.ToString() ?? "[]"),
+                    AppliedItems = JsonConvert.DeserializeObject<AppliedItems>(item.applied_items?.ToString() ?? "{}"),
                 };
 
 
@@ -635,40 +636,52 @@ namespace MBTP.Services
                     paymentsList.GlCategoryName = name;
                 }
 
-
-                if (paymentsList.AppliedItems != null)
+            
+                foreach (var payment in payments)
                 {
-                    foreach (var applied in paymentsList.AppliedItems)
-                    {
-                        if (applied.Charges != null)
-                        {
-                            foreach (var charge in applied.Charges)
-                            {
-                                Console.WriteLine($"Charge: {charge.Id}, Period: {charge.PeriodFrom} - {charge.PeriodTo}");
-                            }
-                        }
+                    Console.WriteLine($"--- Booking {payment.AccountForId} ({payment.AccountForName}) ---");
 
-                        if (applied.Credits != null)
+                    if (payment.AppliedItems?.Charges != null && payment.AppliedItems.Charges.Any())
+                    {
+                        Console.WriteLine("  Charges:");
+                        foreach (var charge in payment.AppliedItems.Charges)
                         {
-                            foreach (var credit in applied.Credits)
-                            {
-                                Console.WriteLine($"Description: {credit.Description}, Amount: {credit.Amount}");
-                            }
+                            Console.WriteLine($"    - {charge.Description}, Amount={charge.Amount}");
                         }
                     }
+                    else
+                    {
+                        Console.WriteLine("  No charges");
+                    }
+
+                    if (payment.AppliedItems?.Credits != null && payment.AppliedItems.Credits.Any())
+                    {
+                        Console.WriteLine("  Credits:");
+                        foreach (var credit in payment.AppliedItems.Credits)
+                        {
+                            Console.WriteLine($"    - {credit.Description}, Amount={credit.Amount}");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine("  No credits");
+                    }
                 }
-                
+
+                payments.Add(paymentsList); 
+
+
+
+                /*
                 Console.WriteLine($"Name={paymentsList.AccountForName}, " +
                 $"Payment BookingId={paymentsList.AccountForId}, " +
                   $"Desc={paymentsList.Description}, " +
                   $"Amount={paymentsList.Amount}, " +
                   $"GL={paymentsList.GlCategoryId}");
-
+*/
 
                 //Console.WriteLine($"AccountForId (typed): {paymentsList.AccountForId}");
 
-
-                payments.Add(paymentsList);
             }
 
             return payments;

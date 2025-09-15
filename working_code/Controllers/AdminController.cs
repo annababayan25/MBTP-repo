@@ -161,13 +161,13 @@ namespace MBTP.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> PopulateCheckIns(DateTime? month)
+        public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
-            var selectedMonth = month ?? DateTime.Today;
-            ViewBag.SelectedMonth = selectedMonth;
-            var periodFrom = new DateTime(selectedMonth.Year, selectedMonth.Month, 1);
-            var periodTo = periodFrom.AddMonths(1);
-            if (month is not null)
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+            var periodFrom = selectedDay.Date; 
+            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1);
+            if (day is not null)
             {
                 await _bookingAPI.PopulateCheckIns(periodFrom, periodTo);
             }

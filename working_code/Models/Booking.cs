@@ -191,6 +191,7 @@ namespace MBTP.Models
         public List<Credits>? Credits { get; set; }
     }
 
+
     public class Charges
     {
         [JsonProperty("id")]
@@ -210,6 +211,9 @@ namespace MBTP.Models
 
         [JsonProperty("amount")]
         public decimal? Amount { get; set; }
+
+        [JsonProperty("description")]
+        public string? Description { get; set; }
     }
 
     public class Credits
@@ -276,7 +280,7 @@ namespace MBTP.Models
         public DateTime? VoidedWhen { get; set; }
 
         [JsonProperty("applied_items")]
-        public List<AppliedItems>? AppliedItems { get; set; }
+        public AppliedItems? AppliedItems { get; set; }
 
         [JsonProperty("charges")]
         public List<Charges>? Charges { get; set; }
