@@ -132,6 +132,7 @@ namespace MBTP.Services
             foreach (var item in result.data)
             {
                 Console.WriteLine("--------------------------------------------------------------");
+                Console.WriteLine("GL Account Id: " + item.GLAccount?.ToString());
                 Console.WriteLine("ItemId: " + item.ItemId?.ToString());
                 Console.WriteLine("PaymentMethod: " + item.payment_transaction_method?.ToString());
                 Console.WriteLine("PaymentDescription: " + item.item_description?.ToString());
@@ -150,6 +151,7 @@ namespace MBTP.Services
 
                 var transactions = new TransactionFlow
                 {
+                    GLAccount = item.gl_account_id,
                     ItemId = item.item_id,
                     PaymentMethod = item.payment_transaction_method,
                     PaymentDescription = item.item_description,
@@ -165,7 +167,8 @@ namespace MBTP.Services
                     Amount = item.amount,
                     ArrivalDate = item.booking_period_from,
                     DepartureDate = item.booking_period_to,
-                    Deposit = item.deposit
+                    Deposit = item.deposit,
+                    AccountForId = item.account_for_id
                 };
 
                 if (item.item_type == "payments_raised")

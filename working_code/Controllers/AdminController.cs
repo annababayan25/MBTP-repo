@@ -46,6 +46,7 @@ namespace MBTP.Controllers
         private readonly RetailService _retailService;
         private readonly BlackoutService _blackoutService;
         private readonly TransactionFlowAPI _transactionFlowAPI;
+        private readonly ReconApi _reconAPI;
 
         public AdminController(
             ILogger<HomeController> logger,
@@ -58,7 +59,8 @@ namespace MBTP.Controllers
             IHttpContextAccessor httpContextAccessor,
             AdministrationService adminActions,
             RetailService retailService,
-            BlackoutService blackoutService
+            BlackoutService blackoutService,
+            ReconApi reconAPI
         )
         {
             _viewEngine = viewEngine;
@@ -71,6 +73,7 @@ namespace MBTP.Controllers
             _adminActions = adminActions;
             _retailService = retailService;
             _blackoutService = blackoutService;
+            _reconAPI = reconAPI;
         }
         public IActionResult Privacy()
         {
@@ -189,6 +192,24 @@ namespace MBTP.Controllers
             if (day is not null)
             {
                 await _transactionFlowAPI.PopulateTransactions(periodFrom, periodTo);
+            }
+
+            return View();
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateRecons(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+
+            // One full day range
+            var periodFrom = selectedDay.Date; // midnight
+            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
+
+            if (day is not null)
+            {
+                await _reconAPI.PopulateRecons(periodFrom, periodTo);
             }
 
             return View();
