@@ -25,4 +25,12 @@ namespace MBTP.Models
 
         public List<TransactionFlow>? TransactionFlows { get; set; }
 
- 
+        [JsonProperty("client_account")]
+        public string? ClientAccount { get; set; }
+
+        [JsonProperty("account_for_id")]
+        public string? AccountForId { get; set; }
+
+
+    }
+}

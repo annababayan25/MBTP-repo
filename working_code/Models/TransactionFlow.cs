@@ -52,4 +52,10 @@ namespace MBTP.Models
         public string? DepartureDate { get; set; }
 
         // for deposits testing 
-    
+        [JsonProperty("deposit")]
+        public string? Deposit { get; set; }
+
+        [JsonProperty("account_for_id")]
+        public string? AccountForId {get;set;}
+    }
+}
