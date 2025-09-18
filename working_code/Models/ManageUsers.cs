@@ -15,4 +15,13 @@ namespace MBTP.Models
         public string? Password { get; set; }
         public int AccID { get; set; }
     }
+    public class UserData
+    {
+        public int LID { get; set; }
+        public string? Username { get; set; }
+        public string? Password { get; set; }
+        public int AccID { get; set; }
+        public DateTime LastLogin { get; set; }
+        public string? Description { get; set; }
+    }
 }
