@@ -79,7 +79,6 @@ namespace MBTP.Controllers
         public IActionResult ManageUsers()
         {
             DataSet AccessLevels = _accessLevelsActions.RetrieveAccessLevels();
-            Console.WriteLine(HttpContext.Session.GetString("sqlConnString"));
             return View(AccessLevels);
         }
         [Authorize]
@@ -196,10 +195,16 @@ namespace MBTP.Controllers
 
         
         [HttpPost]
-        public async Task<string> AddNewUser(string unameIn, string pwdIn, int accIDIn)
+        public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
         {
-            string addResult = await _accessLevelsActions.AddNewUser(unameIn, pwdIn, accIDIn);
+            string addResult = await _accessLevelsActions.AddUpdateUser(lidIn, unameIn, fnameIn, lnameIn, pwdIn, accIDIn);
             return addResult;
+        }
+        [HttpPost]
+        public async Task<string> DeleteUser(int LIDIn)
+        {
+            string deleteResult = await _accessLevelsActions.DeleteUser(LIDIn);
+            return deleteResult;
         }
 
         [Authorize]

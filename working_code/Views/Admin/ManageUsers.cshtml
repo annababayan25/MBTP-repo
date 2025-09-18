@@ -28,7 +28,7 @@
        text-align: center;
        height: auto;
        width: 80%;
-       max-width: 500px;
+       max-width: 600px;
        border: 3px solid #b4dfff;
        padding: 30px 20px;
        border-radius: 10px;
@@ -82,63 +82,149 @@
 </style>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
-
-<div class="color">
-    <h1 style="text-align: center">User Management</h1>
-    <div class="center">
-        <div class="centered">
-            <h3>Add New Users</h3>
-            <label for="uname"><b>Username:</b></label>
-            <input style="font-family: Garamond, serif" type="text" placeholder="Enter Username" name="uname" id="uname" required>
-            <p>&nbsp;</p>
+    <div class="color">
+        <h1 style="text-align: center">User Management</h1>
+        <div class="center">
             <div class="centered">
-                <label for="psw"><b>Password:</b></label>
-                <input style="font-family: Garamond, serif" type="password" placeholder="Enter Password" name="psw" id="psw" required>
-            </div>
-            <p>&nbsp;</p>
-            <div class="centered">
-                <label for="confirm"><b>&nbsp;Confirm:</b></label>
-                <input style="font-family: Garamond, serif" type="password" placeholder="Confirm Password" name="confirm" id="confirm" required>
-            </div>
-            <p>&nbsp;</p>
-            <div class="centered">
-                <label for="level"><b>Access Level:</b></label>
-                <select style="font-family: Garamond, serif" name="level" id="level">
-                    <option value="0">No Access</option>
-                    @foreach (DataRow row in Model!.Tables[0].Rows)
-                    {
-                        <option value=@row["AccID"]>@row["Description"]</option>
-                    }
-                </select> 
-            </div>
-            <p>&nbsp;</p>
-            <div class="centered">
-                <button class="pdfButton" id="addStay">Add User</button>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <button class="pdfButton" id="addExit">Add User & Exit</button>
-                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                <button class="pdfButton" id="addCancel">Cancel</button>
+                <h3>Add/Update Users</h3>
+                <p>&nbsp;</p>
+                <div class="centered">
+                    <input style="font-family: Garamond, serif" type="hidden" name="lid" id="lid" value="0">
+                </div>
+                <div class="centered">
+                    <label for="fname"><b>First Name:</b></label>   
+                    <input style="font-family: Garamond, serif" type="text" placeholder="Enter First Name" name="fname" id="fname">
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <label for="lname"><b>Last Name:</b></label>
+                    <input style="font-family: Garamond, serif" type="text" placeholder="Enter Last Name" name="lname" id="lname">
+                    <p>&nbsp;</p>
+                    <label for="uname"><b>Username:</b></label>
+                    <input style="font-family: Garamond, serif" type="text" placeholder="Enter Username" name="uname" id="uname" required>
+                </div>
+                <p>&nbsp;</p>
+                <div class="centered">
+                    <label for="psw"><b>Password:</b></label>
+                    <input style="font-family: Garamond, serif" type="password" placeholder="Enter Password" name="psw" id="psw" required>
+                </div>
+                <p>&nbsp;</p>
+                <div class="centered">
+                    <label for="confirm"><b>&nbsp;Confirm:</b></label>
+                    <input style="font-family: Garamond, serif" type="password" placeholder="Confirm Password" name="confirm" id="confirm" required>
+                </div>
+                <p>&nbsp;</p>
+                <div class="centered">
+                    <label for="level"><b>Access Level:</b></label>
+                    <select style="font-family: Garamond, serif" name="level" id="level">
+                        <option value="0">No Access</option>
+                        @foreach (DataRow row in Model!.Tables[0].Rows)
+                        {
+                            <option value=@row["AccID"]>@row["Description"]</option>
+                        }
+                    </select> 
+                </div>
+                <p>&nbsp;</p>
+                <div class="centered">
+                    <button class="pdfButton" id="updateStay">Save User</button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="pdfButton" id="updateExit">Save User & Exit</button>
+                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <button class="pdfButton" id="updateCancel">Cancel</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+}
+@if (Model is not null && Model.Tables["Logins"].Rows.Count > 0)
+{
+    <div class="color">
+        <h1 style="text-align: center">User List</h1>
+        <div class="center">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="display: none">LID</th>
+                        <th style="padding: 10px; border: 1px solid black;">Username</th>
+                        <th style="padding: 10px; border: 1px solid black;">First Name</th>
+                        <th style="padding: 10px; border: 1px solid black;">Last Name</th>
+                        <th style="padding: 10px; border: 1px solid black;">Access Level</th>
+                        <th style="padding: 10px; border: 1px solid black;">Last Login</th>
+                        <th style="display: none">EDIT</th>
+                        <th style="display: none">DELETE</th>
+                    </tr>
+                </thead>
+                @foreach (DataRow row in Model!.Tables["Logins"].Rows)
+                {
+                    <tr>
+                        <td style="display: none">@row["LID"]</td>
+                        <td style="padding: 10px; border: 1px solid black;">@row["Username"]</td>
+                        <td style="padding: 10px; border: 1px solid black;">@row["FirstName"]</td>
+                        <td style="padding: 10px; border: 1px solid black;">@row["LastName"]</td>
+                        <td style="padding: 10px; border: 1px solid black;">@row["Description"]</td>
+                        <td style="padding: 10px; border: 1px solid black;">@((row["LastLogin"] == DBNull.Value) ? "Never" : Convert.ToDateTime(row["LastLogin"]).ToString("g"))</td>
+                        <td>
+                            @{
+                                // Prevent editing of the main admin account
+                                string elidnum = "eLID" + row["LID"].ToString();
+                                if (Convert.ToInt32(row["LID"]) == 1)
+                                {
+                                    <text>
+                                        <a id="@elidnum" href="javascript:void(0);" onclick="alert('This user cannot be edited')" title="Edit" style="display: none">
+                                            &nbsp;&nbsp;<i class="fa-solid fa-edit"></i>
+                                        </a>      
+                                    </text>;
+                                }
+                                else
+                                {
+                                    <text>
+                                        <a id="@elidnum" href="javascript:void(0);" onclick="loadUserForUpdate(@row["LID"])" title="Edit">
+                                            &nbsp;&nbsp;<i class="fa-solid fa-edit"></i>
+                                        </a>      
+                                    </text>;
+                                }
+                            }
+                        </td>              
+                        <td>
+                            @{
+                                if (Convert.ToInt32(row["LID"]) == 1)
+                                {
+                                    <text>
+                                        <a id="dLID"+"@row["LID"]" href="javascript:void(0);" onclick="alert('This user cannot be deleted')" title="Delete" style="display: none">
+                                            &nbsp;&nbsp;<i class="fa-solid fa-trash"></i>
+                                        </a>      
+                                    </text>;
+                                }
+                                else
+                                {
+                                    <text>
+                                        <a id="dLID"+"@row["LID"]" href="javascript:void(0);" onclick="deleteUser(@row["LID"])" title="Delete">
+                                            &nbsp;&nbsp;<i class="fa-solid fa-trash"></i>
+                                        </a>      
+                                    </text>;
+                                }    
+                            }
+                        </td>              
+                </tr>
+                }
+            </table>
+        </div>
+    </div>
 }
 @section Scripts 
 {
 <script>
     $(document).ready(function () {
-        [ document.getElementById("addStay"), document.getElementById("addExit")].forEach(function(element){
+        [ document.getElementById("updateStay"), document.getElementById("updateExit")].forEach(function(element){
             element.addEventListener('click', function (event)
             {
                 if(document.getElementById("uname").value === "")
                 {
                     alert("A username has not been entered");
                 }
-                else if (document.getElementById("psw").value === "")
+                else if (document.getElementById("psw").value === "" && document.getElementById("psw").disabled == false)
                 {
                     alert("You must enter a value for the password");
                 }
-                else if (document.getElementById("confirm").value === "")
+                else if (document.getElementById("confirm").value === "" && document.getElementById("confirm").disabled == false)
                 {
                     alert("You must confirm the value entered for the password");
                 }
@@ -155,8 +241,11 @@
                     $.ajax(
                     {
                         type: "POST", 
-                        url: "/Admin/AddNewUser",
-                        data: { "unameIn": document.getElementById("uname").value,
+                        url: "/Admin/AddUpdateUser",
+                        data: { "lidIn": document.getElementById("lid").value,
+                                "unameIn": document.getElementById("uname").value,
+                                "fnameIn": document.getElementById("fname").value,
+                                "lnameIn": document.getElementById("lname").value,
                                 "pwdIn": document.getElementById("psw").value,
                                 "accIDIn": document.getElementById("level").value},
                         dataType: "text"
@@ -165,17 +254,22 @@
                     {
                         if(data == "SUCCESS")
                         {
-                            if(event.target.id == "addExit")
+                            if(event.target.id == "updateExit")
                             {
                                 var url = '@Url.Action("Administration","Home")';
                                 window.location.href = url;
                             }
                             else
                             {
+                                document.getElementById("lid").value = 0;
                                 document.getElementById("uname").value = "";
+                                document.getElementById("fname").value = "";
+                                document.getElementById("lname").value = "";
                                 document.getElementById("psw").value = "";
                                 document.getElementById("confirm").value = "";
                                 document.getElementById("level").value = 0;
+                                var url = '@Url.Action("ManageUsers","Admin")';
+                                window.location.href = url;
                             }
                         };
                     })
@@ -184,11 +278,88 @@
                 }
             });
         });
-        document.getElementById("addCancel").addEventListener('click', function()
+        document.getElementById("updateCancel").addEventListener('click', function()
         {
             var url = '@Url.Action("Administration","Home")';
             window.location.href = url;
         });
     });
+    function loadUserForUpdate(LIDIn)
+    {
+        var row = document.getElementById("eLID"+ LIDIn).parentNode.parentNode;
+        var cells = row.getElementsByTagName("td");
+        document.getElementById("lid").value = cells[0].innerText;
+        document.getElementById("uname").value = cells[1].innerText; 
+        document.getElementById("fname").value = cells[2].innerText; 
+        document.getElementById("lname").value = cells[3].innerText; 
+        document.getElementById("psw").value = "";
+        document.getElementById("psw").disabled = true;
+        document.getElementById("confirm").value = "";
+        document.getElementById("confirm").disabled = true;
+        const selectElement = document.getElementById("level");
+        const textValue = cells[4].innerText;
+        for (let i = 0; i < selectElement.options.length; i++) 
+        {
+            if (selectElement.options[i].textContent === textValue) 
+            {
+                selectElement.options[i].selected = true;
+                break; // Stop after finding and selecting the option
+            }
+        }
+        window.scroll({
+        top: 0,
+        left: 0,
+        behavior: 'smooth'
+        });    
+    };
+    function editUser(LIDIn)
+    {
+        $.ajax(
+        {
+            type: "POST", 
+            url: "/Admin/EditUser",
+            data: { "LIDIn": LIDIn},
+            dataType: "text"
+        })
+        .done(function(data)
+        {
+            if(data == "SUCCESS")
+            {
+                var row = document.getElementById("eLID"+LIDIn).parentNode.parentNode;
+            }
+            else
+            {
+                alert(data);
+            }
+        })
+        .fail(function(errMsg){alert(errMsg);})
+    };
+    function deleteUser(LIDIn)
+    {
+        if(confirm("Are you sure you want to delete this user? This action cannot be undone."))
+        {
+            $.ajax(
+            {
+                type: "POST", 
+                url: "/Admin/DeleteUser",
+                data: { "LIDIn": LIDIn},
+                dataType: "text"
+            })
+            .done(function(data)
+            {
+                if(data == "SUCCESS")
+                {
+                    var row = document.getElementById("dLID"+LIDIn).parentNode.parentNode;
+                    row.parentNode.removeChild(row);
+                }
+                else
+                {
+                    alert(data);
+                }
+            })
+            .fail(function(errMsg){alert(errMsg);})
+            ;
+        }
+    };
 </script>
 }
