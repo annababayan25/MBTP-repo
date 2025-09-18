@@ -34,6 +34,9 @@ namespace MBTP.Retrieval
                     sqlConn.Open();
                     myDS.Clear();
                     myDA.Fill(myDS);
+                    cmd.CommandText = "dbo.RetrieveLogins";
+                    SqlDataAdapter myDA2 = new SqlDataAdapter(cmd);
+                    myDA2.Fill(myDS, "Logins");
                     sqlConn.Close();
                 }
                 return myDS;
@@ -50,17 +53,59 @@ namespace MBTP.Retrieval
                 throw;
             }
         }
-        public async Task<string> AddNewUser(string unameIn, string pwdIn, int accIDIn)
+        public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
         {
             try
             {
                 using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-                using (SqlCommand cmd = new SqlCommand("dbo.InsertLogin", sqlConn))
+                using (SqlCommand cmd = new SqlCommand("dbo.UpdateLogins", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
+                    if (lidIn > 0)
+                    {
+                        cmd.Parameters.AddWithValue("@LID", lidIn);
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@LID", DBNull.Value);
+                    }
                     cmd.Parameters.AddWithValue("@Username", unameIn);
-                    cmd.Parameters.AddWithValue("@Password", LoginClass.EncryptPassword(pwdIn));
+                    if (pwdIn != "" && pwdIn != null)
+                    {   
+                        cmd.Parameters.AddWithValue("@Password", LoginClass.EncryptPassword(pwdIn));
+                    }
+                    cmd.Parameters.AddWithValue("@FirstName", fnameIn);
+                    cmd.Parameters.AddWithValue("@LastName", lnameIn);
                     cmd.Parameters.AddWithValue("@AccID", accIDIn);
+                    cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
+                    cmd.Parameters["@status"].Direction = ParameterDirection.Output;
+                    sqlConn.Open();
+                    await cmd.ExecuteNonQueryAsync();
+                    sqlConn.Close();
+                    return (string)cmd.Parameters["@status"].Value;
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine("SQL error: " + sqlEx.Message);
+                return (string)sqlEx.Message;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("General error: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("Stack Trace: " + ex.StackTrace);
+                return (string)ex.Message;
+            }
+        }
+        public async Task<string> DeleteUser(int LIDIn)
+        {
+            try
+            {
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand("dbo.DeleteLogin", sqlConn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@LID", LIDIn);
                     cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
                     cmd.Parameters["@status"].Direction = ParameterDirection.Output;
                     sqlConn.Open();
