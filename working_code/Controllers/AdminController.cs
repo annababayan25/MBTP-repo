@@ -131,7 +131,7 @@ namespace MBTP.Controllers
                         POSImports posImports = new POSImports(_dbConnectionService);
                         posImports.ReadKayakFiles();
                     }
-                    if (opts.Contains('G'))
+                    if (opts.Contains('G') && counter < new DateTime(2025, 9, 18)) // last date for guest services is 9/17/2025
                     {
                         POSImports posImports = new POSImports(_dbConnectionService);
                         posImports.ReadGuestFiles();
@@ -139,7 +139,7 @@ namespace MBTP.Controllers
                     //                    if (opts.Contains('M')) { POSImports.ReadSpecialAddonsFile(); }
                     if (opts.Contains('S'))
                     {
-                        await RetailService.PopulateRetailData(counter);
+                        await _retailService.PopulateRetailData("Store", counter);
                     }
                 }
             }
