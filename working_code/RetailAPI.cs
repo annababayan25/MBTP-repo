@@ -8,27 +8,40 @@ using Newtonsoft.Json.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Runtime.CompilerServices;
 using Microsoft.VisualBasic;
+using SQLStuff;
+using MBTP.Interfaces;
+using GenericSupport;
 
 namespace MBTP.Services
 {
     public class RetailService
     {
+        private readonly IDatabaseConnectionService _dbConnectionService;
+
+        public RetailService(IDatabaseConnectionService dbConnectionService)
+        {
+            _dbConnectionService = dbConnectionService;
+        }
         static SqlConnection sqlConn = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["DefaultConnection"]);
         static SqlConnection sqlConnTest = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("ConnectionStrings")["TestConnection"]);
         static ConfigurationSection myConfig = (ConfigurationSection)new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Heartland");
         static string myKey = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Heartland")["ApiKey"]);
         static string myRptPrefix = new(new ConfigurationBuilder().AddJsonFile("appsettings.json").Build().GetSection("Heartland")["RptStrBase"]);
-        //static 
-        public static async Task PopulateRetailData(DateTime dateIn, bool useTestDb = false)
+        public async Task PopulateRetailData(string operation, DateTime dateIn)
         {
+            string locationFilter = "";
+            if (operation == "Store")
+            {
+                locationFilter = @"&location.filters=%7B""%24and""%3A%5B%7B""id""%3A%7B""%24in""%3A%5B""100128""%2C""100005""%5D%7D%7D%5D%7D"; 
+            }
             string retailPeriod = "&start_date=" + dateIn.ToString("yyyy-MM-dd") + "&end_date=" + dateIn.ToString("yyyy-MM-dd");
-            List<RetailGroup> salesEntries = await FetchRetailDataAsync(retailPeriod);
-            List<PaymentsGroup> paymentsEntries = await FetchPaymentDataAsync(retailPeriod);
-            decimal taxCollected = await FetchTaxDataAsync(retailPeriod);
+            List<RetailGroup> salesEntries = await FetchRetailDataAsync(locationFilter ,retailPeriod);
+            List<PaymentsGroup> paymentsEntries = await FetchPaymentDataAsync(locationFilter,retailPeriod);
+            decimal taxCollected = await FetchTaxDataAsync(locationFilter,retailPeriod);
 
             if (salesEntries.Count > 0 || paymentsEntries.Count > 0)
             {
-                InsertStoreData(dateIn, salesEntries, paymentsEntries, taxCollected, useTestDb);
+                InsertStoreData(dateIn, salesEntries, paymentsEntries, taxCollected);
             }
             else
             {
@@ -37,9 +50,9 @@ namespace MBTP.Services
             Console.WriteLine("Run method finished.");
         }
 
-        private static async Task<List<RetailGroup>> FetchRetailDataAsync(string periodFromTo)
+        private static async Task<List<RetailGroup>> FetchRetailDataAsync(string locationFilter, string periodFromTo)
         {
-            string myRptSuffix = "&group[]=item.custom%40category&group[]=item.custom%40subcategory&metrics[]=source_sales.net_sales&request_client_uuid=f926e2f2-c08a-4fa7-8248-b00a053a8326&only_grand_total=false";
+            string myRptSuffix = locationFilter + "&group[]=item.custom%40category&group[]=item.custom%40subcategory&metrics[]=source_sales.net_sales&request_client_uuid=f926e2f2-c08a-4fa7-8248-b00a053a8326&only_grand_total=false";
             var retailEntries = new List<RetailGroup>();
 
             HttpResponseMessage response = new HttpResponseMessage();
@@ -99,9 +112,9 @@ namespace MBTP.Services
             Console.WriteLine("Retail Response processing completed...");
             return retailEntries;
         }
-        private static async Task<List<PaymentsGroup>> FetchPaymentDataAsync(string periodFromTo)
+        private static async Task<List<PaymentsGroup>> FetchPaymentDataAsync(string locationFilter, string periodFromTo)
         {
-            string myRptSuffix = "&group[]=credit_card_payment.type&group[]=date.date&metrics[]=payment.payments_received&metrics[]=payment.payment_type_count&metrics[]=payment.net_payments&sort[]=date.date%2Casc&request_client_uuid=a00294c2-983a-4dbb-971a-f001497a0035";
+            string myRptSuffix = locationFilter + "&group[]=credit_card_payment.type&group[]=date.date&metrics[]=payment.payments_received&metrics[]=payment.payment_type_count&metrics[]=payment.net_payments&sort[]=date.date%2Casc&request_client_uuid=a00294c2-983a-4dbb-971a-f001497a0035";
             var paymentEntries = new List<PaymentsGroup>();
 
             HttpResponseMessage response = new HttpResponseMessage();
@@ -155,9 +168,9 @@ namespace MBTP.Services
             return paymentEntries;
 
         }
-        private static async Task<decimal> FetchTaxDataAsync(string periodFromTo)
+        private static async Task<decimal> FetchTaxDataAsync(string locationFilter, string periodFromTo)
         {
-            string myRptSuffix = "&group[]=date.date&metrics[]=source_sales.net_sales&metrics[]=location_sales_tax.net_amount_collected&sort[]=date.date%2Casc&charts=%5B%5D&request_client_uuid=4acf12d0-3357-42ef-8782-f7d3035c8588";
+            string myRptSuffix = locationFilter + "&group[]=date.date&metrics[]=source_sales.net_sales&metrics[]=location_sales_tax.net_amount_collected&sort[]=date.date%2Casc&charts=%5B%5D&request_client_uuid=4acf12d0-3357-42ef-8782-f7d3035c8588";
 
             HttpResponseMessage response = new HttpResponseMessage();
             using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(1) };
@@ -200,10 +213,10 @@ namespace MBTP.Services
             return 0;
 
         }
-        private static void InsertStoreData(DateTime transDate, List<RetailGroup> SalesEntries, List<PaymentsGroup> PaymentsEntries, decimal TaxCollected, bool useTestDb)
+        private void InsertStoreData(DateTime transDate, List<RetailGroup> SalesEntries, List<PaymentsGroup> PaymentsEntries, decimal TaxCollected)
         {
             decimal Apparel = 0, SeasonalNovelty = 0, OtherNovelty = 0, Alcohol = 0, HardGoods = 0, RVParts = 0, SeasonalMerch = 0, FoodCounter = 0, Food = 0,
-            Ice = 0, Stamps = 0, AtSite = 0, PropaneStation = 0, Events = 0, Cash = 0, CC = 0;
+            Ice = 0, Stamps = 0, AtSite = 0, PropaneStation = 0, Events = 0, Guest = 0, Cash = 0, CC = 0;
             decimal preparedFoodTax = 1.105m, salesTax = 1.08m;
             string rptDate = transDate.ToString("yyyy-MM-dd");
             foreach (var salesEntry in SalesEntries)
@@ -246,6 +259,8 @@ namespace MBTP.Services
                                 AtSite += salesEntry.net_sales;
                             }
                             break;
+                        case "Guest Services":
+                            Guest += salesEntry.net_sales; break;
                         default:
                             Events += salesEntry.net_sales; break;
                     }
@@ -262,47 +277,44 @@ namespace MBTP.Services
                     CC += paymentsEntry.net_payments;
                 }
             }
-            if (useTestDb)
+            // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
+            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
+            if (!sqlSupport.PrepareForImport("UpdateStoreTable"))
             {
-                sqlConnTest.Open();
+                return;
             }
-            else
+            try
             {
-                sqlConn.Open();
+                sqlSupport.AddSQLParameter("@Apparel", SqlDbType.SmallMoney, (double)Apparel);
+                sqlSupport.AddSQLParameter("@SeasonalNovelty", SqlDbType.SmallMoney, (double)SeasonalNovelty);
+                sqlSupport.AddSQLParameter("@OtherNovelty", SqlDbType.SmallMoney, (double)OtherNovelty);
+                sqlSupport.AddSQLParameter("@Alcohol", SqlDbType.SmallMoney, (double)Alcohol);
+                sqlSupport.AddSQLParameter("@HardGoods", SqlDbType.SmallMoney, (double)HardGoods);
+                sqlSupport.AddSQLParameter("@RVParts", SqlDbType.SmallMoney, (double)RVParts);
+                sqlSupport.AddSQLParameter("@SeasonalMerch", SqlDbType.SmallMoney, (double)SeasonalMerch);
+                sqlSupport.AddSQLParameter("@FoodCounter", SqlDbType.SmallMoney, (double)FoodCounter);
+                sqlSupport.AddSQLParameter("@Food", SqlDbType.SmallMoney, (double)Food);
+                sqlSupport.AddSQLParameter("@Ice", SqlDbType.SmallMoney, (double)Ice);
+                sqlSupport.AddSQLParameter("@Stamps", SqlDbType.SmallMoney, (double)Stamps);
+                sqlSupport.AddSQLParameter("@AtSitePropane", SqlDbType.SmallMoney, (double)AtSite);
+                sqlSupport.AddSQLParameter("@PropaneStation", SqlDbType.SmallMoney, (double)PropaneStation);
+                sqlSupport.AddSQLParameter("@Events", SqlDbType.SmallMoney, (double)Events);
+                sqlSupport.AddSQLParameter("@StoreCC", SqlDbType.SmallMoney, (double)CC);
+                sqlSupport.AddSQLParameter("@StoreCash", SqlDbType.SmallMoney, (double)Cash);
+                sqlSupport.AddSQLParameter("@TotalTaxCollected", SqlDbType.SmallMoney, (double)TaxCollected);
+                _ = sqlSupport.ExecuteStoredProcedure(2);
+                SQLSupport sqlSupportG = new SQLSupport(_dbConnectionService);
+                if (!sqlSupport.PrepareForImport("UpdateMiscTable"))
+                {
+                    return;
+                }
+                sqlSupport.AddSQLParameter("@GuestServices", SqlDbType.SmallMoney, (double)Guest);
+                _ = sqlSupport.ExecuteStoredProcedure(2);
             }
-            using (SqlCommand command = new SqlCommand("dbo.UpdateStoreTable", useTestDb ? sqlConnTest : sqlConn))
+            catch (Exception ex)
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@TransDate", rptDate);
-                command.Parameters.AddWithValue("@Apparel", Apparel);
-                command.Parameters.AddWithValue("@SeasonalNovelty", SeasonalNovelty);
-                command.Parameters.AddWithValue("@OtherNovelty", OtherNovelty);
-                command.Parameters.AddWithValue("@Alcohol", Alcohol);
-                command.Parameters.AddWithValue("@HardGoods", HardGoods);
-                command.Parameters.AddWithValue("@RVParts", RVParts);
-                command.Parameters.AddWithValue("@SeasonalMerch", SeasonalMerch);
-                command.Parameters.AddWithValue("@FoodCounter", FoodCounter);
-                command.Parameters.AddWithValue("@Food", Food);
-                command.Parameters.AddWithValue("@Ice", Ice);
-                command.Parameters.AddWithValue("@Stamps", Stamps);
-                command.Parameters.AddWithValue("@AtSitePropane", AtSite);
-                command.Parameters.AddWithValue("@PropaneStation", PropaneStation);
-                command.Parameters.AddWithValue("@Events", Events);
-                command.Parameters.AddWithValue("@StoreCC", CC);
-                command.Parameters.AddWithValue("@StoreCash", Cash);
-                command.Parameters.AddWithValue("@TotalTaxCollected", TaxCollected);
-                command.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
-                command.Parameters["@status"].Direction = ParameterDirection.Output;
-                command.ExecuteNonQuery();
-                Console.WriteLine(command.Parameters["@status"].Value.ToString());
-            }
-            if (useTestDb)
-            {
-                sqlConnTest.Close();
-            }
-            else
-            {
-                sqlConn.Close();
+                GenericRoutines.UpdateAlerts(2, "FATAL ERROR", ex.ToString() + ", IMPORT ABORTED");
+                return;
             }
         }
     }

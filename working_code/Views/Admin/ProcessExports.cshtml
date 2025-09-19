@@ -69,6 +69,15 @@
     });
     function changefunc() {
         var selectedDateVal = document.getElementById('datePicker').value;
+        // last date for guest services is 9/17/2025.  After this date data will be pulled from Heartland Retail API
+        if (selectedDateVal > new Date(2025,8,17).toISOString().split("T")[0]) 
+        {
+            document.getElementById('guest').checked = false;
+            document.getElementById('guest').disabled = true;
+        }
+        else{
+            document.getElementById('guest').disabled = false;
+        }
         var selectedDate2 = document.getElementById('datePicker2');
         selectedDate2.value = selectedDateVal;
         selectedDate2.min = selectedDateVal;
