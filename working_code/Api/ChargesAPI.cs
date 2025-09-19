@@ -1,3 +1,4 @@
+  /*
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -16,73 +17,73 @@ using System.Text.RegularExpressions;
 
 namespace MBTP.Services {
 
-    public class ReconApi 
+    public class ChargesApi 
     {
-        private readonly string reconApiUrl = "https://api.newbook.cloud/rest/reports_reconciliation";
-        private readonly string transactionFlowApiUrl = "https://api.newbook.cloud/rest/reports_transaction_flow";
+        private readonly string apiUrl = "https://api.newbook.cloud/rest/charges_list";
         private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
         private readonly string region = "us";
         private readonly string username = "myrtle_beach";
         private readonly string password = "Gemb$np(QqEnB9V3";
-        private readonly TransactionFlowAPI _transactionApi;
-
         private readonly IDatabaseConnectionService _dbConnectionService;
-        public ReconApi(IDatabaseConnectionService dbConnectionService, TransactionFlowAPI transactionApi)
+
+        public ChargesApi(IDatabaseConnectionService dbConnectionService)
         {
             _dbConnectionService = dbConnectionService;
-            _transactionApi = transactionApi;
         }
         
+      
         public async Task PopulateRecons(DateTime startDate, DateTime endDate) 
         {
             Console.WriteLine("Run method started for reconciliation report");
 
-            var recons = await FetchAllRecons(startDate, endDate);
-            if (recons.Count > 0)
+            
+            if (charges.Count > 0)
             {
                 using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
                 await sqlConn.OpenAsync();
 
                 // Insert bookings
-                foreach (var recon in recons)
+                foreach (var charge in charges)
                 {
-                    await InsertReconAsync(recon, sqlConn);
+                    await InsertChargesAsync(charge, sqlConn);
                 }
 
-                Console.WriteLine("Total Recons: " + recons.Count);
+                Console.WriteLine("Total Charges: " + charges.Count);
             }
             else
             {
-                Console.WriteLine("No recons to display.");
+                Console.WriteLine("No charges to display.");
             }
-
+        
             Console.WriteLine("Run method finished.");
         }
-
+       
+        
          private async Task InsertReconAsync(Recon recon, SqlConnection sqlConn)
         {
             using (SqlCommand command = new SqlCommand("dbo.UpdateReconReportTable", sqlConn))
             {
                 command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@ClientAccount", recon.ClientAccount ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@GLAccount", recon.GLAccount ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Item", recon.ItemType ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Description", recon.ItemDescription ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@GLAccount", recon.GLAccountCode);
+                command.Parameters.AddWithValue("@ClientAccount", $"(Booking #{recon.BookingId}) {recon.AccountForName}");
+                command.Parameters.AddWithValue("@Item", recon.ItemDescription ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Description", recon.GLAccountDescr ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Date", recon.ItemDate);
                 command.Parameters.AddWithValue("@Total_TaxInc", recon.ReconAmount ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Total_TaxEx", recon.TotalTaxEx ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Total_Tax", recon.ReconTax ?? (object)DBNull.Value);
                 command.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000);
                 command.Parameters["@ProcStatus"].Direction = ParameterDirection.Output;
                 await command.ExecuteNonQueryAsync();
             }
         }
-        
 
-        private async Task<List<Recon>> FetchAllRecons(DateTime startDate, DateTime endDate)
+
+        public async Task<List<Charges>> FetchAllCharges(DateTime startDate, DateTime endDate)
         {
             var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
             var periodTo = endDate.ToString("yyyy-MM-dd HH:mm:ss");
-            var reconReport = new List<Recon>();
+            var chargesList = new List<Charges>();
 
             var requestBody = new
             {
@@ -102,14 +103,14 @@ namespace MBTP.Services {
 
                 var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
 
-                response = await httpClient.PostAsync(reconApiUrl, content);
+                response = await httpClient.PostAsync(apiUrl, content);
                 if (!response.IsSuccessStatusCode)
                 {
                     Console.WriteLine($"HTTP request failed with status code: {response.StatusCode}");
                     loopCount++;
                     if (loopCount == 5)
                     {
-                        return reconReport;
+                        return chargesList;
                     }
                 }
                 else
@@ -127,74 +128,55 @@ namespace MBTP.Services {
             if (result is null || result.success != "true")
             {
                 Console.WriteLine("API response indicates failure.");
-                return new List<Recon>();
+                return new List<Charges>();
             }
-            var flows = await _transactionApi.FetchAllTransactionsAsync(startDate, endDate);
 
             foreach (var item in result.data)
             {
-
-                string accountForId = item.account_for_id?.ToString();
-                string paymentNumber = ExtractPaymentNumber(item.item_description?.ToString() ?? "");
-
-                var matchingFlows = new List<TransactionFlow>();
-
-                if (!string.IsNullOrEmpty(accountForId))
-                {
-                    matchingFlows = flows.Where(f => f.AccountForId == accountForId).ToList();
-                }
-
-                if (!matchingFlows.Any() && !string.IsNullOrEmpty(paymentNumber))
-                {
-                    matchingFlows = flows
-                        .Where(f => f.PaymentTypeReference == paymentNumber || f.ItemId == paymentNumber)
-                        .ToList();
-                }
-
-                var clientAccounts = matchingFlows
-                    .Select(f => f.ClientAccount)
-                    .Where(ca => !string.IsNullOrEmpty(ca))
-                    .Distinct()
-                    .ToList();
-
-                var clientAccount = clientAccounts.Count > 0
-                    ? string.Join(", ", clientAccounts)
-                    : item.client_account?.ToString();
-
-
+                
                 Console.WriteLine("--------------- RECON ---------------");
-                Console.WriteLine($"Client Account    : {clientAccount}");
-                Console.WriteLine($"GL Account ID     : {item.gl_account_id}");
+                Console.WriteLine($"Client Account    : (Booking #{item.booking_id}) {item.account_for_name}");
+                Console.WriteLine($"GL Account Code     : {item.gl_account_code}");
                 Console.WriteLine($"Item Description  : {item.item_description}");
                 Console.WriteLine($"Item Date         : {item.item_date}");
                 Console.WriteLine($"Reconciled Amount : {item.reconciled_amount}");
                 Console.WriteLine($"Reconciled Tax    : {item.reconciled_tax}");
                 Console.WriteLine("-------------------------------------\n");
+                
+               
+                    if (item.tax_breakdown != null)
+                    {
+                        foreach (var tb in item.tax_breakdown)
+                        {
+                            string taxName = (string)tb.tax_name;
+                            if (!string.IsNullOrEmpty(taxName) && taxName.Contains("Golf Cart"))
+                            {
+                                Console.WriteLine($"Full Charges JSON: {item.ToString()}");
+                            }
+                        }
+                    }
+                
 
-                var recons = new Recon
+                var charges = new Charges
                 {
-                    GLAccount = item.gl_account_code,
-                    ClientAccount = clientAccount, 
-                    ItemType = item.item_type,
-                    ItemDescription = item.item_description,
-                    ItemDate = item.item_date,
-                    ReconAmount = item.reconciled_amount,
-                    ReconTax = item.reconciled_tax,
-                    TransactionFlows = matchingFlows 
+                    Id = item.id,
+                    AccountForName = item.account_for_name,
+                    AccountForId = item.account_for_id,
+                    GLAccountCode = item.gl_account_code,
+                    Amount = item.amount,
+                    AmountIncTax = item.amount_inc_tax,
+                    AmountExTax = item.amount_ex_tax,
+                    Tax = item.tax,
+                    TaxFree = item.tax_free,
+                    TaxBreakdown = item.tax_breakdown != null ? JsonConvert.DeserializeObject<List<TaxBreakdown>>(item.tax_breakdown.ToString())
+                    : new List<TaxBreakdown>()
                 };
 
-
-            reconReport.Add(recons);
-            }
-            return reconReport;
-
-    }
-    private string? ExtractPaymentNumber(string description)
-    {
-        var match = Regex.Match(description ?? "", @"Payment\s+#(\d+)");
-        return match.Success ? match.Groups[1].Value : null;
-    }
-
-
+            chargesList.Add(charges);
+        }
+        return chargesList;
     }
 }
+
+}
+ */

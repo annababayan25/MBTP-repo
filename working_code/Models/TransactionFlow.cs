@@ -55,6 +55,7 @@ namespace MBTP.Models
         [JsonProperty("deposit")]
         public string? Deposit { get; set; }
 
+
         [JsonProperty("account_for_id")]
         public string? AccountForId {get;set;}
     }
