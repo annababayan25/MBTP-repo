@@ -23,7 +23,7 @@ namespace MBTP
 
         public void ConfigureServices(IServiceCollection services)
         {
-            // services.AddScoped<ChargesApi>();
+            services.AddScoped<ChargesApi>();
             services.AddScoped<GLAccountApi>();
             services.AddScoped<ReconApi>();
             services.AddScoped<TransactionFlowAPI>();

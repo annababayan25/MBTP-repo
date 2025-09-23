@@ -1,4 +1,4 @@
-  /*
+
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -32,9 +32,9 @@ namespace MBTP.Services {
         }
         
       
-        public async Task PopulateRecons(DateTime startDate, DateTime endDate) 
+        public async Task PopulateCharges(DateTime startDate, DateTime endDate) 
         {
-            Console.WriteLine("Run method started for reconciliation report");
+            var charges = await FetchAllCharges(startDate, endDate);
 
             
             if (charges.Count > 0)
@@ -42,7 +42,7 @@ namespace MBTP.Services {
                 using SqlConnection sqlConn = _dbConnectionService.CreateConnection();
                 await sqlConn.OpenAsync();
 
-                // Insert bookings
+                /*
                 foreach (var charge in charges)
                 {
                     await InsertChargesAsync(charge, sqlConn);
@@ -53,11 +53,12 @@ namespace MBTP.Services {
             else
             {
                 Console.WriteLine("No charges to display.");
-            }
+            }*/
         
             Console.WriteLine("Run method finished.");
+            Console.WriteLine("Total Charges: " + charges.Count);
         }
-       
+        }
         
          private async Task InsertReconAsync(Recon recon, SqlConnection sqlConn)
         {
@@ -134,14 +135,7 @@ namespace MBTP.Services {
             foreach (var item in result.data)
             {
                 
-                Console.WriteLine("--------------- RECON ---------------");
-                Console.WriteLine($"Client Account    : (Booking #{item.booking_id}) {item.account_for_name}");
-                Console.WriteLine($"GL Account Code     : {item.gl_account_code}");
-                Console.WriteLine($"Item Description  : {item.item_description}");
-                Console.WriteLine($"Item Date         : {item.item_date}");
-                Console.WriteLine($"Reconciled Amount : {item.reconciled_amount}");
-                Console.WriteLine($"Reconciled Tax    : {item.reconciled_tax}");
-                Console.WriteLine("-------------------------------------\n");
+                Console.WriteLine($"GL Account Code     : {item.ToString()}");
                 
                
                     if (item.tax_breakdown != null)
@@ -176,7 +170,5 @@ namespace MBTP.Services {
         }
         return chargesList;
     }
-}
 
-}
- */
+    }}
