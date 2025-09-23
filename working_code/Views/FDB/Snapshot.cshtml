@@ -17,8 +17,12 @@
     var lastYearIncomeListD = ViewBag.LastYearIncomeD as List<dynamic>;
     var twoYearIncomeListD = ViewBag.TwoYearIncomeD as List<dynamic>;
 
-    bool isPdf = ViewData["IsPdf"] is not null && (bool)ViewData["IsPdf"];
-    //bool isPdf = ViewData["IsPdf"] is not null ? (bool)ViewData["IsPdf"] : false;
+    bool isPdf = false;
+    object? isPdfObj = ViewData["IsPdf"];
+    if(isPdfObj != null)
+    {
+        isPdf = (bool)isPdfObj;
+    }
 
     // Dynamic date calculations
     var startDate = ViewBag.StartDate != null ? (DateTime)ViewBag.StartDate : DateTime.Now;
@@ -400,9 +404,16 @@
                             @for (int j = 0; j < taxableReservationsListD.Count; j++)
                             {
                                 var taxableReservationD = taxableReservationsListD[j];
-                                var lastMonthIncomeD = j < lastMonthIncomeListD.Count ? lastMonthIncomeListD[j] : null;
-                                var lastYearIncomeD = j < lastYearIncomeListD.Count ? lastYearIncomeListD[j] : null;
-                                var twoYearIncomeD = j < twoYearIncomeListD.Count ? twoYearIncomeListD[j] : null;
+                                int lmildCount = lastMonthIncomeListD != null ? lastMonthIncomeListD.Count : 0;
+                                int lyidCount = lastYearIncomeListD != null ? lastYearIncomeListD.Count : 0;
+                                int tyidCount = twoYearIncomeListD != null ? twoYearIncomeListD.Count : 0;
+                                if(lastMonthIncomeListD == null || lastYearIncomeListD == null || twoYearIncomeListD == null)
+                                {
+                                    continue; // Skip this iteration if any list is null
+                                }
+                                var lastMonthIncomeD = j < lmildCount ? lastMonthIncomeListD[j] : null;
+                                var lastYearIncomeD = j < lyidCount ? lastYearIncomeListD[j] : null;
+                                var twoYearIncomeD = j < tyidCount ? twoYearIncomeListD[j] : null;
                                 <tr class="alt">
                                     <td style="background-color: rgb(151, 213, 249)">Site <br> Taken:
                                     </td>
