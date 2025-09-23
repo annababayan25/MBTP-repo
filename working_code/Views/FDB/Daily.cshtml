@@ -10,7 +10,12 @@
     var accID = User.FindFirst("AccID")?.Value;
     const string numformat = "{0:#,##0.00;(#,##0.00);0.0}";
     const string numformatdashed = "{0:#,##0.00;(#,##0.00);------}";
-    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    bool isPdf = false;
+    object? isPdfObj = ViewData["IsPdf"];
+    if(isPdfObj != null)
+    {
+        isPdf = (bool)isPdfObj;
+    }
     string rightnow = DateTime.Now.ToString("MM/dd/yyyy h:mm tt");
     string resButtonText = "Reservations Report for " + ViewBag.FinalDate.ToString("MMM dd, yyyy");
     bool storeClosed = false;

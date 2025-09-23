@@ -47,8 +47,18 @@
    var dateRange = $"{startDate:MM/dd/yyyy}-{endDate:MM/dd/yyyy}";
 }
 @{
-    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
-    bool isPositive = ViewBag.IsPositive != null && (bool)ViewBag.IsPositive;
+    bool isPdf = false;
+    object? isPdfObj = ViewData["IsPdf"];
+    if(isPdfObj != null)
+    {
+        isPdf = (bool)isPdfObj;
+    }
+    bool isPositive = true;
+    object? isPositiveObj = ViewData["IsPositive"];
+    if(isPositiveObj != null)
+    {
+        isPositive = (bool)isPositiveObj;
+    }
     string backgroundColorClassTop = isPositive ? "background-dGreen" : "background-dRed";
     string backgroundColorClass = isPositive ? "background-green" : "background-red";
     string dataBackground = isPositive ? "background-GreenB" : "background-RedB";
@@ -597,7 +607,9 @@
                                         <td colspan="4">&nbsp;&nbsp;&nbsp;</td>
                                         <td class="nameL">Park Model Sales:</td>
                                         <td class="dataL">@String.Format("{0:F2}", (decimal)row["ParkModelSales"])</td>
-                                        <td colspan="3">&nbsp;&nbsp;&nbsp;</td>
+                                        <td>&nbsp;&nbsp;&nbsp;</td>
+                                        <td class="name">Vendor Decals:</td>
+                                        <td class="data">@String.Format("{0:F2}", (decimal)row["VendorDecals"])</td>
                                     </tr>
                                 }
                                 <tr class="dataBackground">
@@ -605,7 +617,7 @@
                                     <td class="tots" colspan="4">Total Net Miscellaneous Revenue:</td>
                                     @if(accID != "4")
                                     {
-                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["FrontEvents"]+(decimal)row["StoreEvents"]+(decimal)row["Laundry"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"]+(decimal)row["ParkModelSales"])</td>
+                                        <td class="totsColor">@String.Format("{0:F2}", (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["FrontEvents"]+(decimal)row["StoreEvents"]+(decimal)row["Laundry"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"]+(decimal)row["ParkModelSales"]+(decimal)row["VendorDecals"])</td>
                                     }
                                     else
                                     {
