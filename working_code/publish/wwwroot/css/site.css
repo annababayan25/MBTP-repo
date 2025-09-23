@@ -181,10 +181,12 @@ a{
   flex:1;
   margin: 10px;
 }
-.grid-container{
+.grid-container {
   display: flex;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 5px;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+  margin: 20px;
 }
 .data-table{
   border-collapse:collapse;
@@ -275,10 +277,13 @@ a{
   border: 1px black solid;
   text-align: right;
 }
-.head-container{
-  text-align: left;
-  padding: 10px;
-  font-family: "Geramond",serif;
+.head-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 20px;
+  margin-right: 20px;
+  margin-left: 20px;
 }
 .navbar-nav{
   font-family:  "Geramond",serif;
@@ -307,6 +312,10 @@ a{
   padding-left: 25px;
   padding-right: 25px;
   color:rgb(0, 0, 0);
+  position: sticky;
+  position: -webkit-sticky;
+  top: 0;
+
 }
 .breakdownMonthSmallText{
   text-align: center;
@@ -316,17 +325,21 @@ a{
   padding-left: 10px;
   padding-right: 10px;
   color:rgb(0, 0, 0);
+  position: sticky;
 }
 .breakdownData{
   text-align: right;
   border: 1px black solid;
   padding-left: 60px;
   padding-right: 7px;
-}.breakdownDate{
+  position: sticky;
+}
+.breakdownDate{
   text-align: right;
   border: 1px black solid;
   padding-left: 60px;
   padding-right: 7px;
+  position: sticky;
 }
 .breakdownBigTitle{
   text-align:center;

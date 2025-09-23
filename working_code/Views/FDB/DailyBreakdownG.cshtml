@@ -3,6 +3,21 @@
 @using MBTP.Retrieval
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
+<style>
+#daily-table th.breakdownMonth,
+#daily-table td.breakdownDate,
+#daily-table td.breakdownMonthSmallText {
+    position: sticky;
+    left: 0;
+    background: #fff;
+    z-index: 2;
+}
+
+#daily-table th.breakdownMonth {
+    z-index: 3; 
+}
+</style>
+
 @{
     DateTime startDate = ViewBag.date != null ? (DateTime)ViewBag.date : DateTime.Now.AddDays(-4);
     DateTime fiscalYearStartDate = ViewBag.fiscalYearStartDate;
@@ -103,6 +118,7 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {   
+<div style="overflow-x: auto; max-width: 100%; padding-bottom:20px;">
 <table id="daily-table" class="breakdown clickable-tableG" data-MonthlyBreakdown="/FDB/MonthlyBreakdownG" style="width:240px">
     <tr>
         <th class="breakdownBigTitle" colspan="20">General Store</th>
@@ -111,7 +127,6 @@
         <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Day</th>
         <th class="breakdownTaxBig" colspan="8">Sales Tax: 8% (Tax Inclusive)</th>
         <th class="breakdownTaxBig" colspan="1">Tax: 10.5% (Tax Inclusive)</th>
-        <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Day</th>
         <th class="breakdownTaxBig" colspan="5">Non-Taxable</th>
         <th class="breakdownTotalsHead" rowspan="3">Total Gross Revenue</th>
         <th class="breakdownTotalsHead" rowspan="3">Total Tax Collected</th>
@@ -222,7 +237,6 @@
             }
         <td class="breakdownTotals">@total</td>
         <td class="breakdownData">@foodCounter</td>
-        <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
         <td class="breakdownData">@food</td>
         <td class="breakdownData">@ice</td>
         <td class="breakdownData">@vending</td>
@@ -245,7 +259,6 @@
         <td class="breakdownTotals2">@totalSeasonalMerch</td>
         <td class="breakdownTotals2">@tTotal</td>
         <td class="breakdownTotals2">@totalFoodCounter</td>
-        <td class="breakdownMonthSmallText">Month-to-Date Totals:</td>
         <td class="breakdownTotals2">@totalFood</td>
         <td class="breakdownTotals2">@totalIce</td>
         <td class="breakdownTotals2">@totalVending</td>
@@ -289,7 +302,6 @@
             <td class="breakdownTotals2">@String.Format("{0:F2}", projSeasonalMerch)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projtTotal)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projFoodCounter)</td>
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projFood)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projIce)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projVending)</td>
@@ -333,7 +345,6 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSeasonalMerch)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptTotal)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFoodCounter)</td>
-        <td class="breakdownMonthSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFood)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalIce)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalVending)</td>
@@ -376,7 +387,6 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSeasonalMerch)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2tTotal)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFoodCounter)</td>
-        <td class="breakdownMonthSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFood)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalIce)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalVending)</td>
@@ -467,14 +477,6 @@
         <td class="@(deltaSeasonalMerch < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSeasonalMerch)</td>
         <td class="@(deltatTotal < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltatTotal)</td>
         <td class="@(deltaFoodCounter < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaFoodCounter)</td>
-        @if (startDate.Month == currentDate.Month)
-        {
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM yyyy") Over/Under:</td>
-        }
-        else
-        {
-            <td class="breakdownMonthSmallText">@startDate.ToString("MMM yyyy") Over/Under:</td>
-        }
         <td class="@(deltaFood < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaFood)</td>
         <td class="@(deltaIce < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaIce)</td>
         <td class="@(deltaVending < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaVending)</td>
@@ -492,6 +494,7 @@
         </tr>
     }
 </table>
+</div>
 }
 </body>
 @section Scripts {

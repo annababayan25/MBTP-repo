@@ -129,6 +129,30 @@
         background-color: #d8d8d8;
         color: black;
     }
+
+    .head-container {
+       display: flex;
+       flex-direction: column;
+       align-items: flex-start;
+       margin-top: 20px;
+       margin-right: 20px;
+       margin-left: 20px;
+   }
+
+   .table-wrapper {
+    margin: 20px auto; 
+    max-width: 100%;  
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;      
+    }
+    .container {
+    max-width: 100%;
+    overflow-x: auto; 
+    }
+
 </style>
 </head>
 <body class="@backgroundColorClass">
@@ -153,7 +177,7 @@
             </div>
         </div>
     </div>
-    <div class="grid-container">
+    <div class="grid-container" style="margin: 20px;">
         @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Front Office Transactions
         {
             @if (accIDInt < 4 || accID=="6" || accID == "7")
@@ -412,6 +436,7 @@
                                     <td class="totsColor">@String.Format("{0:F2}",(decimal)row["VouchersRedSite"]-(decimal)row["VouchersPurch"]-(decimal)row["VouchersRedRental"]-(decimal)row["VouchersRedStorage"])</td>
                                 </tr>
                             }
+                            </tbody>
                     </table>
                 }
             }

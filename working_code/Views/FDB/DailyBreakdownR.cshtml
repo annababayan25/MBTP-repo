@@ -98,6 +98,7 @@
 <body>
 @if (Model is not null && Model!.Tables[0].Rows.Count > 0)
 {
+<div style="overflow-x: auto; max-width: 100%; padding-bottom:20px;">
 <table id="daily-table" class="breakdown clickable-tableR"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownR" style="width:240px">
     <tr>
         <th class="breakdownMonth" rowspan="4"><br><br>Day</th>
@@ -107,7 +108,6 @@
         <th class="breakdownTaxBig" colspan="4">Campsites</th>
         <th class="breakdownTaxBig" colspan="4">Rentals</th>
         <th class="breakdownTaxBig" colspan="4">Golf Carts</th>
-        <th class="breakdownMonth" rowspan="3"><br><br>Day</th>
         <th class="breakdownTaxBig" colspan="5">Gift Vouchers</th>
     </tr>
     <tr>
@@ -187,7 +187,6 @@
             <td class="breakdownData">@GDA</td>
             <td class="breakdownRef">@GDMRG</td>
             <td class="breakdownTotals">@netChange3</td>
-            <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
             <td class="breakdownData">@VP</td>
             <td class="breakdownData">@VRS</td>
             <td class="breakdownData">@VRR</td>
@@ -209,7 +208,6 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDApplied)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDMR)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange3)</td>
-        <td class="breakdownMonthSmallText">Month-to-Date Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalPurchased)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSite)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedRent)</td>      
@@ -251,7 +249,6 @@
             <td class="breakdownTotals2">@String.Format("{0:F2}", projGDApplied)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projGDMR)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange3)</td>
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projPurchased)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projRedeemedSite)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projRedeemedRent)</td>      
@@ -293,7 +290,6 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGDApplied)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGDMR)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange3)</td>
-        <td class="breakdownMonthSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPurchased)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRedeemedSite)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRedeemedRent)</td>      
@@ -334,7 +330,6 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGDApplied)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGDMR)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange3)</td>
-        <td class="breakdownMonthSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPurchased)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRedeemedSite)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRedeemedRent)</td>      
@@ -421,14 +416,6 @@
         <td class="@(deltaGDApplied < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaGDApplied)</td>
         <td class="@(deltaGDMR < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaGDMR)</td>
         <td class="@(deltaNetChange3 < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaNetChange3)</td>
-        @if (startDate.Month == currentDate.Month)
-        {
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM yyyy") Over/Under:</td>
-        }
-        else
-        {
-            <td class="breakdownMonthSmallText">@startDate.ToString("MMM yyyy") Over/Under:</td>
-        }
         <td class="breakdownTotals2">@String.Format("{0:c2}", deltaPurchased)</td>
         <td class="breakdownTotals2">@String.Format("{0:c2}", deltaRedeemedSite)</td>
         <td class="breakdownTotals2">@String.Format("{0:c2}", deltaRedeemedRent)</td>      
@@ -442,6 +429,7 @@
         </tr>
     }
 </table>
+</div>
 }
 </body>
 

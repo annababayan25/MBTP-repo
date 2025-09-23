@@ -137,6 +137,7 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
+<div style="overflow-x: auto; max-width: 100%; padding-bottom:20px;">
 <table id="daily-table" class="breakdown clickable-tableF" data-MonthlyBreakdown="/FDB/MonthlyBreakdownF" style="width:240px">
    <tr>
        <th class="breakdownBigTitle" colspan="28">Front Office</th>
@@ -147,7 +148,6 @@
        <th class="breakdownTaxBig" colspan="1">Tax: 5% (Tax Inclusive)</th>
        <th class="breakdownTaxBig" colspan="2">Tax: 8% (Tax Inclusive)</th>
        <th class="breakdownTaxBig" colspan="3">Taxable Transactions Summary:</th>
-       <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Day</th>
        <th class="breakdownTaxBig" colspan="12">No Tax Transactions:</th>
        <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
    </tr>
@@ -267,7 +267,6 @@
            <td class="breakdownTotals">@String.Format("{0:F2}", grossRevenue1)</td>
            <td class="breakdownTotals">@String.Format("{0:F2}", taxLi)</td>
            <td class="breakdownTotals">@String.Format("{0:F2}", netRevSub)</td>
-           <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
            <td class="breakdownData">@annual</td>
            <td class="breakdownData">@employee</td>
            <td class="breakdownData">@lts</td>
@@ -298,7 +297,6 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalGross)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxLi)</td>      
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevSub)</td>
-        <td class="breakdownMonthSmallText">Month-to-Date Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalAnnual)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalEmployee)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", totalLTS)</td>
@@ -358,7 +356,6 @@
             <td class="breakdownTotals2">@String.Format("{0:F2}", projGross)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projTaxLi)</td>      
             <td class="breakdownTotals2">@String.Format("{0:F2}", projNetRevSub)</td>
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projAnnual)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projEmployee)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projLTS)</td>
@@ -419,7 +416,6 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGross)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTaxLi)</td>      
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetRevSub)</td>
-        <td class="breakdownMonthSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalAnnual)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalEmployee)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLTS)</td>
@@ -479,7 +475,6 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGross)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTaxLi)</td>      
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetRevSub)</td>
-        <td class="breakdownMonthSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalAnnual)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalEmployee)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLTS)</td>
@@ -599,14 +594,6 @@
         <td class="@(deltaGross < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaGross)</td>
         <td class="@(deltaTaxLi < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaTaxLi)</td>      
         <td class="@(deltaNetRevSub < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaNetRevSub)</td>
-        @if (startDate.Month == currentDate.Month)
-        {
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM yyyy") Over/Under:</td>
-        }
-        else
-        {
-            <td class="breakdownMonthSmallText">@startDate.ToString("MMM yyyy") Over/Under:</td>
-        }
         <td class="@(deltaAnnual < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaAnnual)</td>
         <td class="@(deltaEmployee < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaEmployee)</td>
         <td class="@(deltaLTS < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaLTS)</td>
@@ -628,6 +615,7 @@
         </tr>
     }
 </table>
+</div>
 }
 </body>
 
