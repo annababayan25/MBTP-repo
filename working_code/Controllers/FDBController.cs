@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using MBTP.Services;
 using GenericSupport;
 using MBTP.Interfaces;
+using MBTP.Models;
 
 namespace MBTP.Controllers
 {
@@ -327,9 +328,11 @@ namespace MBTP.Controllers
                 DataTable currentIncomeTable = ds.Tables[0];
                 DataTable currentIncomeTable2 = ds.Tables[4];
                 decimal Addons0319Sum = 0m;
+                decimal Addons0370Sum = 0m;
                 foreach (DataRow row2 in currentIncomeTable2.Rows)
                 {
                     Addons0319Sum += row2["Addons0319"] != DBNull.Value ? Convert.ToDecimal(row2["Addons0319"]) : 0;
+                    Addons0370Sum += row2["Addons0370"] != DBNull.Value ? Convert.ToDecimal(row2["Addons0370"]) : 0;
                 }
                 foreach (DataRow row in currentIncomeTable.Rows)
                 {
@@ -349,19 +352,22 @@ namespace MBTP.Controllers
                         CommissionsRevenue = row["Commissions Revenue:"] != DBNull.Value ? Convert.ToDecimal(row["Commissions Revenue:"]) : 0,
                         ParkModelSalesRevenue = row["Park Model Sales Revenue:"] != DBNull.Value ? Convert.ToDecimal(row["Park Model Sales Revenue:"]) : 0,
                         MiscellaneousRevenue = row["Miscellaneous Revenue:"] != DBNull.Value ? Convert.ToDecimal(row["Miscellaneous Revenue:"]) : 0,
-                        Addons0319 = Addons0319Sum
+                        Addons0319 = Addons0319Sum,
+                        Addons0370 = Addons0370Sum
                     };
                     curMonthIncomeList.Add(item);
                 }
             }
-            if (ds.Tables.Count > 1)
+            if (ds != null && ds.Tables.Count > 1)
             {
                 DataTable lastMonthIncomeTable = ds.Tables[1];
                 DataTable lastMonthIncomeTable2 = ds.Tables[5];
                 decimal Addons0319Sum = 0m;
+                decimal Addons0370Sum = 0m;
                 foreach (DataRow row2 in lastMonthIncomeTable2.Rows)
                 {
                     Addons0319Sum += row2["Addons0319"] != DBNull.Value ? Convert.ToDecimal(row2["Addons0319"]) : 0;
+                    Addons0370Sum += row2["Addons0370"] != DBNull.Value ? Convert.ToDecimal(row2["Addons0370"]) : 0;
                 }
                 foreach (DataRow row in lastMonthIncomeTable.Rows)
                 {
@@ -381,19 +387,22 @@ namespace MBTP.Controllers
                         CommisionsIncome = row["CommisionsIncome"] != DBNull.Value ? Convert.ToDecimal(row["CommisionsIncome"]) : 0,
                         ParkModelSalesIncome = row["Park Model Sales Revenue"] != DBNull.Value ? Convert.ToDecimal(row["Park Model Sales Revenue"]) : 0,
                         OtherIncome = row["OtherIncome"] != DBNull.Value ? Convert.ToDecimal(row["OtherIncome"]) : 0,
-                        Addons0319 = Addons0319Sum
+                        Addons0319 = Addons0319Sum,
+                        Addons0370 = Addons0370Sum
                     };
                     priorMonthIncomeList.Add(item);
                 }
             }
-            if (ds.Tables.Count > 2)
+            if (ds != null && ds.Tables.Count > 2)
             {
                 DataTable lastYearIncomeTable = ds.Tables[2];
                 DataTable lastYearIncomeTable2 = ds.Tables[6];
                 decimal Addons0319Sum = 0m;
+                decimal Addons0370Sum = 0m;
                 foreach (DataRow row2 in lastYearIncomeTable2.Rows)
                 {
                     Addons0319Sum += row2["Addons0319"] != DBNull.Value ? Convert.ToDecimal(row2["Addons0319"]) : 0;
+                    Addons0370Sum += row2["Addons0370"] != DBNull.Value ? Convert.ToDecimal(row2["Addons0370"]) : 0;
                 }
                 foreach (DataRow row in lastYearIncomeTable.Rows)
                 {
@@ -413,19 +422,22 @@ namespace MBTP.Controllers
                         CommisionsIncome = row["CommisionsIncome"] != DBNull.Value ? Convert.ToDecimal(row["CommisionsIncome"]) : 0,
                         ParkModelSalesIncome = row["Park Model Sales Revenue"] != DBNull.Value ? Convert.ToDecimal(row["Park Model Sales Revenue"]) : 0,
                         OtherIncome = row["OtherIncome"] != DBNull.Value ? Convert.ToDecimal(row["OtherIncome"]) : 0,
-                        Addons0319 = Addons0319Sum
+                        Addons0319 = Addons0319Sum,
+                        Addons0370 = Addons0370Sum
                     };
                     curYearIncomeList.Add(item);
                 }
             }
-            if (ds.Tables.Count > 3)
+            if (ds != null && ds.Tables.Count > 3)
             {
                 DataTable twoYearIncomeTable = ds.Tables[3];
                 DataTable currentIncomeTable2 = ds.Tables[7];
                 decimal Addons0319Sum = 0m;
+                decimal Addons0370Sum = 0m;
                 foreach (DataRow row2 in currentIncomeTable2.Rows)
                 {
                     Addons0319Sum += row2["Addons0319"] != DBNull.Value ? Convert.ToDecimal(row2["Addons0319"]) : 0;
+                    Addons0370Sum += row2["Addons0370"] != DBNull.Value ? Convert.ToDecimal(row2["Addons0370"]) : 0;
                 }
                 foreach (DataRow row in twoYearIncomeTable.Rows)
                 {
@@ -445,7 +457,8 @@ namespace MBTP.Controllers
                         CommisionsIncome = row["CommisionsIncome"] != DBNull.Value ? Convert.ToDecimal(row["CommisionsIncome"]) : 0,
                         ParkModelSalesIncome = row["Park Model Sales Revenue"] != DBNull.Value ? Convert.ToDecimal(row["Park Model Sales Revenue"]) : 0,
                         OtherIncome = row["OtherIncome"] != DBNull.Value ? Convert.ToDecimal(row["OtherIncome"]) : 0,
-                        Addons0319 = Addons0319Sum
+                        Addons0319 = Addons0319Sum,
+                        Addons0370 = Addons0370Sum
                     };
                     priorYearIncomeList.Add(item);
                 }
@@ -485,7 +498,7 @@ namespace MBTP.Controllers
                 }
 
             }
-            if (dsd.Tables.Count > 1)
+            if (dsd != null && dsd.Tables.Count > 1)
             {
                 DataTable lastMonthIncomeTableD = dsd.Tables[1];
                 foreach (DataRow row in lastMonthIncomeTableD.Rows)
