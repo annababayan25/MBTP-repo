@@ -20,6 +20,7 @@
     decimal totalLaundry = 0;
     decimal totalStoreEvents = 0;
     decimal totalFrontEvents = 0;
+    decimal totalVendorDecals = 0;
     decimal totalParkModelSales = 0;
     decimal totalSupplementalO = 0;
     decimal totalSupplementalS = 0;
@@ -44,7 +45,7 @@
             }
             else
             {
-                <td class="breakdownBigTitle" colspan="14">Miscellaneous Income</td>
+                <td class="breakdownBigTitle" colspan="15">Miscellaneous Income</td>
             }
         </tr>
         <tr>
@@ -57,7 +58,7 @@
             else
             {
                 <td class="breakdownTaxBig" colspan="4">Commissions</td>
-                <td class="breakdownTaxBig" colspan="8">Other</td>
+                <td class="breakdownTaxBig" colspan="9">Other</td>
             }
             <th class="breakdownTotalsHead" rowspan="3">Total</th> 
         </tr>
@@ -78,6 +79,7 @@
             @if(accID != "4")
             {
                 <th class="breakdownTitle" colspan="2">359</th>
+                <th class="breakdownTitle">370</th>
                 <th class="breakdownTitle">380</th>
                 <th class="breakdownTitle" rowspan="2">Other Office Income</th>
                 <th class="breakdownTitle" rowspan="2">Supplemental Income</th>
@@ -101,6 +103,7 @@
             {
                 <th class="breakdownTitle">Activities / Store&nbsp;Events</th>
                 <th class="breakdownTitle">Office Events</th>
+                <th class="breakdownTitle">Vendor Decals</th>
                 <th class="breakdownTitle">Park Model Sales</th>
             }
         </tr>
@@ -117,6 +120,7 @@
             var Laundry = (decimal)row["Laundry"];
             var StoreEvents = (decimal)row["StoreEvents"];
             var FrontEvents = (decimal)row["FrontEvents"];
+            var VendorDecals = (decimal)row["VendorDecals"];
             var ParkModelSales = (decimal)row["ParkModelSales"];
             var SupplementalO = (decimal)row["SupplementalO"];
             var SupplementalS = (decimal)row["SupplementalS"];
@@ -127,7 +131,7 @@
             }
             else
             {
-                totals = (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"];
+                totals = (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["VendorDecals"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"];
             }
             totalCATV += CATV;
             totalGuestServices += GuestServices;
@@ -138,6 +142,7 @@
             totalLaundry += Laundry;
             totalStoreEvents += StoreEvents;
             totalFrontEvents += FrontEvents;
+            totalVendorDecals += VendorDecals;
             totalParkModelSales += ParkModelSales;
             totalSupplementalO += SupplementalO;
             totalSupplementalS += SupplementalS;
@@ -161,6 +166,7 @@
                 {
                     <td class="breakdownData">@row["StoreEvents"]</td>
                     <td class="breakdownData">@row["FrontEvents"]</td>
+                    <td class="breakdownData">@row["VendorDecals"]</td>
                     <td class="breakdownData">@row["ParkModelSales"]</td>
                     <td class="breakdownData">@row["SupplementalO"]</td>
                     <td class="breakdownData">@row["SupplementalS"]</td>
@@ -171,7 +177,7 @@
                 }
                 else
                 {
-                    <td class="breakdownTotals">@String.Format("{0:F2}",(decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
+                    <td class="breakdownTotals">@String.Format("{0:F2}",(decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["VendorDecals"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
                 }
             </tr>
             monthIndex ++;
@@ -195,6 +201,7 @@
             {
                 <td class="breakdownTotals2">@String.Format("{0:F2}", totalStoreEvents)</td>
                 <td class="breakdownTotals2">@String.Format("{0:F2}", totalFrontEvents)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", totalVendorDecals)</td>
                 <td class="breakdownTotals2">@String.Format("{0:F2}", totalParkModelSales)</td>
                 <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalO)</td>
                 <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalS)</td>
