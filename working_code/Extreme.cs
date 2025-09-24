@@ -65,28 +65,31 @@ namespace MBTP.Extreme
             {
                 return new List<Device>();
             }
-            DeviceList deviceList = JsonConvert.DeserializeObject<DeviceList>(jsonResponse);
+            DeviceList? deviceList = JsonConvert.DeserializeObject<DeviceList>(jsonResponse);
             // Check to see if there are more pages to process
-            if(deviceList.total_pages > 1)
+            if (deviceList is not null)
             {
-                for(int page = 2; page <= deviceList.total_pages; page++)
+                if (deviceList.total_pages > 1)
                 {
-                    string pagedUrl = $"https://api.extremecloudiq.com/devices?page={page}&limit=100&fields=HOSTNAME&fields=CONNECTED&fields=LAST_CONNECT_TIME&fields=LOCATION_ID&deviceTypes=REAL&async=false";
-                    response = await httpClient.GetAsync(pagedUrl);
-                    if (!response.IsSuccessStatusCode)
+                    for (int page = 2; page <= deviceList.total_pages; page++)
                     {
-                        continue;
-                    }
-                    jsonResponse = await response.Content.ReadAsStringAsync();
-                    result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                    if (result is null)
-                    {
-                        continue;
-                    }
-                    DeviceList pagedList = JsonConvert.DeserializeObject<DeviceList>(jsonResponse);
-                    if(pagedList is not null)
-                    {
-                        deviceList.Data.AddRange(pagedList.Data);
+                        string pagedUrl = $"https://api.extremecloudiq.com/devices?page={page}&limit=100&fields=HOSTNAME&fields=CONNECTED&fields=LAST_CONNECT_TIME&fields=LOCATION_ID&deviceTypes=REAL&async=false";
+                        response = await httpClient.GetAsync(pagedUrl);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            continue;
+                        }
+                        jsonResponse = await response.Content.ReadAsStringAsync();
+                        result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                        if (result is null)
+                        {
+                            continue;
+                        }
+                        DeviceList? pagedList = JsonConvert.DeserializeObject<DeviceList>(jsonResponse);
+                        if (pagedList is not null)
+                        {
+                            deviceList.Data.AddRange(pagedList.Data);
+                        }
                     }
                 }
             }
@@ -103,8 +106,16 @@ namespace MBTP.Extreme
             {
                 return new List<Device>();
             }
-            FloorList floorList = JsonConvert.DeserializeObject<FloorList>(jsonResponse);
+            FloorList? floorList = JsonConvert.DeserializeObject<FloorList>(jsonResponse);
             // now we have both lists, we can add the hub location to the device list
+            if (floorList is null)
+            {
+                return new List<Device>();
+            }
+            if (deviceList is null)
+            {
+                return new List<Device>();
+            }
             for (int i = deviceList.Data.Count - 1; i >= 0; i--)
             {
                 Device device = deviceList.Data[i];
@@ -124,7 +135,7 @@ namespace MBTP.Extreme
                 {
                     device.hubName = "No Location";
                 }
-                if(device.hubName == "Spares")
+                if (device.hubName == "Spares")
                 {
                     deviceList.Data.RemoveAt(i);
                 }
