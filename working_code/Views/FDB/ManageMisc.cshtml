@@ -391,6 +391,7 @@ td{
                     selectStr += ((glSelected == "0352") ? '<option selected="selected">' : '<option>') + '0352</option>';
                     selectStr += ((glSelected == "0358") ? '<option selected="selected">' : '<option>') + '0358</option>';
                     selectStr += ((glSelected == "0359") ? '<option selected="selected">' : '<option>') + '0359</option>';
+                    selectStr += ((glSelected == "0370") ? '<option selected="selected">' : '<option>') + '0370</option>';
                     selectStr += ((glSelected == "0384") ? '<option selected="selected">' : '<option>') + '0384</option>';
                     selectStr += ((glSelected == "0392") ? '<option selected="selected">' : '<option>') + '0392</option>';
                     selectStr += ((glSelected == "0393") ? '<option selected="selected">' : '<option>') + '0393</option>';
@@ -424,21 +425,35 @@ td{
         }
         function closePopup(saveGL) 
         {
-            popupOverlay.style.display = 'none';
             if(saveGL == true)
             {
                 var glSelect = document.getElementById("gl00");
                 const glSelectOptions = glSelect.options;
                 var newGLValue = document.getElementById("newGL").value;
-                const newGLOption = new Option(newGLValue,null,false,true);
+                if(newGLValue == null || newGLValue == "" || newGLValue.length != 4)
+                {
+                    alert("You must enter a valid 4-digit GL code");
+                    return;
+                }
+                const newGLOption = new Option(newGLValue,newGLValue,false,true);
                 for (let i = 0; i < glSelectOptions.length; i++) 
                 {
                     if (glSelectOptions[i].text > newGLValue) 
                     { 
                         glSelect.add(newGLOption,i);
+                        glSelect.value = newGLValue;
+                popupOverlay.style.display = 'none';
+                document.getElementById("gl00").value = newGLValue;
                         break; // Exit loop once found and selected
                     }
                 }
+                //popupOverlay.style.display = 'none';
+                //document.getElementById("gl00").value = newGLValue;
+            }
+            else
+            {
+                popupOverlay.style.display = 'none';
+                document.getElementById("gl00").value = "0302";
             } 
         };
         $(document).ready(function () {

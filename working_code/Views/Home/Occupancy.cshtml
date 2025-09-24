@@ -10,6 +10,12 @@
 
     var previousMonth = selectedMonth?.AddMonths(-1);
     var nextMonth = selectedMonth?.AddMonths(1).ToString("yyyy-MM-dd");
+    bool useAges = false;
+    object? useAgesObj = ViewData["IncludeAges"];
+    if(useAgesObj != null)
+    {
+       useAges = (bool)useAgesObj;
+    }
 }
 
 <!DOCTYPE html>
@@ -127,7 +133,7 @@
 
 <h2>Transient Site Occupancy Report for @selectedMonth?.ToString("MMMM yyyy")</h2>
 <h4>Total Available Sites: 724</h4>
-<form method="get" asp-action=@((bool)ViewData["IncludeAges"] ? "OccupancyAges" : "Occupancy")>
+<form method="get" asp-action=@(useAges ? "OccupancyAges" : "Occupancy")>
     <div class="navigation-container">
         <button class="pdfButton" type="submit" name="month" value="@previousMonth?.ToString("yyyy-MM-dd")">
             <i class="fas fa-arrow-left"></i>
@@ -194,13 +200,13 @@
                     MonthTotalOccupied += totalOccupied;
                 }
                 <div>Total Occupied: @totalOccupied</div>
-                @if((bool)ViewData["IncludeAges"] == false)
+                @if(useAges == false)
                 {
                     <div>WESC/WE: @row["Sites"] of @totalSites</div>
                     <div>Rentals: @row["Rentals"] of @totalRentals</div>
                 }
                 <div>Rate: @occupancyRate.ToString("P2")</div>
-                @if((bool)ViewData["IncludeAges"])
+                @if(useAges)
                 {
                     MonthTotalAdults += (int)row["Adults"];
                     MonthTotal4to11 += (int)row["Under12"];
@@ -229,7 +235,7 @@
         <div>Stay Nights Available: @MonthTotalAvailable</div>
         <div>Stay Nights Occupied: @MonthTotalOccupied</div>
         <div>Average Daily Occupancy: @AvgDailyOccupancyStr</div>
-        if((bool)ViewData["IncludeAges"])
+        if(useAges)
         {
             <div>Average Daily Occupants by Age: 12 and Older: <b>@((MonthTotalAdults/daysInMonth).ToString("n0"))</b>&nbsp;&nbsp;4 - 11: <b>@((MonthTotal4to11/daysInMonth).ToString("n0"))</b>&nbsp;&nbsp;Under 4: <b>@((MonthTotalU4/daysInMonth).ToString("n0"))</b></div>
         }
