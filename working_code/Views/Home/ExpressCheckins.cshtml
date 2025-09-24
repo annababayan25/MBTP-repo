@@ -9,7 +9,12 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var titleDate = ViewBag.reportDate != null ? ViewBag.reportDate.ToString("dddd, MMMM dd, yyyy"): "No Data Selected";
     var rptDay = ViewBag.reportDate != null ? ViewBag.reportDate.ToString("ddd"): "Any";
-    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    bool isPdf = false;
+    object? isPdfObj = ViewData["IsPdf"];
+    if(isPdfObj != null)
+    {
+        isPdf = (bool)isPdfObj;
+    }
     string rightnow = DateTime.Now.ToString("MM/dd/yyyy h:mm tt");
     var remVal = "1.0rem";
 }
