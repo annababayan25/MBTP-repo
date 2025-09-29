@@ -350,5 +350,9 @@ namespace MBTP.Services
             }
             return bookings;
         }
-     }
+
+    }
 }
+
+// everything first goes to deposits
+// if payment made today == arival date: deposits -> income

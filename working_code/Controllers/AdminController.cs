@@ -100,7 +100,7 @@ namespace MBTP.Controllers
             string endDate,
             string opts
         )
-   
+
         {
             string host = _httpContextAccessor.HttpContext.Request.Host.Value;
 
@@ -194,7 +194,7 @@ namespace MBTP.Controllers
             {
                 ViewBag.SelectedDay = selectedDay;
             }
-            
+
             ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
         }
@@ -363,32 +363,32 @@ namespace MBTP.Controllers
 
 
         [HttpPost]
-        public IActionResult AddBlackoutFromAlert([FromBody]AddBlackoutRequest req)
+        public IActionResult AddBlackoutFromAlert([FromBody] AddBlackoutRequest req)
         {
 
-                var start = req.TransDate.Date;
-                var end = req.TransDate.Date;
+            var start = req.TransDate.Date;
+            var end = req.TransDate.Date;
 
-                if (_blackoutService.HasOverlap(req.PCID, start, end))
-                {
-                    return Conflict(new { success = false, message = "A blackout already exists for this date." });
-                }
+            if (_blackoutService.HasOverlap(req.PCID, start, end))
+            {
+                return Conflict(new { success = false, message = "A blackout already exists for this date." });
+            }
 
-                var blackout = new BlackoutDate
-                {
-                    PCID = req.PCID,
-                    StartDate = start,
-                    EndDate = end,
-                    Reason = req.Reason
-                };
+            var blackout = new BlackoutDate
+            {
+                PCID = req.PCID,
+                StartDate = start,
+                EndDate = end,
+                Reason = req.Reason
+            };
 
             _blackoutService.InsertBlackoutDate(blackout);
 
-                return Ok(new { sucess = true, message = "Blackout added." });
+            return Ok(new { sucess = true, message = "Blackout added." });
         }
 
-        
 
-   
-        }
+
+
     }
+}

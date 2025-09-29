@@ -60,14 +60,14 @@ namespace MBTP.Models
         public string? CategoryName { get; set; }
         [JsonProperty("site_name")]
         public string? Site { get; set; }
-        public decimal? SecurityDeposits {get;set;}
-        public decimal? LockFee {get;set;}
-        public decimal? OnlineBookingFee {get;set;}
-        public decimal? RefundedAmount {get;set;}
-        public decimal? CancellationFee {get;set;}
+        public decimal? SecurityDeposits { get; set; }
+        public decimal? LockFee { get; set; }
+        public decimal? OnlineBookingFee { get; set; }
+        public decimal? RefundedAmount { get; set; }
+        public decimal? CancellationFee { get; set; }
         public decimal PaymentsAfterCheckIn { get; set; }
         public string PaymentsAfterCheckInDesc { get; set; }
-        
+
     }
 
 
@@ -104,7 +104,7 @@ namespace MBTP.Models
         public string? Description { get; set; }
 
         [JsonProperty("amount")]
-        public string? Amount { get; set; } 
+        public string? Amount { get; set; }
 
         [JsonProperty("tax_free")]
         public string? TaxFree { get; set; }
@@ -151,7 +151,7 @@ namespace MBTP.Models
         public string? Description { get; set; }
 
         [JsonProperty("generated_when")]
-        public DateTime? GeneratedWhen { get; set; } 
+        public DateTime? GeneratedWhen { get; set; }
     }
 
     public class Credit
@@ -232,8 +232,8 @@ namespace MBTP.Models
         public int? GlCategoryId { get; set; }
 
         [JsonProperty("gl_category_name")]
-        public string? GlCategoryName { get; set; }   
-        
+        public string? GlCategoryName { get; set; }
+
         public bool? IsBookingDeposit { get; set; }
 
         [JsonProperty("deposit")]
@@ -276,5 +276,5 @@ namespace MBTP.Models
         public DateTime? VoidedWhen { get; set; }
     }
 
-    
+}
 }

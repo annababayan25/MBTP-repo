@@ -28,7 +28,7 @@ namespace MBTP.Services
         {
             _dbConnectionService = dbConnectionService;
         }
-        
+
         // For CheckedIn table in DB 
         public async Task PopulateCheckIns(DateTime startDate, DateTime endDate)
         {
@@ -192,9 +192,9 @@ namespace MBTP.Services
                     : (checkedIn.Guests?.FirstOrDefault() is Guests g
                         ? $"{g.Firstname} {g.Lastname}".Trim()
                         : null);
-                   
+
                     // CalculatedStayCost logic 
-                    
+
                     decimal cleaningFee = checkedIn.Charges?
                         .Where(c => c.Description?.IndexOf("cleaning fee", StringComparison.OrdinalIgnoreCase) >= 0)
                         .Sum(c => c.Amount ?? 0) ?? 0;
@@ -203,10 +203,10 @@ namespace MBTP.Services
                     decimal cancellationFee = checkedIn.InventoryItems?
                     .Where(c => (c.Description?.Contains("cancellation", StringComparison.OrdinalIgnoreCase) ?? false))
                     .Sum(c => decimal.TryParse(c.Amount, out var amt) ? amt : 0) ?? 0;
-                    
+
                     checkedIn.CancellationFee = cancellationFee;
 
-                     // lock fee column
+                    // lock fee column
                     var lockFeeChargeIds = checkedIn.Charges?
                         .Where(c => !string.IsNullOrEmpty(c.Description) &&
                             (c.Description.Contains("lock fee", StringComparison.OrdinalIgnoreCase) ||
@@ -250,8 +250,8 @@ namespace MBTP.Services
                             (p.Description.Contains("deposit", StringComparison.OrdinalIgnoreCase) &&
                             !p.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase))
                         )
-                        && (checkedIn.BookingCheckedIn.HasValue 
-                        ? p.GeneratedWhen < checkedIn.BookingCheckedIn.Value: true))
+                        && (checkedIn.BookingCheckedIn.HasValue
+                        ? p.GeneratedWhen < checkedIn.BookingCheckedIn.Value : true))
                         .Sum(p => p.Amount ?? 0) ?? 0;
 
                     // security deposit column
@@ -260,7 +260,7 @@ namespace MBTP.Services
                             p.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase))
                         .Sum(p => p.Amount ?? 0) ?? 0;
 
-                    decimal totalChargesSecDep= checkedIn.Charges?
+                    decimal totalChargesSecDep = checkedIn.Charges?
                     .Where(p => !string.IsNullOrEmpty(p.Description) &&
                             p.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase))
                         .Sum(p => p.Amount ?? 0) ?? 0;
@@ -283,17 +283,18 @@ namespace MBTP.Services
                     decimal baseStayCost = checkedIn.TariffsQuoted?.Sum(t => t.CalculatedAmount) ?? 0;
                     decimal discounts = checkedIn.Credits?.Where(c => c.VoidedWhen == null).Sum(c => c.Amount ?? 0) ?? 0;
 
-                    if (discounts == 0) 
+                    if (discounts == 0)
                     {
                         decimal taxTotal = checkedIn.TariffsQuoted?.Sum(t => t.Taxes?.Sum(tx => tx.TaxAmount ?? 0) ?? 0) ?? 0;
-                        checkedIn.CalculatedStayCost = baseStayCost + taxTotal + cleaningFee;                      }
-                    else 
+                        checkedIn.CalculatedStayCost = baseStayCost + taxTotal + cleaningFee;
+                    }
+                    else
                     {
                         decimal baseTotalAfterDiscount = baseStayCost - discounts;
                         decimal baseTaxRate = checkedIn.TariffsQuoted?.Sum(t => t.Taxes?.Sum(tx => tx.TaxAmount ?? 0) ?? 0) ?? 0;
                         decimal taxRateAfterCredit = checkedIn.Credits?.Where(c => c.VoidedWhen == null).Sum(t => t.Taxes?.Sum(tx => tx.TaxAmount ?? 0) ?? 0) ?? 0;
                         decimal effectiveTaxRate = baseTaxRate - taxRateAfterCredit;
-                        checkedIn.CalculatedStayCost = baseTotalAfterDiscount + effectiveTaxRate + cleaningFee;  
+                        checkedIn.CalculatedStayCost = baseTotalAfterDiscount + effectiveTaxRate + cleaningFee;
                     }
 
 
@@ -371,7 +372,7 @@ namespace MBTP.Services
                         File.WriteAllText(filePath, contentFile + Environment.NewLine); 
                     }
                     */
-                    
+
                     // Final total
                     checkedInList.Add(checkedIn);
 
@@ -380,5 +381,5 @@ namespace MBTP.Services
             return checkedInList;
         }
 
-     }
+    }
 }
