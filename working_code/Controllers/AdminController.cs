@@ -28,8 +28,8 @@ using MBTP.Logins;
 using FinancialC_;
 using GenericSupport;
 using System.Runtime.CompilerServices;
-using System;
-using Spire.Xls;
+
+
 
 namespace MBTP.Controllers
 {
@@ -45,7 +45,8 @@ namespace MBTP.Controllers
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
         private readonly BlackoutService _blackoutService;
-        private readonly TransactionFlowAPI _transactionFlowAPI;
+        private readonly CheckedInApi _checkedInApi;
+        private readonly DailyReport _dailyReport;
 
         public AdminController(
             ILogger<HomeController> logger,
@@ -54,24 +55,34 @@ namespace MBTP.Controllers
             ICompositeViewEngine viewEngine,
             AccessLevelsActions accessLevelsActions,
             BookingAPI bookingAPI,
-            TransactionFlowAPI transactionFlowAPI,
             IHttpContextAccessor httpContextAccessor,
             AdministrationService adminActions,
             RetailService retailService,
-            BlackoutService blackoutService
+            BlackoutService blackoutService,
+            CheckedInApi checkedInApi,
+            DailyReport dailyReport
         )
+
         {
             _viewEngine = viewEngine;
             _configuration = configuration;
             _dbConnectionService = dbConnectionService;
             _accessLevelsActions = accessLevelsActions;
             _bookingAPI = bookingAPI;
-            _transactionFlowAPI = transactionFlowAPI;
             _httpContextAccessor = httpContextAccessor;
             _adminActions = adminActions;
             _retailService = retailService;
             _blackoutService = blackoutService;
+            _checkedInApi = checkedInApi;
+            _dailyReport = dailyReport;
         }
+
+        [Authorize]
+        public IActionResult Reports()
+        {
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();
@@ -87,6 +98,7 @@ namespace MBTP.Controllers
             string endDate,
             string opts
         )
+
         {
             string host = _httpContextAccessor.HttpContext.Request.Host.Value;
 
@@ -163,37 +175,28 @@ namespace MBTP.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> PopulateCheckIns(DateTime? month)
-        {
-            var selectedMonth = month ?? DateTime.Today;
-            ViewBag.SelectedMonth = selectedMonth;
-            var periodFrom = new DateTime(selectedMonth.Year, selectedMonth.Month, 1);
-            var periodTo = periodFrom.AddMonths(1);
-            if (month is not null)
-            {
-                await _bookingAPI.PopulateCheckIns(periodFrom, periodTo);
-            }
-            return View();
-        }
-        [Authorize]
-        public async Task<IActionResult> PopulateTransactions(DateTime? day)
+        public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
             var selectedDay = day ?? DateTime.Today;
-            ViewBag.SelectedDay = selectedDay;
+            await _checkedInApi.PopulateCheckIns(selectedDay, selectedDay.AddDays(1));
+            var reportData = await _dailyReport.RetrieveCheckedInReport(selectedDay, selectedDay.AddDays(1));
 
-            // One full day range
-            var periodFrom = selectedDay.Date; // midnight
-            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
-
-            if (day is not null)
+            if (reportData == null || reportData.Tables.Count == 0 || reportData.Tables[0].Rows.Count == 0)
             {
-                await _transactionFlowAPI.PopulateTransactions(periodFrom, periodTo);
+                var yesterday = DateTime.Today.AddDays(-1);
+                await _checkedInApi.PopulateCheckIns(yesterday, yesterday.AddDays(1));
+                reportData = await _dailyReport.RetrieveCheckedInReport(yesterday, yesterday.AddDays(1));
+                ViewBag.SelectedDay = yesterday;
+            }
+            else
+            {
+                ViewBag.SelectedDay = selectedDay;
             }
 
-            return View();
+            ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
+            return View(reportData);
         }
 
-        
         [HttpPost]
         public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
         {
@@ -364,29 +367,32 @@ namespace MBTP.Controllers
 
 
         [HttpPost]
-        public IActionResult AddBlackoutFromAlert([FromBody]AddBlackoutRequest req)
+        public IActionResult AddBlackoutFromAlert([FromBody] AddBlackoutRequest req)
         {
 
-                var start = req.TransDate.Date;
-                var end = req.TransDate.Date;
+            var start = req.TransDate.Date;
+            var end = req.TransDate.Date;
 
-                if (_blackoutService.HasOverlap(req.PCID, start, end))
-                {
-                    return Conflict(new { success = false, message = "A blackout already exists for this date." });
-                }
+            if (_blackoutService.HasOverlap(req.PCID, start, end))
+            {
+                return Conflict(new { success = false, message = "A blackout already exists for this date." });
+            }
 
-                var blackout = new BlackoutDate
-                {
-                    PCID = req.PCID,
-                    StartDate = start,
-                    EndDate = end,
-                    Reason = req.Reason
-                };
+            var blackout = new BlackoutDate
+            {
+                PCID = req.PCID,
+                StartDate = start,
+                EndDate = end,
+                Reason = req.Reason
+            };
 
             _blackoutService.InsertBlackoutDate(blackout);
 
-                return Ok(new { sucess = true, message = "Blackout added." });
+            return Ok(new { sucess = true, message = "Blackout added." });
         }
-    }
 
+
+
+
+    }
 }
