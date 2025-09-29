@@ -1,0 +1,21 @@
+{
+  "item_id": "351825",
+  "item_type": "payments_linked",
+  "item_description": "Payment #351825 Allocated to Charge #1085342",
+  "item_date": "2025-09-28 11:05:30",
+  "gl_account_id": 46,
+  "gl_account_code": "362",
+  "gl_account_description": "Golf Cart Rentals",
+  "reconciled_id": "1085342",
+  "reconciled_type": "charge",
+  "payment_type": "amex",
+  "payment_type_reference": "",
+  "payment_transaction_method": "cc_gateway",
+  "reconciled_amount": "-39.28",
+  "reconciled_tax": "0.00",
+  "account_id": "489889",
+  "account_for": "bookings",
+  "account_for_id": "372898",
+  "account_for_name": "Marji Milligan     M499",
+  "booking_id": "372898"
+}

@@ -4,9 +4,6 @@ namespace MBTP.Models
 {
     public class TransactionFlow
     {
-        [JsonProperty("gl_account_id")]
-        public int? GLAccount {get;set;}
-
         [JsonProperty("item_id")]
         public string ItemId { get; set; }
 
@@ -51,12 +48,5 @@ namespace MBTP.Models
         [JsonProperty("booking_period_to")]
         public string? DepartureDate { get; set; }
 
-        // for deposits testing 
-        [JsonProperty("deposit")]
-        public string? Deposit { get; set; }
-
-
-        [JsonProperty("account_for_id")]
-        public string? AccountForId {get;set;}
     }
 }
