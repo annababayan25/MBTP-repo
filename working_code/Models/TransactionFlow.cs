@@ -48,8 +48,5 @@ namespace MBTP.Models
         [JsonProperty("booking_period_to")]
         public string? DepartureDate { get; set; }
 
-        // for deposits testing 
-        [JsonProperty("deposit")]
-        public string? Deposit { get; set; }
     }
 }

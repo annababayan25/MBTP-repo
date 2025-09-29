@@ -14,7 +14,7 @@ using System.Globalization;
 
 namespace MBTP.Services
 {
-    public class TransactionFlowAPI
+    public class TransactionFlowApi
     {
         private readonly string apiUrl = "https://api.newbook.cloud/rest/reports_transaction_flow";
         private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
@@ -22,7 +22,7 @@ namespace MBTP.Services
         private readonly string username = "myrtle_beach";
         private readonly string password = "Gemb$np(QqEnB9V3";
         private readonly IDatabaseConnectionService _dbConnectionService;
-        public TransactionFlowAPI(IDatabaseConnectionService dbConnectionService)
+        public TransactionFlowApi(IDatabaseConnectionService dbConnectionService)
         {
             _dbConnectionService = dbConnectionService;
         }
@@ -165,7 +165,6 @@ namespace MBTP.Services
                     Amount = item.amount,
                     ArrivalDate = item.booking_period_from,
                     DepartureDate = item.booking_period_to,
-                    Deposit = item.deposit
                 };
 
                 if (item.item_type == "payments_raised")
