@@ -31,6 +31,7 @@ using System.Runtime.CompilerServices;
 using System;
 using Spire.Xls;
 
+
 namespace MBTP.Controllers
 {
 
@@ -45,6 +46,8 @@ namespace MBTP.Controllers
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
         private readonly BlackoutService _blackoutService;
+        private readonly CheckedInApi _checkedInApi;
+        private readonly DailyReport _dailyReport;
 
         public AdminController(
             ILogger<HomeController> logger,
@@ -56,8 +59,11 @@ namespace MBTP.Controllers
             IHttpContextAccessor httpContextAccessor,
             AdministrationService adminActions,
             RetailService retailService,
-            BlackoutService blackoutService
+            BlackoutService blackoutService,
+            CheckedInApi checkedInApi,
+            DailyReport dailyReport
         )
+
         {
             _viewEngine = viewEngine;
             _configuration = configuration;
@@ -68,7 +74,16 @@ namespace MBTP.Controllers
             _adminActions = adminActions;
             _retailService = retailService;
             _blackoutService = blackoutService;
+            _checkedInApi = checkedInApi;
+            _dailyReport = dailyReport;
         }
+
+        [Authorize]
+        public IActionResult Reports()
+        {
+            return View();
+        }
+
         public IActionResult Privacy()
         {
             return View();
@@ -85,6 +100,7 @@ namespace MBTP.Controllers
             string endDate,
             string opts
         )
+   
         {
             string host = _httpContextAccessor.HttpContext.Request.Host.Value;
 
@@ -164,16 +180,25 @@ namespace MBTP.Controllers
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
             var selectedDay = day ?? DateTime.Today;
-            ViewBag.SelectedDay = selectedDay;
-            var periodFrom = selectedDay.Date; 
-            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1);
-            if (day is not null)
+            await _checkedInApi.PopulateCheckIns(selectedDay, selectedDay.AddDays(1));
+            var reportData = await _dailyReport.RetrieveCheckedInReport(selectedDay, selectedDay.AddDays(1));
+
+            if (reportData == null || reportData.Tables.Count == 0 || reportData.Tables[0].Rows.Count == 0)
             {
-                await _bookingAPI.PopulateCheckIns(periodFrom, periodTo);
+                var yesterday = DateTime.Today.AddDays(-1);
+                await _checkedInApi.PopulateCheckIns(yesterday, yesterday.AddDays(1));
+                reportData = await _dailyReport.RetrieveCheckedInReport(yesterday, yesterday.AddDays(1));
+                ViewBag.SelectedDay = yesterday;
             }
-            return View();
+            else
+            {
+                ViewBag.SelectedDay = selectedDay;
+            }
+            
+            ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
+            return View(reportData);
         }
-        
+
         [HttpPost]
         public async Task<string> AddNewUser(string unameIn, string pwdIn, int accIDIn)
         {
@@ -361,6 +386,9 @@ namespace MBTP.Controllers
 
                 return Ok(new { sucess = true, message = "Blackout added." });
         }
-    }
 
-}
+        
+
+   
+        }
+    }
