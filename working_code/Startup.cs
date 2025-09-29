@@ -25,6 +25,8 @@ namespace MBTP
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<TransactionFlowApi>();
+            services.AddScoped<ReconApi>();
             services.AddScoped<CheckedInApi>();
             services.AddScoped<InventoryApi>();
             services.AddSingleton<IDatabaseConnectionService, DatabaseConnectionService>();

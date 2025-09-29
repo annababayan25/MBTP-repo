@@ -40,13 +40,17 @@ namespace MBTP.Controllers
         private readonly IConfiguration _configuration;
         private readonly IDatabaseConnectionService _dbConnectionService;
         private readonly AccessLevelsActions _accessLevelsActions;
-        private readonly BookingAPI _bookingAPI;
+        
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
         private readonly BlackoutService _blackoutService;
+        private readonly BookingAPI _bookingAPI;
         private readonly CheckedInApi _checkedInApi;
+        private readonly ReconApi _reconApi;
+        private readonly TransactionFlowApi _transactionFlowApi;
         private readonly DailyReport _dailyReport;
+
 
         public AdminController(
             ILogger<HomeController> logger,
@@ -60,7 +64,9 @@ namespace MBTP.Controllers
             RetailService retailService,
             BlackoutService blackoutService,
             CheckedInApi checkedInApi,
-            DailyReport dailyReport
+            DailyReport dailyReport,
+            ReconApi reconApi,
+            TransactionFlowApi transactionFlowApi
         )
 
         {
@@ -75,6 +81,8 @@ namespace MBTP.Controllers
             _blackoutService = blackoutService;
             _checkedInApi = checkedInApi;
             _dailyReport = dailyReport;
+            _reconApi = reconApi;
+            _transactionFlowApi = transactionFlowApi;
         }
 
         [Authorize]
@@ -195,6 +203,24 @@ namespace MBTP.Controllers
 
             ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateRecons(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+
+            // One full day range
+            var periodFrom = selectedDay.Date; // midnight
+            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
+
+            if (day is not null)
+            {
+                await _reconApi.PopulateRecons(periodFrom, periodTo);
+            }
+
+            return View();
         }
 
         [HttpPost]
