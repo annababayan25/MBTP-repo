@@ -1,42 +1,39 @@
-@using System.Text
+@using System.Data
+@model DataSet
 
 @{
     ViewData["Title"] = "Populate Check Ins";
     var SelectedDay = ViewBag.SelectedDay as DateTime?;
+    var titleDate = SelectedDay.HasValue
+        ? SelectedDay.Value.ToString("dddd, MMMM dd, yyyy")
+        : "No Data Selected";
+
+    int checkInCount = 0;
+    if (Model != null && Model.Tables.Count > 0)
+    {
+        checkInCount = Model.Tables[0].Rows.Count;
+    }
 }
+
+
+<link rel="stylesheet" href="~/css/reports.css" />
 
 <!DOCTYPE html>
 <html lang="en">
+
+<h2 style="text-align: center;">
+    Daily Checked In Report for @titleDate
+    @if (checkInCount > 0)
+    {
+        <p style="text-align: centered;">(Total Checked In: @checkInCount)</p>
+    }
+</h2>
+
 <head>
     <meta charset="UTF-8">
     <title>Daily Checked In Report</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .spinner {
-            font-size: 3rem;
-        }
-        .label-input-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-    </style>
 </head>
 <body>
 
@@ -44,21 +41,125 @@
     <i class="fas fa-spinner fa-spin spinner"></i>
 </div>
 
-<h1>Populate Check Ins</h1>
 
 <form method="get" asp-action="PopulateCheckedIn">
     <div class="navigation-container">
         <div class="label-input-container">
-            <label for="dayPicker">Select Day:</label>
+            <label style="padding-left: 22px; font-weight: 500" for="dayPicker">Select Day:</label>
             <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
         </div>
-        <button type="submit" style="display: none;"></button>
     </div>
 </form>
+
 
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
     <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
+}
+
+@if (Model != null && Model.Tables.Count > 0 && Model.Tables[0].Rows.Count > 0)
+{
+    <div class="tables-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Booking Name</th>
+                        <th>Site</th>
+                        <th>Status</th>
+                        <th>Booking Arrival</th>
+                        <th>Booking Departure</th>
+                        <th>Calculated Stay Cost</th>
+                        <th>Deposits Held</th>
+                        <th>Security Deposits</th>
+                        <th>Lock Fee</th>
+                        <th>Online Booking Fee</th>
+                        <th>Payments Made After Check-In</th>
+                        <th>Refunds</th>
+                        <th>Cancellation Fee</th>
+                        <th>Car Plate</th>
+                        <th>Car Plate Extras</th>
+                        <th>Account Balance</th>
+                        <th>Booking Checked-In</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (DataRow row in Model.Tables[0].AsEnumerable()
+                .OrderByDescending(r => r.Field<DateTime?>("BookingCheckedIn")))
+                {
+                    <tr>
+                        <td>@row["BookingId"]</td>
+                        <td>@row["BookingName"]</td>
+                        <td>@row["Site"]</td>
+                        <td>@row["BookingStatus"]</td>
+                        <td>
+                            @(row["BookingArrival"] != DBNull.Value
+                                ? String.Format("{0:MM/dd/yyyy}", row["BookingArrival"])
+                                : "-")
+                        </td>
+                        <td>
+                            @(row["BookingDeparture"] != DBNull.Value
+                                ? String.Format("{0:MM/dd/yyyy}", row["BookingDeparture"])
+                                : "-")
+                        </td>
+                        <td class="amount">
+                            @(row["CalculatedStayCost"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["CalculatedStayCost"])
+                                : "-")
+                        </td>
+                        <td class="amount">
+                            @(row["DepositsHeld"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["DepositsHeld"])
+                                : "-")
+                        </td>
+                        <td class="amount">
+                            @(row["SecurityDeposits"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["SecurityDeposits"])
+                                : "-")
+                        </td>
+                        <td class="amount">
+                            @(row["LockFee"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["LockFee"])
+                                : "-")
+                        </td>
+                        <td class="amount">
+                            @(row["OnlineBookingFee"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["OnlineBookingFee"])
+                                : "-")
+                        </td>
+                        <td class="amount">
+                            @(row["PaymentsAfterCheckIn"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["PaymentsAfterCheckIn"])
+                                : "-")
+                        </td>
+                        <td class="amount">
+                            @(row["Refunds"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["Refunds"])
+                                : "-")
+                        </td>
+                        <td class="amount">
+                            @(row["CancellationFee"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["CancellationFee"])
+                                : "-")
+                        </td>
+                        <td>@row["CarLicensePlate"]</td>
+                        <td>@row["CarLicensePlateExtra"]</td>
+                        <td class="amount">
+                            @(row["AccountBalance"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["AccountBalance"])
+                                : "-")
+                        </td>
+                        <td>
+                            @(row["BookingCheckedIn"] != DBNull.Value
+                                ? String.Format("{0:MM/dd/yyyy hh:mm tt}", row["BookingCheckedIn"])
+                                : "-")
+                        </td>
+                </tr>
+
+                }
+                </tbody>
+            </table>
+        </div>
 }
 
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
@@ -67,27 +168,25 @@
 document.addEventListener("DOMContentLoaded", function() {
     const loadingOverlay = document.getElementById('loadingOverlay');
 
-    // Show loading overlay when form is submitted
     document.querySelector('form').addEventListener('submit', function() {
         sessionStorage.setItem('loading', 'true');
         loadingOverlay.style.display = 'flex';
     });
 
-    // Set up the date picker with Flatpickr (day picker)
     flatpickr("#dayPicker", {
         dateFormat: "Y-m-d",
         maxDate: "today",
         defaultDate: "@SelectedDay?.ToString("yyyy-MM-dd")",
         onChange: function(selectedDates, dateStr, instance) {
             var newUrl = new URL(window.location.href);
-            newUrl.searchParams.set("day", dateStr); // 👈 Use day instead of month
+            newUrl.searchParams.set("day", dateStr);
             sessionStorage.setItem('loading', 'true');
             loadingOverlay.style.display = 'flex';
             window.location.href = newUrl.toString();
         }
     });
+    
 
-    // Hide loading overlay when content is fully loaded
     window.addEventListener('load', function() {
         loadingOverlay.style.display = 'none';
         sessionStorage.removeItem('loading');
@@ -96,7 +195,10 @@ document.addEventListener("DOMContentLoaded", function() {
     if (sessionStorage.getItem('loading') === 'true') {
         loadingOverlay.style.display = 'flex';
     }
-});
+    
+    });
+
+
 </script>
 
 </body>

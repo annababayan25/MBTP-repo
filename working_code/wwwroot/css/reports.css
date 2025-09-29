@@ -1,0 +1,108 @@
+.loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 600;
+    backdrop-filter: blur(2px);
+}
+
+.spinner {
+    font-size: 3rem;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.label-input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    font-family: "Garamond", serif;
+    font-weight: 500;
+}
+
+.tables-wrapper {
+    margin: 40px auto;
+    padding: 0 20px;
+    width: 90vw;
+    max-height: 75vh;
+    overflow: auto;
+    box-sizing: border-box;
+    background: #fafafa;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.tables-wrapper table {
+    min-width: 1500px;
+    width: max-content;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    background: #fff;
+
+}
+
+table {
+    table-layout: fixed;
+    width: max-content;
+    font-family: "Garamond", serif;
+    font-weight: 500;
+
+}
+
+th:nth-child(12),
+td:nth-child(12) {
+    width: 120px;
+    font-family: "Garamond", serif;
+    font-weight: 500;
+}
+
+table th,
+table td {
+    border: 1px solid #000;
+    text-align: center;
+    padding: 12px 6px;
+    word-wrap: break-word;
+    background: #fff;
+    font-family: "Garamond", serif;
+    font-weight: 500;
+}
+
+thead th {
+    background-color: #808080;
+    color: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 9;
+    border-top: none;
+    border-spacing: 0;
+    margin: 0;
+    border-collapse: collapse;
+    font-family: "Garamond", serif;
+    font-weight: 500;
+}
+
+td.amount {
+    text-align: center !important;
+    font-variant-numeric: tabular-nums;
+    font-family: "Garamond", serif;
+    font-weight: 500;
+}
+
+tbody tr:nth-child(even) td {
+    background-color: #f9f9f9;
+    font-family: "Garamond", serif;
+    font-weight: 500;
+}
+
