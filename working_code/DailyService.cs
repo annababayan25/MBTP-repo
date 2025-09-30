@@ -130,7 +130,7 @@ namespace MBTP.Services
         public class BookingsResponseP
         {
             [JsonProperty("data")]
-            public List<BookingP> Data { get; set; }
+            public List<BookingP>? Data { get; set; }
         }
 
         public class BookingP
@@ -142,7 +142,7 @@ namespace MBTP.Services
         public class BookingsResponseC
         {
             [JsonProperty("data")]
-            public List<BookingC> Data { get; set; }
+            public List<BookingC>? Data { get; set; }
         }
 
         public class BookingC

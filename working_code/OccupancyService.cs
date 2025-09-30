@@ -17,8 +17,6 @@ namespace MBTP.Services
 
         public async Task<DataSet> GetOccupancyReportAsync(DateTime month)
         {
-            DataSet occupancyDataSet = new DataSet();
-
             try
             {
                 Console.WriteLine("Starting GetOccupancyReportAsync method.");
@@ -26,18 +24,23 @@ namespace MBTP.Services
                 var periodFrom = new DateTime(month.Year, month.Month, 1);
                 var periodTo = new DateTime(month.Year, month.Month, DateTime.DaysInMonth(month.Year, month.Month), 23, 59, 59);
 
-                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDailyOccupancy", sqlConn))
+                DataSet occupancyDataSet = await Task.Run(() =>
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.Add("@startDate", SqlDbType.Date).Value = periodFrom;
-                    cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = periodTo;
+                    DataSet ds = new DataSet();
+                    using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDailyOccupancy", sqlConn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add("@startDate", SqlDbType.Date).Value = periodFrom;
+                        cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = periodTo;
 
-                    SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(cmd);
-                    sqlConn.Open();
-                    sqlDataAdapter.Fill(occupancyDataSet);
-                    sqlConn.Close();
-                }
+                        SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(cmd);
+                        sqlConn.Open();
+                        sqlDataAdapter.Fill(ds);
+                        sqlConn.Close();
+                    }
+                    return ds;
+                });
 
                 return occupancyDataSet;
             }
