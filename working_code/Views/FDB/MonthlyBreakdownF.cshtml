@@ -48,6 +48,7 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
+<div class="table-responsive">
 <table id="monthly-table" class="breakdown clickable-tableF" style="width:240px">
    <tr>
        <th class="breakdownBigTitle" colspan="28">Front Office</th>
@@ -230,6 +231,7 @@
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevenue1)</td>
    </tr>
 </table>
+</div>
 }
 </body>
 

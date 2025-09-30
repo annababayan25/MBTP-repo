@@ -87,6 +87,7 @@
 <body>
     @if (Model is not null && Model.Tables[0].Rows.Count > 0)
     {
+        <div class="table-responsive">
         <table id="daily-table" class="breakdown clickable-tableM"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownM" style="width:240px">
             <tr>
                 @if(accID == "4")
@@ -559,6 +560,7 @@
             }
         }
         </table>
+        </div>
     }
 </body>
 

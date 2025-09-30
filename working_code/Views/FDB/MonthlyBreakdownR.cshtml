@@ -37,8 +37,9 @@
 </div>
 
 <body>
-   @if (Model is not null && Model.Tables[0].Rows.Count > 0)
-            {
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+<div class="table-responsive">
 <table id="monthly-table" class="breakdown clickable-tableR" style="width:240px">
     <tr>
         <th class="breakdownMonth" rowspan="4"><br><br>Month</th>
@@ -165,7 +166,9 @@
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange4)</td>
 </tr>
 
-</table>}
+</table>
+</div>
+}
 </body>
 
 <script>
