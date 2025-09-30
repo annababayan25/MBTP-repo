@@ -221,7 +221,7 @@ input:checked + .slider:before {
                     @if (!isPdf)
                     {
                         <ul class="navbar-nav ms-auto">
-                            @if (User.Identity != null && !User.Identity.IsAuthenticated)
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Sign out</a>
