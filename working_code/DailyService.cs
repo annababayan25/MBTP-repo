@@ -39,13 +39,18 @@ namespace MBTP.Services
                     Console.WriteLine("Placed Data retrieved successfully from API.");
                     var bookingsResponse = JsonConvert.DeserializeObject<BookingsResponseP>(jsonResponse);
                     Console.WriteLine($"Total items in API response: {bookingsResponse?.Data?.Count}");
-                    var PlacedBookingsByDay = bookingsResponse.Data
-                        .GroupBy(b => b.BookingPlaced.Date)
-                        .ToDictionary(g => g.Key, g => g.Count());
-                    List<DailyBookingP> DailyPlacedList = new List<DailyBookingP>(PlacedBookingsByDay.Keys.Count);
-                    foreach (var item in PlacedBookingsByDay)
+                    var PlacedBookingsByDay = new Dictionary<DateTime, int>();
+                    List<DailyBookingP> DailyPlacedList = new List<DailyBookingP>();
+                    if (bookingsResponse != null && bookingsResponse.Data != null)
                     {
-                        DailyPlacedList.Add(new DailyBookingP { Day = item.Key, Placed = item.Value });
+                        PlacedBookingsByDay = bookingsResponse.Data
+                            .GroupBy(b => b.BookingPlaced.Date)
+                            .ToDictionary(g => g.Key, g => g.Count());
+                        DailyPlacedList = new List<DailyBookingP>(PlacedBookingsByDay.Keys.Count);
+                        foreach (var item in PlacedBookingsByDay)
+                        {
+                            DailyPlacedList.Add(new DailyBookingP { Day = item.Key, Placed = item.Value });
+                        }
                     }
 
                     request = new
@@ -65,13 +70,18 @@ namespace MBTP.Services
                         Console.WriteLine("Cancelled Data retrieved successfully from API.");
                         var bookingsResponse2 = JsonConvert.DeserializeObject<BookingsResponseC>(jsonResponse);
                         Console.WriteLine($"Total items in API response: {bookingsResponse2?.Data?.Count}");
-                        var CancelledBookingsByDay = bookingsResponse2.Data
-                            .GroupBy(b2 => b2.BookingCancelled.Date)
-                            .ToDictionary(g => g.Key, g => g.Count());
-                        List<DailyBookingC> DailyCancelledList = new List<DailyBookingC>(CancelledBookingsByDay.Keys.Count);
-                        foreach (var item in CancelledBookingsByDay)
+                        var CancelledBookingsByDay = new Dictionary<DateTime, int>();
+                        List<DailyBookingC> DailyCancelledList = new List<DailyBookingC>();
+                        if (bookingsResponse2 != null && bookingsResponse2.Data != null)
                         {
-                            DailyCancelledList.Add(new DailyBookingC { Day = item.Key, Cancelled = item.Value });
+                            CancelledBookingsByDay = bookingsResponse2.Data
+                                .GroupBy(b2 => b2.BookingCancelled.Date)
+                                .ToDictionary(g => g.Key, g => g.Count());
+                            DailyCancelledList = new List<DailyBookingC>(CancelledBookingsByDay.Keys.Count);
+                            foreach (var item in CancelledBookingsByDay)
+                            {
+                                DailyCancelledList.Add(new DailyBookingC { Day = item.Key, Cancelled = item.Value });
+                            }
                         }
                         return new DailyBookingReport
                             {

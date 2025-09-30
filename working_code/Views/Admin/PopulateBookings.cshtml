@@ -2,9 +2,19 @@
 
 @{
     ViewData["Title"] = "Populate Bookings";
-    var selectedMonth = ViewBag.SelectedMonth as DateTime?;
-    var daysInMonth = DateTime.DaysInMonth(selectedMonth.Value.Year, selectedMonth.Value.Month);
-    var firstDayOfMonth = new DateTime(selectedMonth.Value.Year, selectedMonth.Value.Month, 1).DayOfWeek;
+    var selectedMonthObj = ViewBag.SelectedMonth;
+    DateTime selectedMonth;
+    if (selectedMonthObj == null || !(selectedMonthObj is DateTime))
+    {
+        ViewBag.ErrorMessage = "Invalid month format. Please select a valid month.";
+        selectedMonth = DateTime.Now; // Default to current month if invalid
+    }
+    else
+    {
+        selectedMonth = (DateTime)selectedMonthObj;
+    }
+    int daysInMonth = DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month);
+    DayOfWeek firstDayOfMonth = new DateTime(selectedMonth.Year, selectedMonth.Month, 1).DayOfWeek;
 }
 
 <!DOCTYPE html>
@@ -85,7 +95,7 @@
     <div class="navigation-container">
         <div class="label-input-container">
             <label for="monthPicker">Select Month:</label>
-            <input type="text" id="monthPicker" name="month" value="@selectedMonth?.ToString("yyyy-MM-dd")">
+            <input type="text" id="monthPicker" name="month" value="@selectedMonth.ToString("yyyy-MM-dd")">
         </div>
         <button type="submit" style="display: none;"></button>
     </div>
@@ -113,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function() {
     flatpickr("#monthPicker", {
         dateFormat: "Y-m",
         maxDate: "today",
-        defaultDate: "@selectedMonth?.ToString("yyyy-MM-dd")",
+        defaultDate: "@selectedMonth.ToString("yyyy-MM-dd")",
         onChange: function(selectedDates, dateStr, instance) {
             var selectedDate = new Date(selectedDates[0]);
             var month = selectedDate.getMonth() + 1; // Months are zero-indexed

@@ -1,7 +1,7 @@
 @{
    ViewData["Title"] = "Login";
    var returnUrl = ViewData["ReturnUrl"] as string;
-   bool isAuthenticated = User.Identity.IsAuthenticated;
+   bool isAuthenticated = User.Identity != null && User.Identity.IsAuthenticated;
 }
 
 
@@ -112,7 +112,7 @@
    {
        <div class="center">
            <i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>
-           <h2 class="signOUT">Are you sure you want to log out, @User.Identity.Name?</h2>
+           <h2 class="signOUT">Are you sure you want to log out, @(User.Identity?.Name ?? "User")?</h2>
            <form method="post" action="/Home/Logout">
                <button class="pdfButton" type="submit">Sign Out</button>
            </form>
