@@ -37,6 +37,7 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
+<div class="table-responsive">
     <table id="monthly-table" class="breakdown clickable-tableM" style="width:240px">
         <tr>
             @if(accID == "4")
@@ -209,6 +210,7 @@
             <td class="breakdownTotals2">@String.Format("{0:F2}", totalTotals)</td>     
         </tr>
     </table>
+    </div>
 }
 </body>
 
