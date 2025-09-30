@@ -98,6 +98,7 @@
 <body>
 @if (Model is not null && Model!.Tables[0].Rows.Count > 0)
 {
+<div class="table-responsive">
 <table id="daily-table" class="breakdown clickable-tableR"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownR" style="width:240px">
     <tr>
         <th class="breakdownMonth" rowspan="4"><br><br>Day</th>
@@ -442,6 +443,7 @@
         </tr>
     }
 </table>
+</div>
 }
 </body>
 
