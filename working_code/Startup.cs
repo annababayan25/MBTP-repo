@@ -9,6 +9,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using MBTP.Retrieval;
 using SQLStuff;
 using MBTP.Interfaces;
+using IronPdf;
+
 
 namespace MBTP
 {
@@ -23,7 +25,10 @@ namespace MBTP
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<TransactionFlowAPI>();
+            services.AddScoped<TransactionFlowApi>();
+            services.AddScoped<ReconApi>();
+            services.AddScoped<CheckedInApi>();
+            services.AddScoped<InventoryApi>();
             services.AddSingleton<IDatabaseConnectionService, DatabaseConnectionService>();
             services.AddHttpContextAccessor();
             services.AddSingleton<DailyService>();
@@ -65,6 +70,7 @@ namespace MBTP
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+        
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
