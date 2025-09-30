@@ -164,7 +164,15 @@
                                 </tr>
                             }
                         </thead>
-                        @if (Model is not null && Model.Tables["APStatus"].Rows.Count > 0 && onlineCount < Model.Tables["APStatus"].Rows.Count)
+                        @{
+                            int apStatusRowsCount = 0;
+                            var apStatusTable = Model?.Tables["APStatus"];
+                            if(apStatusTable != null)
+                            {
+                                apStatusRowsCount = apStatusTable.Rows.Count;
+                            }
+                        }
+                        @if (Model is not null && Model.Tables["APStatus"] != null && apStatusRowsCount > 0 && onlineCount < apStatusRowsCount)
                         {
                             <tr>
                                 <td class="dashboardTableHeader" style="background-color: #FF746C; border-top: double;" colspan="3">Access Points Not Connected</td>
