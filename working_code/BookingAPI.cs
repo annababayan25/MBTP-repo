@@ -136,7 +136,11 @@ namespace MBTP.Services
             }
 
             var bookings = new List<Booking>();
-            foreach (var item in result.data)
+                if(result != null)
+                {
+                    if (result.data != null)
+                    {
+                        foreach (var item in result.data)
             {
                 var booking = new Booking
                 {
@@ -177,6 +181,8 @@ namespace MBTP.Services
                     Console.WriteLine("Booking ID " + booking.BookingID + " not added");
                 }
             }
+                    }
+                }   
             return bookings;
         }
         private async Task<List<Booking>> FetchAllBookingsAsync(DateTime startDate, DateTime endDate)
@@ -251,100 +257,105 @@ namespace MBTP.Services
                     return new List<Booking>();
                 }
 
-
-                foreach (var item in result.data)
+                if(result != null)
                 {
-
-                    var booking = new Booking
+                    if (result.data != null)
                     {
-                        BookingID = item.booking_id,
-                        SiteName = item.site_name,
-                        BookingArrival = item.booking_arrival,
-                        BookingDeparture = item.booking_departure,
-                        BookingStatus = item.booking_status,
-                        BookingAdults = item.booking_adults,
-                        BookingChildren = item.booking_children,
-                        BookingInfants = item.booking_infants,
-                        BookingTotal = item.booking_total,
-                        BookingMethodName = item.booking_method_name,
-                        BookingSourceName = item.booking_source_name,
-                        BookingReasonName = item.booking_reason_name,
-                        CategoryName = item.category_name,
-                        AccountBalance = item.account_balance,
-                        BookingPlaced = item.booking_placed,
-                        BookingCancelled = item.booking_cancelled,
-                        ExpressCheckin = item.booking_demographic_name,
-                        Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests.ToString()), // Deserialize the guests list
-                        CustomFields = JsonConvert.DeserializeObject<List<CustomFields>>(item.custom_fields.ToString()), // Deserialize the custom fields list
-                        Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()), // Deserialize the equipment fields list
-                    };
-
-
-                    if (booking.Guests != null && booking.Guests.Count > 0)
-                    {
-                        var carPlate = booking.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
-
-                        var licenseNotes = booking.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Notes;
-
-                        booking.CarLicensePlate = carPlate;
-                        booking.CarLicensePlateExtra = licenseNotes;
-                    }
-
-                    // Assign the state property from the first guest in the list (if any)
-                    if (booking.Guests != null && booking.Guests.Count > 0)
-                    {
-                        booking.StateName = booking.Guests[0].State;
-                        booking.Firstname = booking.Guests[0].Firstname;
-                        booking.Lastname = booking.Guests[0].Lastname;
-                    }
-                    else
-                    {
-                        booking.StateName = "Unknown";
-                    }
-
-
-                    if (booking.CustomFields != null && booking.CustomFields.Count > 0)
-                    {
-                        for (int cField = 0; cField <= booking.CustomFields.Count - 1; cField++)
-                        {
-                            if (booking.CustomFields[cField].Label == "Camper stored with MBTP? (if yes, enter ID number)")
+                        foreach (var item in result.data)
                             {
-                                booking.StoredMBTP = booking.CustomFields[cField].Value;
-                                if (booking.Equipment != null && booking.Equipment.Count > 0)
+
+                                var booking = new Booking
                                 {
-                                    if (booking.Equipment[0].equipment_make is not null) { booking.EquipmentMake = booking.Equipment[0].equipment_make; }
-                                    if (booking.Equipment[0].equipment_model is not null) { booking.EquipmentModel = booking.Equipment[0].equipment_model; }
-                                    if (booking.Equipment[0].equipment_length is not null) { booking.EquipmentLength = booking.Equipment[0].equipment_length; }
+                                    BookingID = item.booking_id,
+                                    SiteName = item.site_name,
+                                    BookingArrival = item.booking_arrival,
+                                    BookingDeparture = item.booking_departure,
+                                    BookingStatus = item.booking_status,
+                                    BookingAdults = item.booking_adults,
+                                    BookingChildren = item.booking_children,
+                                    BookingInfants = item.booking_infants,
+                                    BookingTotal = item.booking_total,
+                                    BookingMethodName = item.booking_method_name,
+                                    BookingSourceName = item.booking_source_name,
+                                    BookingReasonName = item.booking_reason_name,
+                                    CategoryName = item.category_name,
+                                    AccountBalance = item.account_balance,
+                                    BookingPlaced = item.booking_placed,
+                                    BookingCancelled = item.booking_cancelled,
+                                    ExpressCheckin = item.booking_demographic_name,
+                                    Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests.ToString()), // Deserialize the guests list
+                                    CustomFields = JsonConvert.DeserializeObject<List<CustomFields>>(item.custom_fields.ToString()), // Deserialize the custom fields list
+                                    Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()), // Deserialize the equipment fields list
+                                };
+
+
+                                if (booking.Guests != null && booking.Guests.Count > 0)
+                                {
+                                    var carPlate = booking.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Content;
+
+                                    var licenseNotes = booking.Guests.SelectMany(g => g.ContactDetails ?? new List<ContactDetail>()).FirstOrDefault(cd => cd.Type == "car_rego")?.Notes;
+
+                                    booking.CarLicensePlate = carPlate;
+                                    booking.CarLicensePlateExtra = licenseNotes;
                                 }
 
-
-                            }
-
-                            else if (booking.CustomFields[cField].Label == "Camper being delivered by outside company? (if yes, enter company name)")
-                            {
-                                booking.StoredOutside = booking.CustomFields[cField].Value;
-                            }
-                            else if (booking.CustomFields[cField].Label == "Wristbands")
-                            {
-                                int wristbands;
-                                if (int.TryParse(booking.CustomFields[cField].Value, out wristbands))
+                                // Assign the state property from the first guest in the list (if any)
+                                if (booking.Guests != null && booking.Guests.Count > 0)
                                 {
-                                    booking.Wristbands = wristbands;
+                                    booking.StateName = booking.Guests[0].State;
+                                    booking.Firstname = booking.Guests[0].Firstname;
+                                    booking.Lastname = booking.Guests[0].Lastname;
                                 }
                                 else
                                 {
-                                    booking.Wristbands = 0;
+                                    booking.StateName = "Unknown";
+                                }
+
+
+                                if (booking.CustomFields != null && booking.CustomFields.Count > 0)
+                                {
+                                    for (int cField = 0; cField <= booking.CustomFields.Count - 1; cField++)
+                                    {
+                                        if (booking.CustomFields[cField].Label == "Camper stored with MBTP? (if yes, enter ID number)")
+                                        {
+                                            booking.StoredMBTP = booking.CustomFields[cField].Value;
+                                            if (booking.Equipment != null && booking.Equipment.Count > 0)
+                                            {
+                                                if (booking.Equipment[0].equipment_make is not null) { booking.EquipmentMake = booking.Equipment[0].equipment_make; }
+                                                if (booking.Equipment[0].equipment_model is not null) { booking.EquipmentModel = booking.Equipment[0].equipment_model; }
+                                                if (booking.Equipment[0].equipment_length is not null) { booking.EquipmentLength = booking.Equipment[0].equipment_length; }
+                                            }
+
+
+                                        }
+
+                                        else if (booking.CustomFields[cField].Label == "Camper being delivered by outside company? (if yes, enter company name)")
+                                        {
+                                            booking.StoredOutside = booking.CustomFields[cField].Value;
+                                        }
+                                        else if (booking.CustomFields[cField].Label == "Wristbands")
+                                        {
+                                            int wristbands;
+                                            if (int.TryParse(booking.CustomFields[cField].Value, out wristbands))
+                                            {
+                                                booking.Wristbands = wristbands;
+                                            }
+                                            else
+                                            {
+                                                booking.Wristbands = 0;
+                                            }
+                                        }
+                                    }
+                                }
+                                if (booking.BookingAdults + booking.BookingChildren + booking.BookingInfants != 0)
+                                {
+                                    bookings.Add(booking);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("Booking ID " + booking.BookingID + " not added");
                                 }
                             }
-                        }
-                    }
-                    if (booking.BookingAdults + booking.BookingChildren + booking.BookingInfants != 0)
-                    {
-                        bookings.Add(booking);
-                    }
-                    else
-                    {
-                        Console.WriteLine("Booking ID " + booking.BookingID + " not added");
                     }
                 }
             }

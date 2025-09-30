@@ -35,14 +35,38 @@ namespace MBTP.Retrieval
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
+                    var blackoutID = reader["BlackoutID"] == DBNull.Value ? 0 : (int)reader["BlackoutID"];
+                    var pCID = reader["PCID"] == DBNull.Value ? 0 : (int)reader["PCID"];
+                    var profitCenterNameObj = reader["ProfitCenterName"];
+                    string profitCenterName;
+                    if (profitCenterNameObj == null)
+                    {
+                        profitCenterName = "none";
+                    }
+                    else
+                    {
+                        profitCenterName = (string)profitCenterNameObj;
+                    }
+                    var startDate = reader["StartDate"] == DBNull.Value ? DateTime.MinValue : (DateTime)reader["StartDate"];
+                    var endDate = reader["EndDate"] == DBNull.Value ? DateTime.MinValue : (DateTime)reader["EndDate"];
+                    var reasonObj = reader["Reason"];
+                    string reason;
+                    if (reasonObj == null)
+                    {
+                        reason = "none";
+                    }
+                    else
+                    {
+                        reason = (string)reasonObj;
+                    }
                     list.Add(new BlackoutDate
                     {
                         BlackoutID = (int)reader["BlackoutID"],
                         PCID = (int)reader["PCID"],
-                        ProfitCenterName = reader["ProfitCenterName"].ToString(),
+                        ProfitCenterName = profitCenterName,
                         StartDate = (DateTime)reader["StartDate"],
                         EndDate = (DateTime)reader["EndDate"],
-                        Reason = reader["Reason"].ToString()
+                        Reason = reason
                     });
                 }
                 return list;
@@ -187,10 +211,20 @@ namespace MBTP.Retrieval
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
+                    var descriptionObj = reader["Description"];
+                    string description;
+                    if (descriptionObj == null)
+                    {
+                        description = "none";
+                    }
+                    else
+                    {
+                        description = (string)descriptionObj;
+                    }
                     operations.Add(new ProfitCenters
                     {
                         PCID = (int)reader["PCID"],
-                        Description = reader["Description"].ToString()
+                        Description = description
                     });
                 }
             }
@@ -219,14 +253,34 @@ namespace MBTP.Retrieval
                 using var reader = cmd.ExecuteReader();
                 while (reader.Read())
                 {
+                    var profitCenterNameObj = reader["ProfitCenterName"];
+                    string profitCenterName;
+                    if (profitCenterNameObj == null)
+                    {
+                        profitCenterName = "none";
+                    }
+                    else
+                    {
+                        profitCenterName = (string)profitCenterNameObj;
+                    }
+                    var reasonObj = reader["Reason"];
+                    string reason;
+                    if (reasonObj == null)
+                    {
+                        reason = "none";
+                    }
+                    else
+                    {
+                        reason = (string)reasonObj;
+                    }
                     blackouts.Add(new BlackoutDate
                     {
                         BlackoutID = (int)reader["BlackoutID"],
                         PCID = (int)reader["PCID"],
-                        ProfitCenterName = reader["ProfitCenterName"].ToString(),
+                        ProfitCenterName = profitCenterName,
                         StartDate = (DateTime)reader["StartDate"],
                         EndDate = (DateTime)reader["EndDate"],
-                        Reason = reader["Reason"].ToString()
+                        Reason = reason
                     });
                 }
             }
@@ -252,11 +306,31 @@ namespace MBTP.Retrieval
                 while (reader.Read())
                 {
                     var pcid = (int)reader["PCID"];
+                    var profitCenterNameObj = reader["ProfitCenterName"];
+                    string profitCenterName;
+                    if (profitCenterNameObj == null)
+                    {
+                        profitCenterName = "none";
+                    }
+                    else
+                    {
+                        profitCenterName = (string)profitCenterNameObj;
+                    }
+                    var reasonObj = reader["Reason"];
+                    string reason;
+                    if (reasonObj == null)
+                    {
+                        reason = "none";
+                    }
+                    else
+                    {
+                        reason = (string)reasonObj;
+                    }
                     blackoutStatus[pcid] = new BlackoutInfo
                     {
                         PCID = pcid,
-                        ProfitCenterName = reader["ProfitCenterName"].ToString(),
-                        Reason = reader["Reason"].ToString(),
+                        ProfitCenterName = profitCenterName,
+                        Reason = reason,
                         StartDate = (DateTime)reader["StartDate"],
                         EndDate = (DateTime)reader["EndDate"],
                         IsBlackedOut = true
