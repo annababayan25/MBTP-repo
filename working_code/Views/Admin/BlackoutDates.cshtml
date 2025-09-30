@@ -132,9 +132,12 @@
                     <label asp-for="@(new MBTP.Models.BlackoutDate().PCID)">Operation</label>
                     <select style="font-family: Garamond, serif" name="PCID" id="PCID" required>
                         <option value="">-- Select --</option>
-                        @foreach (var item in locations.Where(pc => int.TryParse(pc.Value, out var val) && val >= 2 && val <= 5))
+                        @if (locations != null)
                         {
-                            <option value="@item.Value">@item.Text</option>
+                            foreach (var item in locations.Where(pc => int.TryParse(pc.Value, out var val) && val >= 2 && val <= 5))
+                            {
+                                <option value="@item.Value">@item.Text</option>
+                            }
                         }
                     </select>
                 </div>

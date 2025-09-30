@@ -4,9 +4,14 @@
 <!DOCTYPE html>
 <html lang="en">
 @{
-    bool isPdf = ViewData["IsPdf"] != null && (bool)ViewData["IsPdf"];
+    bool isPdf = false;
+    object? isPdfObj = ViewData["IsPdf"];
+    if(isPdfObj != null)
+    {
+        isPdf = (bool)isPdfObj;
+    }
     var accID = User.FindFirst("AccID")?.Value;
-    var currentAction = ViewContext.RouteData.Values["action"].ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
 }
 <style>
 .switch {
@@ -216,7 +221,7 @@ input:checked + .slider:before {
                     @if (!isPdf)
                     {
                         <ul class="navbar-nav ms-auto">
-                            @if (User.Identity.IsAuthenticated)
+                            @if (User.Identity != null && !User.Identity.IsAuthenticated)
                             {
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Sign out</a>
