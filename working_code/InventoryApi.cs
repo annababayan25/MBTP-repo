@@ -72,26 +72,30 @@ namespace MBTP.Services
 
             var items = new List<InventoryItems>();
             var lines = new List<string>();
-
-            foreach (var item in result.data)
+            var sortedItems = new List<InventoryItems>();
+            if (result != null)
             {
-                var parsedItem = JsonConvert.DeserializeObject<InventoryItems>(item.ToString());
-                if (parsedItem != null)
-                    items.Add(parsedItem);
+                if (result.data != null)
+                {
+                    foreach (var item in result.data)
+                    {
+                        var parsedItem = JsonConvert.DeserializeObject<InventoryItems>(item.ToString());
+                        if (parsedItem != null)
+                            items.Add(parsedItem);
+                    }
+                    sortedItems = items
+                        .OrderBy(i => int.TryParse(i.Id, out var id) ? id : int.MaxValue)
+                        .ToList();
+
+                    foreach (var item in sortedItems)
+                    {
+                        lines.Add($"{item.Id} | {item.Name} | {item.Description} | {item.Amount}");
+                    }
+
+                    string filePath = "inventory.txt";
+                    File.WriteAllLines(filePath, lines);
+                }
             }
-
-            var sortedItems = items
-                .OrderBy(i => int.TryParse(i.Id, out var id) ? id : int.MaxValue)
-                .ToList();
-
-            foreach (var item in sortedItems)
-            {
-                lines.Add($"{item.Id} | {item.Name} | {item.Description} | {item.Amount}");
-            }
-
-            string filePath = "inventory.txt";
-            File.WriteAllLines(filePath, lines);
-
             return sortedItems;
         }
     }
