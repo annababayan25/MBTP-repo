@@ -661,3 +661,36 @@ tr.flag td {
   }
 }
 
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; 
+}
+
+.table-responsive table {
+  min-width: 800px; 
+}
+
+@media (max-width: 1024px) {
+  #daily-table th,
+  #daily-table td {
+    font-size: 12px;
+    padding: 4px;
+  }
+}
+
+@media (max-width: 768px) {
+  #daily-table th,
+  #daily-table td {
+    font-size: 11px;
+    padding: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  #daily-table th,
+  #daily-table td {
+    font-size: 10px;
+    padding: 1px;
+  }
+}
