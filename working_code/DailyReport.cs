@@ -133,30 +133,33 @@ namespace MBTP.Retrieval
 
 public async Task<DataSet> RetrieveCheckedInReport(DateTime startDate, DateTime endDate)
 {
-    DataSet ds = new DataSet();
-
-    try
+    return await Task.Run(() =>
     {
-        using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-        using (SqlCommand cmd = new SqlCommand("dbo.RetrieveCheckedInReport", sqlConn))
+        DataSet ds = new DataSet();
+
+        try
         {
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.AddWithValue("@StartDate", startDate);
-            cmd.Parameters.AddWithValue("@EndDate", endDate);
+            using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+            using (SqlCommand cmd = new SqlCommand("dbo.RetrieveCheckedInReport", sqlConn))
+            {
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.AddWithValue("@StartDate", startDate);
+                cmd.Parameters.AddWithValue("@EndDate", endDate);
 
-            SqlDataAdapter da = new SqlDataAdapter(cmd);
-            sqlConn.Open();
-            da.Fill(ds);
-            sqlConn.Close();
+                SqlDataAdapter da = new SqlDataAdapter(cmd);
+                sqlConn.Open();
+                da.Fill(ds);
+                sqlConn.Close();
+            }
         }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine("Error retrieving checked-in report: " + ex.Message);
-        throw;
-    }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error retrieving checked-in report: " + ex.Message);
+            throw;
+        }
 
-    return ds;
+        return ds;
+    });
 }
 
 
