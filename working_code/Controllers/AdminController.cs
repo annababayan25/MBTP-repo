@@ -108,7 +108,7 @@ namespace MBTP.Controllers
         )
 
         {
-            string host = _httpContextAccessor.HttpContext.Request.Host.Value;
+            string host = _httpContextAccessor.HttpContext?.Request?.Host.Value ?? "unknown";
 
             if (startDate is not null)
             {

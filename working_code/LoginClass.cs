@@ -37,7 +37,7 @@ namespace MBTP.Logins
 
                 SqlCommand fetchCmd = new SqlCommand("SELECT Password FROM LoginsHope WHERE Username = @Username", sqlConn);
                 fetchCmd.Parameters.Add("@Username", SqlDbType.NVarChar, 15).Value = username.Trim();
-                string storedEncryptedPassword = fetchCmd.ExecuteScalar()?.ToString();
+                string? storedEncryptedPassword = fetchCmd.ExecuteScalar()?.ToString();
 
                 string encryptedPassword = EncryptPassword(passwordTxt.Trim());
 
@@ -64,8 +64,24 @@ namespace MBTP.Logins
 
                         if (result)
                         {
-                            LID = lidParam.Value.ToString();
-                            accID = accIdParam.Value.ToString();
+                            var lidValue = lidParam.Value;
+                            if (lidValue == null || lidValue == DBNull.Value)
+                            {
+                                LID = "0";
+                            }
+                            else
+                            {
+                                LID = lidValue.ToString() ?? "0";
+                            }
+                            var accIdValue = accIdParam.Value;
+                            if (accIdValue == null || accIdValue == DBNull.Value)
+                            {
+                                accID = string.Empty;
+                            }
+                            else
+                            {
+                                accID = accIdValue.ToString() ?? string.Empty;
+                            }
                             return true;
                         }
 

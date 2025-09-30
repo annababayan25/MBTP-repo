@@ -102,7 +102,7 @@ namespace MBTP.Controllers
             var periodFrom = new DateTime(selectedMonth.Year, selectedMonth.Month, 1);
             var periodTo = periodFrom.AddMonths(1).AddDays(-1);
 
-            DataSet bookingsByDay = _dailyBookingsService.GetBookingsDataset(periodFrom, periodTo);
+            DataSet bookingsByDay = await Task.Run(() => _dailyBookingsService.GetBookingsDataset(periodFrom, periodTo));
 
             return View(bookingsByDay);
         }
@@ -237,7 +237,7 @@ namespace MBTP.Controllers
             string outputPath = Path.Combine(Path.GetTempPath(), "TrailerMoves.pdf");
             PDF.SaveAs(outputPath);
 
-            byte[] fileBytes = System.IO.File.ReadAllBytes(outputPath);
+            byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(outputPath);
             return File(fileBytes, "application/pdf", $"TrailerMoves_{selectedDate.ToString("yyyy-MM-dd")}.pdf");
         }
         public async Task<IActionResult> GenerateExpressPDF(string checkinDate)
@@ -267,7 +267,7 @@ namespace MBTP.Controllers
             string outputPath = Path.Combine(Path.GetTempPath(), "ExpressCheckins.pdf");
             PDF.SaveAs(outputPath);
 
-            byte[] fileBytes = System.IO.File.ReadAllBytes(outputPath);
+            byte[] fileBytes = await System.IO.File.ReadAllBytesAsync(outputPath);
             return File(fileBytes, "application/pdf", $"ExpressCheckins_{selectedDate.ToString("yyyy-MM-dd")}.pdf");
         }
 
@@ -304,31 +304,34 @@ namespace MBTP.Controllers
             {
                 var alertsTable = dashData.Tables["Alerts"];
 
-                DataTable filteredAlerts = alertsTable.Clone();
-
-                foreach (DataRow row in alertsTable.Rows)
+                if (alertsTable != null)
                 {
-                    string alertText = row["AlertText"]?.ToString() ?? "";
+                    DataTable filteredAlerts = alertsTable.Clone();
 
-                    if (!alertText.Contains("blackout", StringComparison.OrdinalIgnoreCase))
+                    foreach (DataRow row in alertsTable.Rows)
                     {
-                        filteredAlerts.ImportRow(row);
-                    }
-                }
+                        string alertText = row["AlertText"]?.ToString() ?? "";
 
-                dashData.Tables.Remove("Alerts");
-                filteredAlerts.TableName = "Alerts";
-                dashData.Tables.Add(filteredAlerts);
+                        if (!alertText.Contains("blackout", StringComparison.OrdinalIgnoreCase))
+                        {
+                            filteredAlerts.ImportRow(row);
+                        }
+                    }
+
+                    dashData.Tables.Remove("Alerts");
+                    filteredAlerts.TableName = "Alerts";
+                    dashData.Tables.Add(filteredAlerts);
+                }
             }
 
             return View(dashData);
         }
 
 
-        private LoginModel GetLoginModel()
+        private LoginModel? GetLoginModel()
         {
-            string accIDValue = User.FindFirst("AccID")?.Value;
-            if (!int.TryParse(accIDValue, out int accID))
+            var accIDClaim = User.FindFirst("AccID");
+            if (accIDClaim == null || !int.TryParse(accIDClaim.Value, out int accID))
             {
                 return null; // Handle the case where AccID is not valid or not present
             }
@@ -368,7 +371,7 @@ namespace MBTP.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string username, string password, string returnUrl = null)
+        public async Task<IActionResult> Login(string username, string password, string returnUrl = "")
         {
 
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
