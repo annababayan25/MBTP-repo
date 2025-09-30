@@ -4,15 +4,25 @@
 
 @{
     ViewData["Title"] = "Daily Bookings";
-    var selectedMonth = ViewBag.SelectedMonth as DateTime?;
-    var daysInMonth = DateTime.DaysInMonth(selectedMonth.Value.Year, selectedMonth.Value.Month);
-    var firstDayOfMonth = new DateTime(selectedMonth.Value.Year, selectedMonth.Value.Month, 1).DayOfWeek;
+    var selectedMonthObj = ViewBag.SelectedMonth;
+    DateTime selectedMonth;
+    if (selectedMonthObj == null || !(selectedMonthObj is DateTime))
+    {
+        ViewBag.ErrorMessage = "Invalid month format. Please select a valid month.";
+        selectedMonth = DateTime.Now; // Default to current month if invalid
+    }
+    else
+    {
+        selectedMonth = (DateTime)selectedMonthObj;
+    }
+    int daysInMonth = DateTime.DaysInMonth(selectedMonth.Year, selectedMonth.Month);
+    DayOfWeek firstDayOfMonth = new DateTime(selectedMonth.Year, selectedMonth.Month, 1).DayOfWeek;
     var emptyCells = (int)firstDayOfMonth; // Calculate empty cells before the first day of the month
     var daysOfWeek = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
-    var previousMonth = selectedMonth?.AddMonths(-1);
-    var nextMonth = selectedMonth?.AddMonths(1).ToString("yyyy-MM-dd");
+    var previousMonth = selectedMonth.AddMonths(-1);
+    var nextMonth = selectedMonth.AddMonths(1).ToString("yyyy-MM-dd");
     int daysToProcess = 0;
-    @if(DateTime.Now.Month == ((DateTime)selectedMonth).Month)
+    @if(DateTime.Now.Month == selectedMonth.Month)
     {
         daysToProcess = DateTime.Now.Day;
     }
@@ -132,11 +142,11 @@
     <i class="fas fa-spinner fa-spin spinner"></i>
 </div>
 
-<h1>Daily Bookings Report for @selectedMonth?.ToString("MMMM yyyy")</h1>
+<h1>Daily Bookings Report for @selectedMonth.ToString("MMMM yyyy")</h1>
 
 <form method="get" asp-action="DailyBookings">
     <div class="navigation-container">
-        <button class="pdfButton" type="submit" name="month" value="@previousMonth?.ToString("yyyy-MM-dd")">
+        <button class="pdfButton" type="submit" name="month" value="@previousMonth.ToString("yyyy-MM-dd")">
             <i class="fas fa-arrow-left"></i>
         </button>
         @if(DateTime.Now.Month != ((DateTime)selectedMonth).Month)
@@ -147,7 +157,7 @@
         }
         <div class="label-input-container">
             <label for="monthPicker">Select Month:</label>
-            <input type="text" id="monthPicker" name="month" value="@selectedMonth?.ToString("yyyy-MM-dd")">
+            <input type="text" id="monthPicker" name="month" value="@selectedMonth.ToString("yyyy-MM-dd")">
         </div>
         <button type="submit" style="display: none;"></button>
     </div>
@@ -258,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function() {
     flatpickr("#monthPicker", {
         dateFormat: "Y-m",
         maxDate: "today",
-        defaultDate: "@selectedMonth?.ToString("yyyy-MM-dd")",
+        defaultDate: "@selectedMonth.ToString("yyyy-MM-dd")",
         onChange: function(selectedDates, dateStr, instance) {
             var selectedDate = new Date(selectedDates[0]);
             var month = selectedDate.getMonth() + 1; // Months are zero-indexed
