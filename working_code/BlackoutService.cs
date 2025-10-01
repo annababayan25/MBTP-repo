@@ -39,7 +39,7 @@ namespace MBTP.Retrieval
                     var pCID = reader["PCID"] == DBNull.Value ? 0 : (int)reader["PCID"];
                     var profitCenterNameObj = reader["ProfitCenterName"];
                     string profitCenterName;
-                    if (profitCenterNameObj == null)
+                    if (profitCenterNameObj == null || profitCenterNameObj == DBNull.Value)
                     {
                         profitCenterName = "none";
                     }
@@ -51,7 +51,7 @@ namespace MBTP.Retrieval
                     var endDate = reader["EndDate"] == DBNull.Value ? DateTime.MinValue : (DateTime)reader["EndDate"];
                     var reasonObj = reader["Reason"];
                     string reason;
-                    if (reasonObj == null)
+                    if (reasonObj == null || reasonObj == DBNull.Value)
                     {
                         reason = "none";
                     }
@@ -213,7 +213,7 @@ namespace MBTP.Retrieval
                 {
                     var descriptionObj = reader["Description"];
                     string description;
-                    if (descriptionObj == null)
+                    if (descriptionObj == null || descriptionObj == DBNull.Value)
                     {
                         description = "none";
                     }
