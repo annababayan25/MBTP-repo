@@ -78,7 +78,7 @@ namespace MBTP.Controllers
             if (string.IsNullOrEmpty(fiscalYear))
             {
                 DateTime today = DateTime.Today;
-                fiscalYear = (today.Month >= 10) ? $"{today.Year}" : $"{today.Year - 1}";
+                fiscalYear = (today.Month > 10 || (today.Month == 10 && today.Day != 1)) ? $"{today.Year}" : $"{today.Year - 1}";
                 HttpContext.Session.SetString("FiscalYear", fiscalYear);
                 HttpContext.Session.SetString("ThisFiscalYear", fiscalYear);
                 HttpContext.Session.SetString("IsCurrentFiscalYear", "true");
