@@ -611,6 +611,10 @@ namespace MBTP.Controllers
             string? fiscalYear = HttpContext.Session.GetString("FiscalYear");
             YearlyReport report = new YearlyReport(_dbConnectionService);
             DateTime effectiveDate = reportDate ?? DateTime.Now;
+            if(effectiveDate.Year == DateTime.Now.Year && effectiveDate.Month == 10 && effectiveDate.Day == 1)
+            {
+                effectiveDate = effectiveDate.AddDays(-1); // if today is selected, change to yesterday since there is no data for today yet
+            }
             DataSet data = report.GetDailyBreakdownData(fiscalYear, effectiveDate, out DateTime fiscalYearStartDate);
             effectiveDate = (effectiveDate.Month >= 10)
                 ? new DateTime(fiscalYearStartDate.Year, effectiveDate.Month, effectiveDate.Day) // Adjust date to current fiscal year
