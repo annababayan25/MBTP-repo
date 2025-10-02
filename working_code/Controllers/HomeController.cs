@@ -44,15 +44,17 @@ namespace MBTP.Controllers
         private readonly DailyService _dailyService;
         private readonly DailyBookingsService _dailyBookingsService;
         private readonly LoginClass _loginClass;
-        private readonly BookingAPI _bookingAPI;
+        private readonly BookingApi _bookingAPI;
         private readonly BookingRepository _bookingRepository;
         private readonly TrailerMovesReport _trailerMovesReport;
         private readonly ExpressCheckinsReport _expressCheckinsReport;
+        private readonly Dashboard _dashboard;
+
 
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration, IDatabaseConnectionService dbConnectionService, ICompositeViewEngine viewEngine, WeatherService weatherService,
                                 OccupancyService occupancyService, DailyService dailyService, DailyBookingsService dailyBookingsService,
-                                BookingAPI bookingAPI, BookingRepository bookingRepository, TrailerMovesReport trailermovesReport,
-                                ExpressCheckinsReport expressCheckinsReport)
+                                BookingApi bookingAPI, BookingRepository bookingRepository, TrailerMovesReport trailermovesReport,
+                                ExpressCheckinsReport expressCheckinsReport, Dashboard dashboard)
         {
             _viewEngine = viewEngine;
             _configuration = configuration;
@@ -66,6 +68,7 @@ namespace MBTP.Controllers
             _bookingRepository = bookingRepository;
             _trailerMovesReport = trailermovesReport;
             _expressCheckinsReport = expressCheckinsReport;
+            _dashboard = dashboard;
 
         }
         public IActionResult Privacy()
@@ -297,8 +300,7 @@ namespace MBTP.Controllers
         }
             public IActionResult Index()
         {
-            Dashboard report = new Dashboard(_dbConnectionService);
-            DataSet dashData = report.RetrieveDashboardData();
+            DataSet dashData = _dashboard.RetrieveDashboardData();
 
             if (dashData.Tables.Contains("Alerts"))
             {
