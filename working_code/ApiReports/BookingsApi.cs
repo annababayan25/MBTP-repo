@@ -18,8 +18,6 @@ namespace MBTP.Services
 {
     public class BookingApi : NewbookBaseApi
     {
-        private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
-        private readonly string region = "us";
         private readonly IDatabaseConnectionService _dbConnectionService;
         public BookingApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
         {
@@ -28,8 +26,6 @@ namespace MBTP.Services
 
         public async Task PopulateBookings(DateTime startDate, DateTime endDate)
         {
-            var periodFrom = startDate.ToString("yyyy-MM-dd HH:mm:ss");
-            var periodTo = endDate.ToString("yyyy-MM-dd HH:mm:ss");
             var dataOffset = 0;
             var dataCount = 100;
             var dataTotal = 100000;
@@ -41,8 +37,8 @@ namespace MBTP.Services
                 {
                     region = region,
                     api_key = apiKey,
-                    period_from = periodFrom,
-                    period_to = periodTo,
+                    period_from = startDate.ToString("yyyy-MM-dd HH:mm:ss"),
+                    period_to = endDate.ToString("yyyy-MM-dd HH:mm:ss"),
                     list_type = "all",
                     data_offset = dataOffset,
                     data_count = dataCount,

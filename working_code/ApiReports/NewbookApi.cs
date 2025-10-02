@@ -13,9 +13,11 @@ using Newtonsoft.Json.Linq;
 public abstract class NewbookBaseApi
 {
     protected readonly HttpClient _client;
-    private readonly string _username = "myrtle_beach";
-    private readonly string _password = "Gemb$np(QqEnB9V3";
-
+    protected readonly string _username = "myrtle_beach";
+    protected readonly string _password = "Gemb$np(QqEnB9V3";
+    protected readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
+    protected readonly string region = "us";
+    
     protected NewbookBaseApi(HttpClient client)
     {
         _client = client;

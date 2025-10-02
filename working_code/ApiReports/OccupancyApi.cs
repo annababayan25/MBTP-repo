@@ -17,11 +17,7 @@ namespace MBTP.Services
 {
     public class OccupancyApi : NewbookBaseApi
     {
-        private readonly string apiUrl = "https://api.newbook.cloud/rest/reports_occupancy";
-        private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
-        private readonly string region = "us";
-        private readonly string username = "myrtle_beach";
-        private readonly string password = "Gemb$np(QqEnB9V3";
+
         private readonly IDatabaseConnectionService _dbConnectionService;
 
         public OccupancyApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
