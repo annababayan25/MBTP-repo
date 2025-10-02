@@ -9,6 +9,7 @@ using MBTP.Services;
 using GenericSupport;
 using MBTP.Interfaces;
 using MBTP.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 
 namespace MBTP.Controllers
 {
@@ -96,6 +97,11 @@ namespace MBTP.Controllers
                 else
                 {
                     startDate = new DateTime(today.Year, today.Month, 1).AddMonths(-1);
+                }
+                if(startDate.Month == 9)
+                {
+                    // if the selected prior month is September, adjust the fiscal year down 1
+                    fiscalYear = int.TryParse(fiscalYear, out int fy) ? (fy - 1).ToString() : fiscalYear;
                 }
                 endDate = startDate.AddMonths(1).AddDays(-1);
             }
@@ -611,7 +617,7 @@ namespace MBTP.Controllers
             string? fiscalYear = HttpContext.Session.GetString("FiscalYear");
             YearlyReport report = new YearlyReport(_dbConnectionService);
             DateTime effectiveDate = reportDate ?? DateTime.Now;
-            if(effectiveDate.Year == DateTime.Now.Year && effectiveDate.Month == 10 && effectiveDate.Day == 1)
+            if(effectiveDate.Year == DateTime.Now.Year && DateTime.Now.Month == 10 && DateTime.Now.Day == 1)
             {
                 effectiveDate = effectiveDate.AddDays(-1); // if today is selected, change to yesterday since there is no data for today yet
             }

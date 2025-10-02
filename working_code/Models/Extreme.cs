@@ -21,7 +21,7 @@ namespace MBTP.Models
         public int count { get; set; }
         public int total_pages { get; set; }
         public int total_count { get; set; }
-        public List<Device> Data { get; set; } // Add this property to represent the nested devices listing
+        public List<Device> Data { get; set; } = new List<Device>(); // Add this property to represent the nested devices listing
     }
     public class Floor
     {
@@ -34,7 +34,7 @@ namespace MBTP.Models
         public int count { get; set; }
         public int total_pages { get; set; }
         public int total_count { get; set; }
-        public List<Floor> Data { get; set; } // Add this property to represent the nested devices listing
+        public List<Floor> Data { get; set; } = new List<Floor>(); // Add this property to represent the nested devices listing
     }
 
 }

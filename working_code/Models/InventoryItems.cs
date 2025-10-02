@@ -5,10 +5,10 @@ namespace MBTP.Models
     public class InventoryItems 
     {
         [JsonProperty("id")]
-        public string Id {get;set;}
+        public string? Id {get;set;}
 
         [JsonProperty("name")]
-        public string Name {get;set;}
+        public string? Name {get;set;}
 
         [JsonProperty("description")]
         public string? Description {get;set;}
