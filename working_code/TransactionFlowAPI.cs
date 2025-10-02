@@ -62,7 +62,7 @@ namespace MBTP.Services
                 cmd.CommandType = CommandType.StoredProcedure;
                 cmd.Parameters.AddWithValue("@PaymentMethod", $"{transaction.PaymentMethod} {transaction.GroupedPaymentType} {transaction.PaymentTypeAction} - For {Convert.ToDateTime(transaction.TransDate).ToString("MMM dd yyyy")}");
                 cmd.Parameters.AddWithValue("@Category", transaction.Category ?? (object)DBNull.Value);
-                cmd.Parameters.AddWithValue("@TransNumber", transaction.PaymentTypeReference != null? $"{transaction.TransType} #{transaction.ItemId} (Ref #{transaction.PaymentTypeReference})" : $"{transaction.TransType} #{transaction.ItemId}");
+                cmd.Parameters.AddWithValue("@TransNumber", transaction.PaymentTypeReference != null ? $"{transaction.TransType} #{transaction.ItemId} (Ref #{transaction.PaymentTypeReference})" : $"{transaction.TransType} #{transaction.ItemId}");
                 cmd.Parameters.AddWithValue("@TransDate", transaction.TransDate);
                 cmd.Parameters.AddWithValue("@ClientAccount", transaction.ClientAccount);
                 cmd.Parameters.AddWithValue("@GeneratedBy", transaction.GeneratedBy);
@@ -128,91 +128,96 @@ namespace MBTP.Services
                 return new List<TransactionFlow>();
             }
 
-
-            foreach (var item in result.data)
+            if (result != null)
             {
-                Console.WriteLine("--------------------------------------------------------------");
-                Console.WriteLine("ItemId: " + item.ItemId?.ToString());
-                Console.WriteLine("PaymentMethod: " + item.payment_transaction_method?.ToString());
-                Console.WriteLine("PaymentDescription: " + item.item_description?.ToString());
-                Console.WriteLine("PaymentEntryType: " + item.entry_type?.ToString());
-                Console.WriteLine("PaymentTypeReference: " + item.payment_type_reference?.ToString());
-                Console.WriteLine("Category: " + item.category_name?.ToString());
-                Console.WriteLine("TransType: " + item.item_type?.ToString());
-                Console.WriteLine("TransDate: " + item.item_date?.ToString());
-                Console.WriteLine("ClientAccount: " + item.client_account?.ToString());
-                Console.WriteLine("GeneratedBy: " + item.user_name?.ToString());
-                Console.WriteLine("Description: " + item.description?.ToString());
-                Console.WriteLine("ArrivalDate: " + item.booking_period_from?.ToString());
-                Console.WriteLine("DepartureDate: " + item.booking_period_to?.ToString());
-                Console.WriteLine("Deposit: " + item.deposit?.ToString());
-                Console.WriteLine("--------------------------------------------------------------");
+                if (result.data != null)
+                {
+                    foreach (var item in result.data)
+                    {
+                        Console.WriteLine("--------------------------------------------------------------");
+                        Console.WriteLine("ItemId: " + item.ItemId?.ToString());
+                        Console.WriteLine("PaymentMethod: " + item.payment_transaction_method?.ToString());
+                        Console.WriteLine("PaymentDescription: " + item.item_description?.ToString());
+                        Console.WriteLine("PaymentEntryType: " + item.entry_type?.ToString());
+                        Console.WriteLine("PaymentTypeReference: " + item.payment_type_reference?.ToString());
+                        Console.WriteLine("Category: " + item.category_name?.ToString());
+                        Console.WriteLine("TransType: " + item.item_type?.ToString());
+                        Console.WriteLine("TransDate: " + item.item_date?.ToString());
+                        Console.WriteLine("ClientAccount: " + item.client_account?.ToString());
+                        Console.WriteLine("GeneratedBy: " + item.user_name?.ToString());
+                        Console.WriteLine("Description: " + item.description?.ToString());
+                        Console.WriteLine("ArrivalDate: " + item.booking_period_from?.ToString());
+                        Console.WriteLine("DepartureDate: " + item.booking_period_to?.ToString());
+                        Console.WriteLine("Deposit: " + item.deposit?.ToString());
+                        Console.WriteLine("--------------------------------------------------------------");
 
-                var transactions = new TransactionFlow
-                {
-                    ItemId = item.item_id,
-                    PaymentMethod = item.payment_transaction_method,
-                    PaymentDescription = item.item_description,
-                    PaymentTypeReference = item.payment_type_reference,
-                    GroupedPaymentType = item.grouped_payment_type,
-                    PaymentTypeAction = item.payment_type_action,
-                    Category = item.category_name,
-                    TransType = item.item_type,
-                    TransDate = item.item_date,
-                    ClientAccount = item.client_account,
-                    GeneratedBy = item.user_name,
-                    Description = item.description,
-                    Amount = item.amount,
-                    ArrivalDate = item.booking_period_from,
-                    DepartureDate = item.booking_period_to,
-                };
+                        var transactions = new TransactionFlow
+                        {
+                            ItemId = item.item_id,
+                            PaymentMethod = item.payment_transaction_method,
+                            PaymentDescription = item.item_description,
+                            PaymentTypeReference = item.payment_type_reference,
+                            GroupedPaymentType = item.grouped_payment_type,
+                            PaymentTypeAction = item.payment_type_action,
+                            Category = item.category_name,
+                            TransType = item.item_type,
+                            TransDate = item.item_date,
+                            ClientAccount = item.client_account,
+                            GeneratedBy = item.user_name,
+                            Description = item.description,
+                            Amount = item.amount,
+                            ArrivalDate = item.booking_period_from,
+                            DepartureDate = item.booking_period_to,
+                        };
 
-                if (item.item_type == "payments_raised")
-                {
-                    transactions.TransType = "Payments Raised";
-                    transactions.PaymentTypeAction = "Payments";
-                }
-                if (item.item_type == "refunds_raised")
-                {
-                    transactions.TransType = "Refund Raised";
-                    transactions.PaymentTypeAction = "Refunds";
-                }
+                        if (item.item_type == "payments_raised")
+                        {
+                            transactions.TransType = "Payments Raised";
+                            transactions.PaymentTypeAction = "Payments";
+                        }
+                        if (item.item_type == "refunds_raised")
+                        {
+                            transactions.TransType = "Refund Raised";
+                            transactions.PaymentTypeAction = "Refunds";
+                        }
 
-                if (item.payment_transaction_method == "cc_gateway")
-                {
-                    transactions.PaymentMethod = "Authorize.Net";
-                }
-                if (item.payment_transaction_method == "manual")
-                {
-                    transactions.PaymentMethod = "Manual Entry";
-                }
+                        if (item.payment_transaction_method == "cc_gateway")
+                        {
+                            transactions.PaymentMethod = "Authorize.Net";
+                        }
+                        if (item.payment_transaction_method == "manual")
+                        {
+                            transactions.PaymentMethod = "Manual Entry";
+                        }
 
-                if (item.grouped_payment_type == "visa" || item.grouped_payment_type == "discover" || item.grouped_payment_type == "cash")
-                {
-                    transactions.GroupedPaymentType = CultureInfo.CurrentCulture.TextInfo.ToTitleCase((string)item.grouped_payment_type);
-                }
-                if (item.grouped_payment_type == "mastercard")
-                {
-                    transactions.GroupedPaymentType = "MasterCard";
-                }
-                if (item.grouped_payment_type == "amex")
-                {
-                    transactions.GroupedPaymentType = "AMEX";
-                }
-                if (item.grouped_payment_type == "cheque")
-                {
-                    transactions.GroupedPaymentType = "Check";
-                }
-                if (item.grouped_payment_type == "balance_transfer")
-                {
-                    transactions.GroupedPaymentType = "Balance Transfer";
-                }
+                        if (item.grouped_payment_type == "visa" || item.grouped_payment_type == "discover" || item.grouped_payment_type == "cash")
+                        {
+                            transactions.GroupedPaymentType = CultureInfo.CurrentCulture.TextInfo.ToTitleCase((string)item.grouped_payment_type);
+                        }
+                        if (item.grouped_payment_type == "mastercard")
+                        {
+                            transactions.GroupedPaymentType = "MasterCard";
+                        }
+                        if (item.grouped_payment_type == "amex")
+                        {
+                            transactions.GroupedPaymentType = "AMEX";
+                        }
+                        if (item.grouped_payment_type == "cheque")
+                        {
+                            transactions.GroupedPaymentType = "Check";
+                        }
+                        if (item.grouped_payment_type == "balance_transfer")
+                        {
+                            transactions.GroupedPaymentType = "Balance Transfer";
+                        }
 
 
-                transactionFlow.Add(transactions);
+                        transactionFlow.Add(transactions);
+                    }
+                }
             }
-                return transactionFlow;
-            }
-            
+            return transactionFlow;
+
         }
     }
+}

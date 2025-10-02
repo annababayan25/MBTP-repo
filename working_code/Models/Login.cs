@@ -10,7 +10,7 @@ namespace MBTP.Pages
 {
     public class LoginModel : PageModel
     {
-        public List<DataTable> Tables {get;set;}
+        public List<DataTable> Tables { get; set; } = new List<DataTable>();
         public int AccID {get;set;}
 
 
