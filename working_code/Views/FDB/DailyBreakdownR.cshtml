@@ -14,6 +14,10 @@
     int daysThisMonth = DateTime.DaysInMonth(startDate.Year, startDate.Month);
     TimeSpan daysDiff = monthStart - fiscalYearStartDate;
     int fiscalDays = daysDiff.Days - 1; // number of days elapsed in fiscal year prior to start of report month
+    if(fiscalDays < 0)
+    {
+        fiscalDays = 0; // if report date is October 1st, setfiscal days to 0
+    }
 
     decimal totalSDTaken = 0;
     decimal totalSDApplied = 0;

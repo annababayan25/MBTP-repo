@@ -7,17 +7,17 @@ namespace MBTP.Models
     public class OccupancyReport
     {
         [JsonProperty("data")]
-        public List<OccupancyData> Data { get; set; }
+        public List<OccupancyData>? Data { get; set; }
     }
 
     public class OccupancyData
     {
         [JsonProperty("category_name")]
-        public string CategoryName { get; set; }
+        public string? CategoryName { get; set; }
 
         // Assuming there are other properties here
         [JsonProperty("occupancy")]
-        public Dictionary<DateTime, DailyOccupancyDetails> Occupancy { get; set; }
+        public Dictionary<DateTime, DailyOccupancyDetails>? Occupancy { get; set; }
     }
 
     public class DailyOccupancyDetails
@@ -42,8 +42,8 @@ namespace MBTP.Models
     public class FilteredOccupancyReport
     {
         public DateTime Month { get; set; }
-        public List<DailyOccupancy> DailyOccupancies { get; set; }
-        public List<DailyOccupants> DailyOccupants { get; set; }
-        public string ErrorMessage { get; set; }
+        public List<DailyOccupancy>? DailyOccupancies { get; set; }
+        public List<DailyOccupants>? DailyOccupants { get; set; }
+        public string? ErrorMessage { get; set; }
     }
 }

@@ -179,12 +179,19 @@ namespace MBTP.Retrieval
         if (!string.IsNullOrEmpty(fiscalYear) && int.TryParse(fiscalYear, out int fy))
         {
             fiscalYearStartDate = new DateTime(fy, 10, 1); // October 1 of the selected fiscal year
-            if(date.Month >= 10)
+            if (fiscalYearStartDate > date)
+            {
+                // if the selected fiscal year start date is after the selected date, adjust the fiscal year start date to the prior fiscal year
+                fiscalYearStartDate = new DateTime(fy - 1, 10, 1);
+                fy--;
+            }
+                    // Adjust the provided date to ensure it falls within the selected fiscal year
+            if (date.Month >= 10)
             {
                 // if the selected date is in or after October, ensure the fiscal year matches
                 date = new DateTime(fy, date.Month, date.Day); // Adjust date to the selected fiscal year
             }
-            else 
+            else
             {
                 // if the selected date is before October, it belongs to the next calendar year of the fiscal year
                 date = new DateTime(fy + 1, date.Month, date.Day); // Adjust date to the selected fiscal year
@@ -223,7 +230,15 @@ namespace MBTP.Retrieval
                 cmd.Parameters.RemoveAt(0);
                 cmd.CommandText = "dbo.GetTotals";
                 cmd.Parameters.Add("@StartDate", SqlDbType.Date).Value = fiscalYearStartDate;
-                cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = date.AddDays(-1);
+                if (fiscalYearStartDate > date.AddDays(-1))
+                {
+                    // if the selected date is October 1st this is necessary to avoid an invalid date range
+                    cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = fiscalYearStartDate;
+                }
+                else
+                { 
+                    cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = date.AddDays(-1);
+                }
                 myDA4 = new SqlDataAdapter(cmd);
                 myDA4.Fill(dailyData, "YTD");
                 cmd.CommandText = "dbo.RetrieveBlackoutState";
