@@ -17,10 +17,13 @@ namespace MBTP.Retrieval
     public class Dashboard
     {
         private readonly IDatabaseConnectionService _dbConnectionService;
+        private readonly ExtremeService _extremeService;
 
-        public Dashboard(IDatabaseConnectionService dbConnectionService)
+
+        public Dashboard(IDatabaseConnectionService dbConnectionService, ExtremeService extremeService)
         {
             _dbConnectionService = dbConnectionService;
+            _extremeService = extremeService;
         }
 
         public DataSet RetrieveDashboardData()
@@ -72,7 +75,7 @@ namespace MBTP.Retrieval
                         }
                     }
                     sqlConn.Close();
-                    List<Device> devices = new List<Device>(Task.Run(() => new ExtremeService(_dbConnectionService).FetchExtremeKey()).Result);
+                    List<Device> devices = Task.Run(() => _extremeService.FetchExtremeKey()).Result;
                     // Now we'll add a new DataTable for AP Status
                     DataTable apStatusTable = new DataTable("APStatus");
                     apStatusTable.Columns.Add("Connected", typeof(bool));
