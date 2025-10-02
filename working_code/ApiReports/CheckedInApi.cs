@@ -18,15 +18,13 @@ namespace MBTP.Services
 {
     public class CheckedInApi : NewbookBaseApi
     {
-        private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
-        private readonly string region = "us";
         private readonly IDatabaseConnectionService _dbConnectionService;
 
         public CheckedInApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
         {
             _dbConnectionService = dbConnectionService;
         }
-        
+
         // For CheckedIn table in DB 
         public async Task PopulateCheckIns(DateTime startDate, DateTime endDate)
         {
@@ -296,6 +294,8 @@ namespace MBTP.Services
                     await command.ExecuteNonQueryAsync();
                 }
             }
+            Console.WriteLine("Total Checked-In: " + checkedInList.Count);
+            Console.WriteLine("Run method finished.");
         }
     }
 

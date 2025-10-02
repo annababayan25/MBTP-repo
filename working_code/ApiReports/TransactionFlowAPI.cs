@@ -16,8 +16,6 @@ namespace MBTP.Services
 {
     public class TransactionFlowApi : NewbookBaseApi
     {
-        private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
-        private readonly string region = "us";
         private readonly IDatabaseConnectionService _dbConnectionService;
         public TransactionFlowApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
         {
