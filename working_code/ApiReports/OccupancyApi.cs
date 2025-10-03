@@ -57,8 +57,6 @@ namespace MBTP.Services
                 };
 
                 occupancyList.Add(occupancy);
-                Console.WriteLine(item.ToString());
-
             }
 
 
@@ -99,9 +97,9 @@ namespace MBTP.Services
 
                     }
                 }
-                Console.WriteLine("Total Occupancy Entries: " + occupancyList.Count);
-                Console.WriteLine("Run method finished.");
             }
+            Console.WriteLine("Total Occupancy Entries: " + occupancyList.Count);
+            Console.WriteLine("Run method finished.");
         }
 
     }
