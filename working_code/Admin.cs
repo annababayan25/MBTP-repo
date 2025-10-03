@@ -44,7 +44,7 @@ namespace MBTP.Services
             }
         }
         
-        public async Task<bool> PostBlackoutDate(string blackoutKey, string reason = null)
+        public async Task<bool> PostBlackoutDate(string blackoutKey, string reason = "")
         {
             try
             {

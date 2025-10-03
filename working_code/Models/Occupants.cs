@@ -4,13 +4,7 @@ using Newtonsoft.Json;
 
 namespace MBTP.Models
 {
-    public class OccupantReport
-    {
-        [JsonProperty("data")]
-        public List<OccupantData> Data { get; set; }
-    }
-
-    public class OccupantData
+        public class OccupantData
     {
         [JsonProperty("booking_id")]
         public required string BookingId { get; set; }

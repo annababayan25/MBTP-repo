@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using MBTP.Retrieval;
 using MBTP.Models;
-using MBTP.Converter;
 using IronPdf;
 using IronPdf.Extensions.Mvc.Core;
 using MBTP.Interfaces;
@@ -111,7 +110,7 @@ namespace MBTP.Controllers
         )
 
         {
-            string host = _httpContextAccessor.HttpContext.Request.Host.Value;
+            string host = _httpContextAccessor.HttpContext?.Request?.Host.Value ?? "unknown";
 
             if (startDate is not null)
             {
