@@ -61,17 +61,11 @@ namespace MBTP.Services
                 };
 
                 if (!occupancy.CategoryName.Contains("Beach Pull Thru Site- Concrete Pad - WESC") && !occupancy.CategoryName.Contains("FRONT PARKING LOT")
-                && !occupancy.CategoryName.Contains("Employee site") && !occupancy.CategoryName.Contains("Mobile Home Lease") && !occupancy.CategoryName.Contains("Storage-misc(boats/utility Trailers Etc)")
-                && !occupancy.CategoryName.Contains("Storage - Fifth wheel") && !occupancy.CategoryName.Contains("Golf Cart Rental - ADA only")
-                && !occupancy.CategoryName.Contains("Storage - Motor Home"))
+                && !occupancy.CategoryName.Contains("Employee Site") && !occupancy.CategoryName.Contains("Mobile Home Lease") && !occupancy.CategoryName.Contains("Storage-misc(boats/utility Trailers Etc)")
+                && !occupancy.CategoryName.Contains("Storage") && !occupancy.CategoryName.Contains("Golf Cart Rental - ADA only"))
                 {
                     occupancyList.Add(occupancy);
                 }
-
-                string filePath = "output.txt";
-                string contentFile = item.ToString();
-                File.AppendAllText(filePath, contentFile + Environment.NewLine);
-
             }
 
 
