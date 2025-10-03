@@ -70,17 +70,13 @@ namespace MBTP.Services
                     var occDate = kvp.Key;
                     var occDetails = kvp.Value;
 
-                    int? sites = (occDetails.Available ?? 0)
-                       - (occDetails.Occupied ?? 0)
-                       - (occDetails.Maintenance ?? 0)
-                       - (occDetails.Allotted ?? 0);
-
                     using (SqlCommand command = new SqlCommand("dbo.UpdateOccupancyTable", sqlConn))
                     {
                         command.CommandType = CommandType.StoredProcedure;
 
                         command.Parameters.AddWithValue("@Category", occupancy.CategoryName);
-                        command.Parameters.AddWithValue("@Sites", sites ?? 0);
+                        command.Parameters.AddWithValue("@OccupancyDate", occDate ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("@Sites",  occDetails.Available ?? 0);
                         command.Parameters.AddWithValue("@NightsAvailable", occDetails.Available ?? 0);
                         command.Parameters.AddWithValue("@Bookings", occDetails.Occupied ?? 0);
                         command.Parameters.AddWithValue("@BookingLength", $"{occDetails.Occupied} Nights");
