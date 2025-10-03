@@ -1194,14 +1194,17 @@ namespace FinancialC_
             foreach (Revenue item in revenueArray)
             {
                 //System.Diagnostics.Debug.WriteLine(item.RevType.ToString() + " " + item.Accum.ToString("C"));
-                if(item.RevType == "Campsites" || item.RevType == "Rentals" || item.RevType == "Annual" || item.RevType == "LTSites" ||
+                if (item.RevType != null)
+                {
+                    if (item.RevType == "Campsites" || item.RevType == "Rentals" || item.RevType == "Annual" || item.RevType == "LTSites" ||
                     item.RevType == "LTUnits" || item.RevType == "MHPark" || item.RevType == "Storage")
-                {
-                    sqlSupport.AddSQLParameter(item.RevType, SqlDbType.Money, item.Accum);
-                }
-                else
-                {
-                    sqlSupport.AddSQLParameter(item.RevType, SqlDbType.SmallMoney, item.Accum);
+                    {
+                        sqlSupport.AddSQLParameter(item.RevType, SqlDbType.Money, item.Accum);
+                    }
+                    else
+                    {
+                        sqlSupport.AddSQLParameter(item.RevType, SqlDbType.SmallMoney, item.Accum);
+                    }
                 }
             }
             double WescAccum = 0, RentalAccum = 0, GolfAccum = 0;
@@ -1229,59 +1232,67 @@ namespace FinancialC_
             }
             foreach (Applied item in appliedArray)
             {
-                if(item.AppliedItem == "SiteDepApp" || item.AppliedItem == "RentalDepApp")
+                if(item.AppliedItem != null)
                 {
-                    sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.Money, item.Accum);
-                }
-                else
-                {
-                    sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.SmallMoney, item.Accum);
+                    if (item.AppliedItem == "SiteDepApp" || item.AppliedItem == "RentalDepApp")
+                    {
+                        sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.Money, item.Accum);
+                    }
+                    else
+                    {
+                        sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.SmallMoney, item.Accum);
+                    }
                 }
                 //System.Diagnostics.Debug.WriteLine(item.AppliedItem + " " + item.Accum.ToString("C"));
             }
             foreach (Transfers item in transferArray)
             {
-                sqlSupport.AddSQLParameter(item.TranItem, SqlDbType.SmallMoney, item.Accum);
+                if(item.TranItem != null)
+                {
+                    sqlSupport.AddSQLParameter(item.TranItem, SqlDbType.SmallMoney, item.Accum);
+                }
                 //System.Diagnostics.Debug.WriteLine(item.TranItem + " " + item.Accum.ToString("C"));
             }
             double MRG1 = 0, MRG2 = 0, MRG3 = 0;
             foreach (Checks item in checkArray)
             {
-                sqlSupport.AddSQLParameter(item.CheckItem, SqlDbType.SmallMoney, item.Accum);
-                if (item.CheckItem == "CampsitesC" || item.CheckItem == "RentalsC")
+                if(item.CheckItem != null)
                 {
-                    MRG1 += item.Accum;
+                    sqlSupport.AddSQLParameter(item.CheckItem, SqlDbType.SmallMoney, item.Accum);
+                    if (item.CheckItem == "CampsitesC" || item.CheckItem == "RentalsC")
+                    {
+                        MRG1 += item.Accum;
+                    }
+                    else if (item.CheckItem == "AnnualC" || item.CheckItem == "MHParkC" ||
+                             item.CheckItem == "LTCampsitesC" || item.CheckItem == "LTRentalsC")
+                    {
+                        MRG2 += item.Accum;
+                    }
+                    else if (item.CheckItem == "StorageC" || item.CheckItem == "OtherC")
+                    {
+                        MRG3 += item.Accum;
+                    }
+                    else if (item.CheckItem == "SiteDepositsC")
+                    {
+                        sqlSupport.AddSQLParameter("SiteDepMRG", SqlDbType.SmallMoney, item.Accum);
+                    }
+                    else if (item.CheckItem == "RentalDepositsC")
+                    {
+                        sqlSupport.AddSQLParameter("RentalDepMRG", SqlDbType.SmallMoney, item.Accum);
+                    }
+                    else if (item.CheckItem == "GolfC")
+                    {
+                        sqlSupport.AddSQLParameter("MRGGolf", SqlDbType.SmallMoney, item.Accum);
+                    }
+                    else if (item.CheckItem == "GolfDepositsC")
+                    {
+                        sqlSupport.AddSQLParameter("GolfDepMRG", SqlDbType.SmallMoney, item.Accum);
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("This guy fell through: " + item.CheckItem);
+                    }
                 }
-                else if (item.CheckItem == "AnnualC" || item.CheckItem == "MHParkC" || 
-                         item.CheckItem == "LTCampsitesC" || item.CheckItem == "LTRentalsC")
-                {
-                    MRG2 += item.Accum;
-                }
-                else if (item.CheckItem == "StorageC" || item.CheckItem == "OtherC")
-                {
-                    MRG3 += item.Accum;
-                }
-                else if (item.CheckItem == "SiteDepositsC")
-                {
-                    sqlSupport.AddSQLParameter("SiteDepMRG", SqlDbType.SmallMoney, item.Accum);
-                }
-                else if (item.CheckItem == "RentalDepositsC")
-                {
-                    sqlSupport.AddSQLParameter("RentalDepMRG", SqlDbType.SmallMoney, item.Accum);
-                }
-                else if (item.CheckItem == "GolfC")
-                {
-                    sqlSupport.AddSQLParameter("MRGGolf", SqlDbType.SmallMoney, item.Accum);
-                }
-                else if (item.CheckItem == "GolfDepositsC")
-                {
-                    sqlSupport.AddSQLParameter("GolfDepMRG", SqlDbType.SmallMoney, item.Accum);
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("This guy fell through: " + item.CheckItem);
-                }
-                //System.Diagnostics.Debug.WriteLine(item.CheckItem + " " + item.Accum.ToString("C"));
             }
             sqlSupport.AddSQLParameter("MRG1", SqlDbType.SmallMoney, MRG1);
             sqlSupport.AddSQLParameter("MRG2", SqlDbType.SmallMoney, MRG2);

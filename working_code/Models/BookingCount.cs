@@ -1,7 +1,7 @@
 namespace MBTP.Models{
 public class BookingCount
 {
-    public string State { get; set; }
+    public string? State { get; set; }
     public int Year { get; set; }
     public int Month { get; set; }
     public int Count { get; set; }
@@ -19,7 +19,7 @@ public class BookingCount
     public class DailyBookingReport
     {
         public DateTime Month { get; set; }
-        public List<DailyBookingP>DailyPlaced { get; set; }
-        public List<DailyBookingC>DailyCancelled { get; set; }
+        public List<DailyBookingP>? DailyPlaced { get; set; } = new List<DailyBookingP>();
+        public List<DailyBookingC>? DailyCancelled { get; set; } = new List<DailyBookingC>();
     }
 }

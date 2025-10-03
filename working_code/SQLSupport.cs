@@ -9,8 +9,8 @@ namespace SQLStuff
     public class SQLSupport
     {
         private readonly IDatabaseConnectionService _dbConnectionService;
-        private SqlCommand _cmd;
-        private SqlConnection _sqlConn;
+        private SqlCommand _cmd = null!;
+        private SqlConnection _sqlConn = null!;
 
 
         public SQLSupport(IDatabaseConnectionService dbConnectionService)
