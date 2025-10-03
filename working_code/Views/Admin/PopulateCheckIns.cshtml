@@ -179,6 +179,7 @@ document.addEventListener("DOMContentLoaded", function() {
         defaultDate: "@SelectedDay?.ToString("yyyy-MM-dd")",
         onChange: function(selectedDates, dateStr, instance) {
             var newUrl = new URL(window.location.href);
+          +
             newUrl.searchParams.set("day", dateStr);
             sessionStorage.setItem('loading', 'true');
             loadingOverlay.style.display = 'flex';

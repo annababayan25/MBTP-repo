@@ -10,6 +10,7 @@ using MBTP.Retrieval;
 using SQLStuff;
 using MBTP.Interfaces;
 using IronPdf;
+using MBTP.Extreme;
 
 
 namespace MBTP
@@ -25,19 +26,25 @@ namespace MBTP
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScoped<TransactionFlowApi>();
-            services.AddScoped<ReconApi>();
-            services.AddScoped<CheckedInApi>();
-            services.AddScoped<InventoryApi>();
-            services.AddSingleton<IDatabaseConnectionService, DatabaseConnectionService>();
+            services.AddHttpClient<ExtremeService>(client =>
+            {
+                client.BaseAddress = new Uri("https://api.extremecloudiq.com/");
+                client.Timeout = TimeSpan.FromSeconds(30);
+            });
             services.AddHttpContextAccessor();
+            services.AddHttpClient<OccupancyApi>();
+            services.AddHttpClient<ReconApi>();
+            services.AddScoped<InventoryApi>();
+            services.AddHttpClient<TransactionFlowApi>();
+            services.AddHttpClient<CheckedInApi>();
+            services.AddHttpClient<BookingApi>();
+            services.AddSingleton<IDatabaseConnectionService, DatabaseConnectionService>();
             services.AddSingleton<DailyService>();
             services.AddScoped<DailyBookingsService>();
             services.AddScoped<OccupancyService>();
             services.AddScoped<DailyReport>();
             services.AddSingleton<WeatherService>();
             services.AddScoped<LoginClass>();
-            services.AddScoped<BookingAPI>();
             services.AddScoped<BookingRepository>();
             services.AddScoped<TrailerMovesReport>();
             services.AddScoped<ExpressCheckinsReport>();
@@ -47,6 +54,7 @@ namespace MBTP
             services.AddScoped<SpecialAddonsService>();
             services.AddScoped<SQLSupport>();
             services.AddScoped<BlackoutService>();
+            services.AddScoped<Dashboard>();
 
             // Auth
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

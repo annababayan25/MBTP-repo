@@ -44,11 +44,12 @@ namespace MBTP.Controllers
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
         private readonly BlackoutService _blackoutService;
-        private readonly BookingAPI _bookingAPI;
+        private readonly BookingApi _bookingAPI;
         private readonly CheckedInApi _checkedInApi;
         private readonly ReconApi _reconApi;
         private readonly TransactionFlowApi _transactionFlowApi;
         private readonly DailyReport _dailyReport;
+        private readonly OccupancyApi _occupancyApi;
 
 
         public AdminController(
@@ -57,7 +58,7 @@ namespace MBTP.Controllers
             IDatabaseConnectionService dbConnectionService,
             ICompositeViewEngine viewEngine,
             AccessLevelsActions accessLevelsActions,
-            BookingAPI bookingAPI,
+            BookingApi bookingAPI,
             IHttpContextAccessor httpContextAccessor,
             AdministrationService adminActions,
             RetailService retailService,
@@ -65,7 +66,8 @@ namespace MBTP.Controllers
             CheckedInApi checkedInApi,
             DailyReport dailyReport,
             ReconApi reconApi,
-            TransactionFlowApi transactionFlowApi
+            TransactionFlowApi transactionFlowApi,
+            OccupancyApi occupancyApi
         )
 
         {
@@ -82,6 +84,7 @@ namespace MBTP.Controllers
             _dailyReport = dailyReport;
             _reconApi = reconApi;
             _transactionFlowApi = transactionFlowApi;
+            _occupancyApi = occupancyApi;
         }
 
         [Authorize]
@@ -217,6 +220,42 @@ namespace MBTP.Controllers
             if (day is not null)
             {
                 await _reconApi.PopulateRecons(periodFrom, periodTo);
+            }
+
+            return View();
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateOccupancy(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+
+            // One full day range
+            var periodFrom = selectedDay.Date; // midnight
+            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
+
+            if (day is not null)
+            {
+                await _occupancyApi.PopulateOccupancy(periodFrom, periodTo);
+            }
+
+            return View();
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateTransactions(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+
+            // One full day range
+            var periodFrom = selectedDay.Date; // midnight
+            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
+
+            if (day is not null)
+            {
+                await _transactionFlowApi.PopulateTransactions(periodFrom, periodTo);
             }
 
             return View();

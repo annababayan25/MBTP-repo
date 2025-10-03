@@ -1,148 +1,117 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using Microsoft.Data.SqlClient;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using MBTP.Models;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using MBTP.Interfaces;
 
 namespace MBTP.Extreme
 {
     public class ExtremeService
     {
-        private string apiUrl = "https://api.extremecloudiq.com/login";
-        private readonly string username = "mbtpadmin@mbtravelpark.com";
-        private readonly string password = "Dashboard2025!";
+        private readonly HttpClient _httpClient;
         private readonly IDatabaseConnectionService _dbConnectionService;
-        public ExtremeService(IDatabaseConnectionService dbConnectionService)
+
+        public ExtremeService(HttpClient httpClient, IDatabaseConnectionService dbConnectionService)
         {
+            _httpClient = httpClient;
             _dbConnectionService = dbConnectionService;
         }
+
         public async Task<List<Device>> FetchExtremeKey()
         {
             var requestBody = new
             {
-                username = username,
-                password = password
+                username = "mbtpadmin@mbtravelpark.com",
+                password = "Dashboard2025!"
             };
 
-            using var httpClient = new HttpClient { Timeout = TimeSpan.FromMinutes(1) };
-
             var content = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
-            var response = await httpClient.PostAsync(apiUrl, content);
+            var response = await _httpClient.PostAsync("login", content);
             if (!response.IsSuccessStatusCode)
             {
                 return new List<Device>();
             }
+
             var jsonResponse = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-            if (result is null)
-            {
-                return new List<Device>();
-            }
             ExtremeKey? extremeKey = JsonConvert.DeserializeObject<ExtremeKey>(jsonResponse);
-            //ExtremeKey? extremeKey = null;
+
             if (extremeKey is null)
             {
                 return new List<Device>();
             }
-            apiUrl = "https://api.extremecloudiq.com/devices?page=1&limit=100&fields=HOSTNAME&fields=CONNECTED&fields=LAST_CONNECT_TIME&fields=LOCATION_ID&deviceTypes=REAL&async=false";
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", extremeKey.access_token);
 
-            response = await httpClient.GetAsync(apiUrl);
+            // attach bearer token
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", extremeKey.access_token);
+
+            // fetch first page of devices
+            response = await _httpClient.GetAsync("devices?page=1&limit=100&fields=HOSTNAME&fields=CONNECTED&fields=LAST_CONNECT_TIME&fields=LOCATION_ID&deviceTypes=REAL&async=false");
             if (!response.IsSuccessStatusCode)
             {
                 return new List<Device>();
             }
+
             jsonResponse = await response.Content.ReadAsStringAsync();
-            result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-            if (result is null)
+            DeviceList? deviceList = JsonConvert.DeserializeObject<DeviceList>(jsonResponse);
+            if (deviceList == null)
             {
                 return new List<Device>();
             }
-            DeviceList? deviceList = JsonConvert.DeserializeObject<DeviceList>(jsonResponse);
-            // Check to see if there are more pages to process
-            if (deviceList is not null)
+
+            // fetch remaining pages if any
+            for (int page = 2; page <= deviceList.total_pages; page++)
             {
-                if (deviceList.total_pages > 1)
+                var pagedUrl = $"devices?page={page}&limit=100&fields=HOSTNAME&fields=CONNECTED&fields=LAST_CONNECT_TIME&fields=LOCATION_ID&deviceTypes=REAL&async=false";
+                response = await _httpClient.GetAsync(pagedUrl);
+                if (!response.IsSuccessStatusCode) continue;
+
+                jsonResponse = await response.Content.ReadAsStringAsync();
+                DeviceList? pagedList = JsonConvert.DeserializeObject<DeviceList>(jsonResponse);
+                if (pagedList != null)
                 {
-                    for (int page = 2; page <= deviceList.total_pages; page++)
-                    {
-                        string pagedUrl = $"https://api.extremecloudiq.com/devices?page={page}&limit=100&fields=HOSTNAME&fields=CONNECTED&fields=LAST_CONNECT_TIME&fields=LOCATION_ID&deviceTypes=REAL&async=false";
-                        response = await httpClient.GetAsync(pagedUrl);
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            continue;
-                        }
-                        jsonResponse = await response.Content.ReadAsStringAsync();
-                        result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                        if (result is null)
-                        {
-                            continue;
-                        }
-                        DeviceList? pagedList = JsonConvert.DeserializeObject<DeviceList>(jsonResponse);
-                        if (pagedList is not null)
-                        {
-                            deviceList.Data.AddRange(pagedList.Data);
-                        }
-                    }
+                    deviceList.Data.AddRange(pagedList.Data);
                 }
             }
-            // now get the floor list
-            apiUrl = "https://api.extremecloudiq.com/locations/floor?page=1&limit=100";
-            response = await httpClient.GetAsync(apiUrl);
+
+            // fetch floors
+            response = await _httpClient.GetAsync("locations/floor?page=1&limit=100");
             if (!response.IsSuccessStatusCode)
             {
                 return new List<Device>();
             }
+
             jsonResponse = await response.Content.ReadAsStringAsync();
-            result = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-            if (result is null)
-            {
-                return new List<Device>();
-            }
             FloorList? floorList = JsonConvert.DeserializeObject<FloorList>(jsonResponse);
-            // now we have both lists, we can add the hub location to the device list
-            if (floorList is null)
+            if (floorList == null)
             {
                 return new List<Device>();
             }
-            if (deviceList is null)
-            {
-                return new List<Device>();
-            }
+
+            // enrich devices with floor hub name
             for (int i = deviceList.Data.Count - 1; i >= 0; i--)
             {
                 Device device = deviceList.Data[i];
                 if (device.location_id != null)
                 {
                     var floor = floorList.Data.Find(f => f.id == device.location_id);
-                    if (floor != null)
-                    {
-                        device.hubName = floor.name;
-                    }
-                    else
-                    {
-                        device.hubName = "Unknown";
-                    }
+                    device.hubName = floor != null ? floor.name : "Unknown";
                 }
                 else
                 {
                     device.hubName = "No Location";
                 }
+
                 if (device.hubName == "Spares")
                 {
                     deviceList.Data.RemoveAt(i);
                 }
             }
+
             return new List<Device>(deviceList.Data);
         }
     }
 }
-
-
