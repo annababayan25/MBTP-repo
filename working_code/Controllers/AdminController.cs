@@ -228,19 +228,26 @@ namespace MBTP.Controllers
         [Authorize]
         public async Task<IActionResult> PopulateOccupancy(DateTime? day)
         {
-            var selectedDay = day ?? DateTime.Today;
-            ViewBag.SelectedDay = selectedDay;
-
-            // One full day range
-            var periodFrom = selectedDay.Date; // midnight
-            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
-
-            if (day is not null)
             {
-                await _occupancyApi.PopulateOccupancy(periodFrom, periodTo);
-            }
+                var selectedDay = day ?? DateTime.Today;
+                await _occupancyApi.PopulateOccupancy(selectedDay, selectedDay.AddDays(1));
+                var reportData = await _dailyReport.RetrieveOccupancyReport(selectedDay, selectedDay.AddDays(1));
 
-            return View();
+                if (reportData == null || reportData.Tables.Count == 0 || reportData.Tables[0].Rows.Count == 0)
+                {
+                    var yesterday = DateTime.Today.AddDays(-1);
+                    await _occupancyApi.PopulateOccupancy(yesterday, yesterday.AddDays(1));
+                    reportData = await _dailyReport.RetrieveOccupancyReport(yesterday, yesterday.AddDays(1));
+                    ViewBag.SelectedDay = yesterday;
+                }
+                else
+                {
+                    ViewBag.SelectedDay = selectedDay;
+                }
+
+                ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
+                return View(reportData);
+            }
         }
 
         [Authorize]
