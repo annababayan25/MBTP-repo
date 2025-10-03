@@ -53,10 +53,25 @@ namespace MBTP.Services
                     Allotted = item.allotted,
                     RevenueGross = item.revenue_gross,
                     RevenueNet = item.revenue_net,
+                    ProjEarnings_PerBooking_TaxInc = 0,
+                    ProjEarnings_PerBooking_TaxExc = 0,
+                    ProjEarnings_PerOccNight_TaxInc = 0,
+                    ProjEarnings_PerOccNight_TaxExc = 0,
                     Occupancy = JsonConvert.DeserializeObject<Dictionary<string, OccDetails>>(item.occupancy?.ToString() ?? "{}")
                 };
 
-                occupancyList.Add(occupancy);
+                if (!occupancy.CategoryName.Contains("Beach Pull Thru Site- Concrete Pad - WESC") && !occupancy.CategoryName.Contains("FRONT PARKING LOT")
+                && !occupancy.CategoryName.Contains("Employee site") && !occupancy.CategoryName.Contains("Mobile Home Lease") && !occupancy.CategoryName.Contains("Storage-misc(boats/utility Trailers Etc)")
+                && !occupancy.CategoryName.Contains("Storage - Fifth wheel") && !occupancy.CategoryName.Contains("Golf Cart Rental - ADA only")
+                && !occupancy.CategoryName.Contains("Storage - Motor Home"))
+                {
+                    occupancyList.Add(occupancy);
+                }
+
+                string filePath = "output.txt";
+                string contentFile = item.ToString();
+                File.AppendAllText(filePath, contentFile + Environment.NewLine);
+
             }
 
 
@@ -65,35 +80,49 @@ namespace MBTP.Services
 
             foreach (var occupancy in occupancyList)
             {
-                foreach (var kvp in occupancy.Occupancy)
-                {
-                    var occDate = kvp.Key;
-                    var occDetails = kvp.Value;
-
-                    using (SqlCommand command = new SqlCommand("dbo.UpdateOccupancyTable", sqlConn))
+                    var reportDate = startDate.ToString("yyyy-MM-dd");
+                    if (occupancy.Occupancy.TryGetValue(reportDate, out var occDetails))
                     {
-                        command.CommandType = CommandType.StoredProcedure;
+                        var occDate = reportDate;
 
-                        command.Parameters.AddWithValue("@Category", occupancy.CategoryName);
-                        command.Parameters.AddWithValue("@OccupancyDate", occDate ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@Sites",  occDetails.Available ?? 0);
-                        command.Parameters.AddWithValue("@NightsAvailable", occDetails.Available ?? 0);
-                        command.Parameters.AddWithValue("@Bookings", occDetails.Occupied ?? 0);
-                        command.Parameters.AddWithValue("@BookingLength", $"{occDetails.Occupied} Nights");
-                        command.Parameters.AddWithValue("@ProjEarnings_TaxInc", occDetails.RevenueGross ?? 0);
-                        command.Parameters.AddWithValue("@ProjEarnings_TaxExc", occDetails.RevenueNet ?? 0);
-                        command.Parameters.AddWithValue("@ProjEarnings_PerBooking_TaxInc", 0);
-                        command.Parameters.AddWithValue("@ProjEarnings_PerBooking_TaxExc", 0);
-                        command.Parameters.AddWithValue("@ProjEarnings_PerOccNight_TaxInc", 0);
-                        command.Parameters.AddWithValue("@ProjEarnings_PerOccNight_TaxExc", 0);
-                        command.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000);
-                        command.Parameters["@ProcStatus"].Direction = ParameterDirection.Output;
+                        decimal projPerBookingTaxInc = 0;
+                        decimal projPerBookingTaxExc = 0;
+                        decimal projPerOccNightTaxInc = 0;
+                        decimal projPerOccNightTaxExc = 0;
 
-                        await command.ExecuteNonQueryAsync();
+                        if ((occDetails.Occupied ?? 0) > 0)
+                        {
+                            projPerBookingTaxInc = ((decimal)(occDetails.RevenueGross ?? 0)) / (occDetails.Occupied ?? 0);
+                            projPerBookingTaxExc = ((decimal)(occDetails.RevenueNet ?? 0)) / (occDetails.Occupied ?? 0);
+                            projPerOccNightTaxInc = ((decimal)(occDetails.RevenueGross ?? 0)) / (occDetails.Occupied ?? 0);
+                            projPerOccNightTaxExc = ((decimal)(occDetails.RevenueNet ?? 0)) / (occDetails.Occupied ?? 0);
+                        }
 
+                        using (SqlCommand command = new SqlCommand("dbo.UpdateOccupancyTable", sqlConn))
+                        {
+                            command.CommandType = CommandType.StoredProcedure;
+
+                            command.Parameters.AddWithValue("@Category", occupancy.CategoryName);
+                            command.Parameters.AddWithValue("@OccupancyDate", occDate ?? (object)DBNull.Value);
+                            command.Parameters.AddWithValue("@Sites", occDetails.Available ?? 0);
+                            command.Parameters.AddWithValue("@NightsAvailable", occDetails.Available ?? 0);
+                            command.Parameters.AddWithValue("@Bookings", occDetails.Occupied ?? 0);
+                            command.Parameters.AddWithValue("@BookingLength", $"{occDetails.Occupied} Nights");
+                            command.Parameters.AddWithValue("@ProjEarnings_TaxInc", occDetails.RevenueGross ?? 0);
+                            command.Parameters.AddWithValue("@ProjEarnings_TaxExc", occDetails.RevenueNet ?? 0);
+                            command.Parameters.AddWithValue("@ProjEarnings_PerBooking_TaxInc", projPerBookingTaxInc);
+                            command.Parameters.AddWithValue("@ProjEarnings_PerBooking_TaxExc", projPerBookingTaxExc);
+                            command.Parameters.AddWithValue("@ProjEarnings_PerOccNight_TaxInc", projPerOccNightTaxInc);
+                            command.Parameters.AddWithValue("@ProjEarnings_PerOccNight_TaxExc", projPerOccNightTaxExc);
+                            command.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000);
+                            command.Parameters["@ProcStatus"].Direction = ParameterDirection.Output;
+
+                            await command.ExecuteNonQueryAsync();
+
+                        }
                     }
                 }
-            }
+            
             Console.WriteLine("Total Occupancy Entries: " + occupancyList.Count);
             Console.WriteLine("Run method finished.");
         }

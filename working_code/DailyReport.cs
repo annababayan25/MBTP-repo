@@ -16,152 +16,184 @@ namespace MBTP.Retrieval
             _dbConnectionService = dbConnectionService;
         }
 
-       public async Task<DataSet> RetrieveData(DateTime startDate)
-{
-    DataSet myDS = new DataSet();
-
-    try
-    {
-        using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-        using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDailyReportAdditions", sqlConn))
+        public async Task<DataSet> RetrieveData(DateTime startDate)
         {
-            cmd.CommandType = CommandType.StoredProcedure;
-            cmd.Parameters.Add("@TransDate", SqlDbType.Date);
-            SqlDataAdapter myDA = new SqlDataAdapter(cmd);
+            DataSet myDS = new DataSet();
 
-            sqlConn.Open();
-
-            cmd.Parameters["@TransDate"].Value = startDate;
-            myDS.Clear();
-            myDA.Fill(myDS);
-
-            if (myDS.Tables.Count > 0 && myDS.Tables[0].Rows.Count > 0)
+            try
             {
-                //System.Diagnostics.Debug.WriteLine("Data Exists for " + startDate.ToString("yyyy-MM-dd"));
-                //Console.WriteLine("Data Exists for " + startDate.ToString("yyyy-MM-dd"));
-                cmd.CommandText = "dbo.RetrieveOpDeductions";
-                SqlDataAdapter myDA2 = new SqlDataAdapter(cmd);
-                myDA2.Fill(myDS,"Deductions");
-                cmd.CommandText = "dbo.RetrieveBlackoutState";
-                cmd.Parameters.Clear();
-                cmd.Parameters.Add("@StartDate", SqlDbType.Date);
-                cmd.Parameters["@StartDate"].Value = startDate;
-                cmd.Parameters.Add("@EndDate", SqlDbType.Date);
-                cmd.Parameters["@EndDate"].Value = startDate;
-                SqlDataAdapter myDA3 = new SqlDataAdapter(cmd);
-                myDA3.Fill(myDS,"Blackout");
-               // Now create a table to hold weather data
-                DataTable WeatherTable = myDS.Tables.Add("Weather");
-                WeatherTable.Columns.Add("Sunrise", typeof(string));
-                WeatherTable.Columns.Add("Sunset", typeof(string));
-                WeatherTable.Columns.Add("Precip",typeof(decimal));
-                WeatherTable.Columns.Add("Precipcover", typeof(decimal));
-                WeatherTable.Columns.Add("TempMax",typeof(decimal));
-                WeatherTable.Columns.Add("TempMin",typeof(decimal));
-                WeatherTable.Columns.Add("Description", typeof(string));
-                // Fetch weather data for the actual date used in the report
-                using (HttpClient client = new HttpClient())
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveDailyReportAdditions", sqlConn))
                 {
-                    string location = "Myrtle Beach"; // Replace with your actual city
-                    string formattedDate = startDate.ToString("yyyy-MM-dd");
-                    string _apiKey = "VETTNNC58YGSD48HA6A6VZ7DG"; // Replace with your actual API key
-                    string _baseUri = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline";
-                    string uri = $"{_baseUri}/{location}/{formattedDate}/{formattedDate}?unitGroup=metric&include=days&key={_apiKey}&contentType=json";
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@TransDate", SqlDbType.Date);
+                    SqlDataAdapter myDA = new SqlDataAdapter(cmd);
 
-                    //Console.WriteLine($"Requesting weather data for {location} on {formattedDate}");
-                    HttpResponseMessage response = await client.GetAsync(uri);
-                    string json = await response.Content.ReadAsStringAsync();
+                    sqlConn.Open();
 
-                    //Console.WriteLine($"API Response: {json}"); // Log the response
+                    cmd.Parameters["@TransDate"].Value = startDate;
+                    myDS.Clear();
+                    myDA.Fill(myDS);
 
-                    try
+                    if (myDS.Tables.Count > 0 && myDS.Tables[0].Rows.Count > 0)
                     {
-                        JObject weatherData = JObject.Parse(json);
-                        var days = weatherData["days"];
-
-                        if (days != null)
+                        //System.Diagnostics.Debug.WriteLine("Data Exists for " + startDate.ToString("yyyy-MM-dd"));
+                        //Console.WriteLine("Data Exists for " + startDate.ToString("yyyy-MM-dd"));
+                        cmd.CommandText = "dbo.RetrieveOpDeductions";
+                        SqlDataAdapter myDA2 = new SqlDataAdapter(cmd);
+                        myDA2.Fill(myDS, "Deductions");
+                        cmd.CommandText = "dbo.RetrieveBlackoutState";
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@StartDate", SqlDbType.Date);
+                        cmd.Parameters["@StartDate"].Value = startDate;
+                        cmd.Parameters.Add("@EndDate", SqlDbType.Date);
+                        cmd.Parameters["@EndDate"].Value = startDate;
+                        SqlDataAdapter myDA3 = new SqlDataAdapter(cmd);
+                        myDA3.Fill(myDS, "Blackout");
+                        // Now create a table to hold weather data
+                        DataTable WeatherTable = myDS.Tables.Add("Weather");
+                        WeatherTable.Columns.Add("Sunrise", typeof(string));
+                        WeatherTable.Columns.Add("Sunset", typeof(string));
+                        WeatherTable.Columns.Add("Precip", typeof(decimal));
+                        WeatherTable.Columns.Add("Precipcover", typeof(decimal));
+                        WeatherTable.Columns.Add("TempMax", typeof(decimal));
+                        WeatherTable.Columns.Add("TempMin", typeof(decimal));
+                        WeatherTable.Columns.Add("Description", typeof(string));
+                        // Fetch weather data for the actual date used in the report
+                        using (HttpClient client = new HttpClient())
                         {
-                            foreach (var day in days)
+                            string location = "Myrtle Beach"; // Replace with your actual city
+                            string formattedDate = startDate.ToString("yyyy-MM-dd");
+                            string _apiKey = "VETTNNC58YGSD48HA6A6VZ7DG"; // Replace with your actual API key
+                            string _baseUri = "https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline";
+                            string uri = $"{_baseUri}/{location}/{formattedDate}/{formattedDate}?unitGroup=metric&include=days&key={_apiKey}&contentType=json";
+
+                            //Console.WriteLine($"Requesting weather data for {location} on {formattedDate}");
+                            HttpResponseMessage response = await client.GetAsync(uri);
+                            string json = await response.Content.ReadAsStringAsync();
+
+                            //Console.WriteLine($"API Response: {json}"); // Log the response
+
+                            try
                             {
-                                string? sunrise = day["sunrise"]?.ToObject<string>();
-                                string? sunset = day["sunset"]?.ToObject<string>();
-                                double? precip = day["precip"]?.ToObject<double>();
-                                double? precipcover = day["precipcover"]?.ToObject<double>();
-                                double? tempmax = day["tempmax"]?.ToObject<double>();
-                                double? tempmin = day["tempmin"]?.ToObject<double>();
-                                string? description = day["description"]?.ToObject<string>();
-                                //Console.WriteLine($"Date: {day["datetime"]}");
-                                //Console.WriteLine($"Sunrise: {sunrise}");
-                                //Console.WriteLine($"Sunset: {sunset}");
-                                //Console.WriteLine($"Precipitation: {precip}");
-                                //Console.WriteLine($"Cover: {precipcover}");
-                                //Console.WriteLine($"Temp: {temperature}");
-                                //Console.WriteLine($"Description: {description}");
-                                WeatherTable.Rows.Add(sunrise, sunset, precip, precipcover, tempmax, tempmin, description);
+                                JObject weatherData = JObject.Parse(json);
+                                var days = weatherData["days"];
+
+                                if (days != null)
+                                {
+                                    foreach (var day in days)
+                                    {
+                                        string? sunrise = day["sunrise"]?.ToObject<string>();
+                                        string? sunset = day["sunset"]?.ToObject<string>();
+                                        double? precip = day["precip"]?.ToObject<double>();
+                                        double? precipcover = day["precipcover"]?.ToObject<double>();
+                                        double? tempmax = day["tempmax"]?.ToObject<double>();
+                                        double? tempmin = day["tempmin"]?.ToObject<double>();
+                                        string? description = day["description"]?.ToObject<string>();
+                                        //Console.WriteLine($"Date: {day["datetime"]}");
+                                        //Console.WriteLine($"Sunrise: {sunrise}");
+                                        //Console.WriteLine($"Sunset: {sunset}");
+                                        //Console.WriteLine($"Precipitation: {precip}");
+                                        //Console.WriteLine($"Cover: {precipcover}");
+                                        //Console.WriteLine($"Temp: {temperature}");
+                                        //Console.WriteLine($"Description: {description}");
+                                        WeatherTable.Rows.Add(sunrise, sunset, precip, precipcover, tempmax, tempmin, description);
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error parsing JSON: {ex.Message}");
+                                Console.WriteLine($"Response content: {json}");
                             }
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Console.WriteLine($"Error parsing JSON: {ex.Message}");
-                        Console.WriteLine($"Response content: {json}");
+                        System.Diagnostics.Debug.WriteLine("No Data for " + startDate.ToString("yyyy-MM-dd"));
+                        Console.WriteLine("No Data for " + startDate.ToString("yyyy-MM-dd"));
+                    }
+
+                    sqlConn.Close();
+                }
+                return myDS;
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine("SQL error: " + sqlEx.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("General error: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("Stack Trace: " + ex.StackTrace);
+                throw;
+            }
+        }
+
+        public async Task<DataSet> RetrieveCheckedInReport(DateTime startDate, DateTime endDate)
+        {
+            return await Task.Run(() =>
+            {
+                DataSet ds = new DataSet();
+
+                try
+                {
+                    using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveCheckedInReport", sqlConn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@StartDate", startDate);
+                        cmd.Parameters.AddWithValue("@EndDate", endDate);
+
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        sqlConn.Open();
+                        da.Fill(ds);
+                        sqlConn.Close();
                     }
                 }
-            }
-            else
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error retrieving checked-in report: " + ex.Message);
+                    throw;
+                }
+
+                return ds;
+            });
+        }
+
+    public async Task<DataSet> RetrieveOccupancyReport(DateTime startDate, DateTime endDate)
+    {
+        return await Task.Run(() =>
+        {
+            DataSet ds = new DataSet();
+
+            try
             {
-                System.Diagnostics.Debug.WriteLine("No Data for " + startDate.ToString("yyyy-MM-dd"));
-                Console.WriteLine("No Data for " + startDate.ToString("yyyy-MM-dd"));
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveOccupancyReport", sqlConn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@StartDate", startDate);
+                    cmd.Parameters.AddWithValue("@EndDate", endDate);
+
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    sqlConn.Open();
+                    da.Fill(ds);
+                    sqlConn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving occupancy report: " + ex.Message);
+                throw;
             }
 
-            sqlConn.Close();
-        }
-        return myDS;
+            return ds;
+        });
     }
-    catch (SqlException sqlEx)
-    {
-        System.Diagnostics.Debug.WriteLine("SQL error: " + sqlEx.Message);
-        throw;
-    }
-    catch (Exception ex)
-    {
-        System.Diagnostics.Debug.WriteLine("General error: " + ex.Message);
-        System.Diagnostics.Debug.WriteLine("Stack Trace: " + ex.StackTrace);
-        throw;
+
+
+
     }
 }
-
-public async Task<DataSet> RetrieveCheckedInReport(DateTime startDate, DateTime endDate)
-{
-    return await Task.Run(() =>
-    {
-        DataSet ds = new DataSet();
-
-        try
-        {
-            using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-            using (SqlCommand cmd = new SqlCommand("dbo.RetrieveCheckedInReport", sqlConn))
-            {
-                cmd.CommandType = CommandType.StoredProcedure;
-                cmd.Parameters.AddWithValue("@StartDate", startDate);
-                cmd.Parameters.AddWithValue("@EndDate", endDate);
-
-                SqlDataAdapter da = new SqlDataAdapter(cmd);
-                sqlConn.Open();
-                da.Fill(ds);
-                sqlConn.Close();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error retrieving checked-in report: " + ex.Message);
-            throw;
-        }
-
-        return ds;
-    });
-}
-
-
-
-}}
