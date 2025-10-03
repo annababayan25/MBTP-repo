@@ -167,7 +167,7 @@ namespace MBTP.Controllers
             return File(fileBytes, "application/pdf", $"DailyReport-Other_{finalDate.ToString("yyyy-MM-dd")}.pdf");
         }
         [Authorize]
-        public async Task<IActionResult> Generate2(string date)
+        public async Task<IActionResult> GeneratePDF2(string date)
         {
             DateTime selectedDate;
             if (!DateTime.TryParse(date, out selectedDate))

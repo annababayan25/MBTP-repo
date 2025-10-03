@@ -66,10 +66,10 @@
 {
 <table id="daily-table" class="breakdown clickable-tableC" data-MonthlyBreakdown="/FDB/MonthlyBreakdownC" style="width:240px">
    <tr>
-       <td class="breakdownBigTitle" colspan="8">Coffee Camper</td>
+       <th class="breakdownBigTitle" colspan="8">Coffee Camper</th>
    </tr>
    <tr>
-       <th class="breakdownMonth" rowspan="2">Day</th>
+        <th class="breakdownDayScrolling"></th>
        <th class="breakdownTitle">330</th>
        <th class="breakdownTitle">331</th>
        <th class="breakdownTitle">332</th>
@@ -79,6 +79,7 @@
        <th class="breakdownTotalsHead" rowspan="2">Total Tax Expected</th>        
    </tr>
    <tr>
+        <th class="breakdownDayScrolling">Day</th>
        <th class="breakdownTitle">Prepared Food</th>
        <th class="breakdownTitle">Merchandise</th>
        <th class="breakdownTitle">Non-Tax Food</th>
@@ -116,7 +117,7 @@
        totalNetRevenue += netRevenue;
        totalTaxExpected += taxExpected;
        <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
-           <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
+           <td class="breakdownDate">@transDate.ToString("MM/dd/yyyy")</td>
             @if(preparedFoodC + merchandiseC + nonTaxC == 0)
             {
                 if(blackedOutDate && grossRevenue <= 0)
@@ -145,7 +146,7 @@
        </tr>
    }
    <tr>
-       <td class="breakdownMonthSmallText">Month-to-Date Totals:</td>
+        <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalPreparedFoodC)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalMerchandiseC)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTaxC)</td>
@@ -166,7 +167,7 @@
         projNetRevenue = projGrossRevenue - projTaxCollected;
         projTaxExpected = (projPreparedFoodC - (projPreparedFoodC / TenP)) + (projMerchandiseC - (projMerchandiseC / EightP));
         <tr>
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
+            <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projPreparedFoodC)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projMerchandiseC)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projNonTaxC)</td>
@@ -187,7 +188,7 @@
         ptotalTaxExpected = (ptotalPreparedFoodC - (ptotalPreparedFoodC / TenP)) + (ptotalMerchandiseC - (ptotalMerchandiseC / EightP));
     }
    <tr>
-       <td class="breakdownMonthSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
+       <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPreparedFoodC)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalMerchandiseC)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNonTaxC)</td>
@@ -207,7 +208,7 @@
         p2totalTaxExpected = (p2totalPreparedFoodC - (p2totalPreparedFoodC / TenP)) + (p2totalMerchandiseC - (p2totalMerchandiseC / EightP));
     }
    <tr>
-       <td class="breakdownMonthSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
+       <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPreparedFoodC)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalMerchandiseC)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNonTaxC)</td>
@@ -245,14 +246,18 @@
         deltaNetRevenue = totalNetRevenue - ptotalNetRevenue;
         deltaTaxExpected = totalTaxExpected - ptotalTaxExpected;
     }
+    @{
+        string dateString = startDate.ToString("MMM yyyy");
+        dateString = dateString.Replace(" ", "\u00A0") + "\u00A0" + "Over/Under:";
+    }
     <tr>
         @if (startDate.Month == currentDate.Month)
         {
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM yyyy") Over/Under:</td>
+            <td class="breakdownTotalsScrollingSmallText">Projected&nbsp;@(dateString)</td>
         }
         else
         {
-            <td class="breakdownMonthSmallText">@startDate.ToString("MMM yyyy") Over/Under:</td>
+            <td class="breakdownTotalsScrollingSmallText">@(dateString)</td>
         }
         <td class="@(deltaPreparedFoodC < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaPreparedFoodC)</td>
         <td class="@(deltaMerchandiseC < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaMerchandiseC)</td>
@@ -265,7 +270,7 @@
     @if (startDate.Month == currentDate.Month)
     {
         <tr>
-            <td class="breakdownLegend" colspan="20"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+            <td class="breakdownLegendBottom" colspan="8"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
         </tr>
     }
 </table>

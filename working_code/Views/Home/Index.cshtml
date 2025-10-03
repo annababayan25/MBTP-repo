@@ -86,7 +86,7 @@
         <table id="external-wrapper-table">
             <tr>
                 <td>
-                    <table id="alerts-table"  class="breakdown" style="width:600px">
+                    <table id="alerts-table"  style="width:600px">
                         <thead>
                             <tr class="dashboardTableHeader">
                                 <td colspan="7">Data Errors From Last 30 Days</td>
@@ -140,7 +140,7 @@
                     </table>
                 </td>
                 <td>
-                    <table id="aps-table"  class="breakdown" style="width:300px">
+                    <table id="aps-table"  style="width:300px">
                         <thead>
                             <tr class="dashboardTableHeader">
                                 <td colspan="3">Guest Wi-Fi Status</td>
@@ -218,7 +218,7 @@
                 <td>
                     @if (Model is not null && Model.Tables[0].Rows.Count > 0)
                     {
-                        <table id="dashboard-table" class="breakdown" style="width:240px">
+                        <table id="dashboard-table" style="width:240px">
                             <thead>
                                 <tr class="dashboardTableHeader">
                                     <td colspan="7">Front Office 10-Day Outlook</td>
@@ -290,7 +290,7 @@
                 <td style="vertical-align: top;">
                     @if (Model is not null && Model.Tables[1].Rows.Count > 0 && (accIDInt < 3 || accIDInt == 4 || accIDInt == 7 || accIDInt == 10))
                     {
-                        <table id="dashboard-store-table" class="breakdown" style="width:240px">
+                        <table id="dashboard-store-table" style="width:240px">
                             @{
                                 decimal netSales = 0;
                                 DateTime rightnow = DateTime.Now;
