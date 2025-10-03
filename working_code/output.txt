@@ -1,532 +1,1536 @@
 {
-  "booking_id": 374903,
-  "booking_arrival": "2025-09-26 14:00:00",
-  "booking_departure": "2025-09-28 11:00:00",
-  "booking_eta": null,
-  "booking_length": 2,
-  "booking_status": "Departed",
-  "booking_checkedin": "2025-09-26 15:30:32",
-  "booking_checkedout": "2025-09-28 11:05:46",
-  "booking_adults": "1",
-  "booking_children": "0",
-  "booking_infants": "0",
-  "booking_animals": "0",
-  "booking_total": "146.00",
-  "booking_method_id": "-2",
-  "booking_method_name": "Newbook Online",
-  "booking_source_id": "40",
-  "booking_source_name": "Google",
-  "booking_parent_source_id": "-4",
-  "booking_parent_source_name": "General",
-  "booking_reason_id": null,
-  "booking_reason_name": "None",
-  "booking_demographic_id": null,
-  "booking_demographic_name": "None",
-  "booking_market_segment_id": null,
-  "booking_market_segment_name": "None",
-  "booking_placed": "2025-09-22 07:10:47",
-  "booking_modified": "2025-09-28 11:05:46",
-  "booking_booked_by": "Newbook Online",
-  "booking_booked_by_id": "-1",
-  "booking_arrived_by": "DeeDee Gabriel",
-  "booking_arrived_by_id": "44",
-  "booking_departed_by": "Cathy Dawkins",
-  "booking_departed_by_id": "8",
-  "booking_reference_id": "",
-  "booking_flagged": "0",
-  "booking_locked": "0",
-  "gl_account_id": "5",
-  "gl_category_id": "1",
-  "tariff_name": "Daily Rate",
-  "tariff_total": "146.00",
-  "tariffs_quoted": [
-    {
-      "tariff_quoted_id": "1317293",
-      "label": "Daily Rate",
-      "stay_date": "2025-09-26",
-      "tariff_applied_id": "1156",
-      "type_id": "1",
-      "original_amount": "73.00",
-      "calculated_amount": "73.00",
-      "charge_amount": "73.00",
-      "taxes": [
-        {
-          "tax_id": 107,
-          "tax_name": "Sales & Accommodation Tax",
-          "tax_inclusive": false,
-          "tax_amount": 8.76
-        }
-      ],
-      "occupant_charges": []
+  "category_id": 22,
+  "category_name": "Storage-misc(boats/utility Trailers Etc)",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2.98,
+      "revenue_net": 2.98
     },
-    {
-      "tariff_quoted_id": "1315501",
-      "label": "Daily Rate",
-      "stay_date": "2025-09-27",
-      "tariff_applied_id": "1156",
-      "type_id": "1",
-      "original_amount": "73.00",
-      "calculated_amount": "73.00",
-      "charge_amount": "73.00",
-      "taxes": [
-        {
-          "tax_id": 107,
-          "tax_name": "Sales & Accommodation Tax",
-          "tax_inclusive": false,
-          "tax_amount": 8.76
-        }
-      ],
-      "occupant_charges": []
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2.98,
+      "revenue_net": 2.98
     }
-  ],
-  "repeat_charges": [],
-  "inventory_items": [
-    {
-      "id": "87342",
-      "inventory_item_id": "418",
-      "description": "Online Booking Fee (Sep 26 2025)",
-      "gl_account_id": "5",
-      "gl_category_id": "1",
-      "stay_date": "2025-09-26",
-      "stay_cost_contribution": "Exclude",
-      "discounts_apply": "1",
-      "amount": "3.00"
+  }
+}
+{
+  "category_id": 51,
+  "category_name": "Beach Pull Thru Site- Concrete Pad - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 73.99,
+      "revenue_net": 66.07
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 73.99,
+      "revenue_net": 66.07
     }
-  ],
-  "discounts": [],
-  "discount_id": null,
-  "discount_name": "None",
-  "discount_code": "",
-  "discount_total": "0.00",
-  "account_id": "492300",
-  "default_client_account_id": "492300",
-  "account_balance": "0.00",
-  "auto_billing_limit": null,
-  "auto_billing_type": true,
-  "site_id": "117",
-  "site_name": "043",
-  "site_status": "Dirty",
-  "category_id": "38",
+  }
+}
+{
+  "category_id": 41,
+  "category_name": "OceanFront WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 22,
+      "occupied": 20,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1606.64,
+      "revenue_net": 1434.5
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 22,
+      "occupied": 20,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1480.32,
+      "revenue_net": 1326
+    }
+  }
+}
+{
+  "category_id": 38,
   "category_name": "Beach - Pull Thru - WESC",
-  "company_id": null,
-  "company_name": null,
-  "travel_agent_id": null,
-  "travel_agent_name": null,
-  "travel_agent_commission_total": "0.00",
-  "custom_fields": [
-    {
-      "id": "4",
-      "type": "text",
-      "label": "Camper stored with MBTP? (if yes, enter ID number)",
-      "value": "No"
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 478,
+      "occupied": 369,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 21868.47,
+      "revenue_net": 20047.21
     },
-    {
-      "id": "5",
-      "type": "text",
-      "label": "Camper being delivered by outside company? (if yes, enter company name)",
-      "value": "No"
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 478,
+      "occupied": 385,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 19670.74,
+      "revenue_net": 17610.31
+    }
+  }
+}
+{
+  "category_id": 42,
+  "category_name": "LakeFront - Beachside WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 22,
+      "occupied": 19,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1644.99,
+      "revenue_net": 1473.03
     },
-    {
-      "id": "6",
-      "type": "number",
-      "label": "Wristbands",
-      "value": 0
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 22,
+      "occupied": 21,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1729.55,
+      "revenue_net": 1548.53
     }
-  ],
-  "guests": [
-    {
-      "id": "116164",
-      "title": "",
-      "firstname": "Bret",
-      "lastname": "Byrd",
-      "othername": "",
-      "gender": null,
-      "date_of_birth": null,
-      "street": "8814 Canada Goose Court",
-      "city": "Oak Harbor",
-      "state_id": "43",
-      "postcode": "43449",
-      "country_id": "219",
-      "company_id": null,
-      "date_created": "2025-09-22 07:10:46",
-      "modified_when": "2025-09-26 15:32:42",
-      "last_note_when": null,
-      "blacklisted_when": null,
-      "blacklisted_by": null,
-      "vip_when": null,
-      "vip_by": null,
-      "member_number": null,
-      "guest_id": "116164",
-      "state_name": "Ohio (OH)",
-      "country_name": "United States of America",
-      "country_code": "US",
-      "state_shortname": "OH",
-      "state": "Ohio (OH)",
-      "country": "United States of America",
-      "company_name": null,
-      "contact_details": [
-        {
-          "id": "258037",
-          "type": "email",
-          "content": "Bbyrd218@gmail.com",
-          "notes": "",
-          "uri": [],
-          "allow_transactional": 1,
-          "allow_marketing": 1
-        },
-        {
-          "id": "258038",
-          "type": "mobile",
-          "content": "2162259525",
-          "notes": "",
-          "uri": [],
-          "allow_transactional": 1,
-          "allow_marketing": 1
-        },
-        {
-          "id": "258329",
-          "type": "car_rego",
-          "content": "HCV4711 OH",
-          "notes": "DODGE RAM",
-          "uri": [],
-          "allow_transactional": 1,
-          "allow_marketing": 1
-        }
-      ],
-      "custom_fields": [
-        {
-          "id": "1",
-          "type": "",
-          "label": "Reference ID",
-          "value": "N/A"
-        }
-      ],
-      "equipment": [
-        {
-          "equipment_id": "112852",
-          "equipment_name": "Momentum",
-          "equipment_make": "Momentum",
-          "equipment_model": "",
-          "equipment_type_id": "2",
-          "equipment_type_name": "Fifth Wheel",
-          "equipment_length": "36.00",
-          "equipment_width": "0.00",
-          "equipment_height": "0.00",
-          "equipment_registration": "",
-          "equipment_registration_expiry": null,
-          "equipment_measurement_unit": "ft",
-          "active": "1",
-          "custom_fields": [],
-          "slideouts": "none",
-          "insurance_policies": []
-        }
-      ],
-      "notes": [],
-      "insurance_policies": [],
-      "dietary_requirements": [],
-      "membership_details": [],
-      "auto_billing_limit": null,
-      "account_currency_code": "USD",
-      "account_currency_id": null,
-      "account_balance": "0.00",
-      "account_id": "492299",
-      "account_breakdown": {
-        "1": {
-          "name": "Accommodation",
-          "gl_category_id": "1",
-          "balance": "0.00"
-        },
-        "3": {
-          "name": "Storage",
-          "gl_category_id": "3",
-          "balance": "0.00"
-        },
-        "4": {
-          "name": "Annual Lease",
-          "gl_category_id": "4",
-          "balance": "0.00"
-        },
-        "5": {
-          "name": "Mobile Home",
-          "gl_category_id": "5",
-          "balance": "0.00"
-        }
-      },
-      "charges": [],
-      "credits": [],
-      "payments": [],
-      "refunds": [],
-      "online_login_details": {
-        "id": "19025",
-        "for": "guests",
-        "for_id": "116164",
-        "instance_id": "2706",
-        "username": "Bbyrd218@gmail.com",
-        "active": "1"
-      },
-      "primary_client": "1"
-    }
-  ],
-  "guests_memberships_id": null,
-  "equipment": [
-    {
-      "equipment_id": "112852",
-      "equipment_name": "Momentum",
-      "equipment_make": "Momentum",
-      "equipment_model": "",
-      "equipment_type_id": "2",
-      "equipment_type_name": "Fifth Wheel",
-      "equipment_length": "36.00",
-      "equipment_width": "0.00",
-      "equipment_height": "0.00",
-      "equipment_registration": "",
-      "equipment_registration_expiry": null,
-      "equipment_measurement_unit": "ft",
-      "active": "1",
-      "slideouts": "none"
-    }
-  ],
-  "notes": [
-    {
-      "id": "523077",
-      "for": "bookings",
-      "for_id": "374903",
-      "for_label": "Booking",
-      "type_id": "1",
-      "content": "-NO-    BPT ONLINE BOOKING\r\nGuest provided Equipment Size - L: 36 (Feet) and Equipment Type - Fifth Wheel\r\nD/CH:  DUE TO WEATHER  BRET CALLED WAS:    9-27-25 TO 9-29-25   NEW:  9-26-25 TO 9-28-25 9-26-25 MA\r\nDAY VISITOR JEFF BONGALIS 1 PERSON/FORD F150 UZD247 SC DG 9/26/25",
-      "created_when": "2025-09-22 07:10:48",
-      "created_by": "-1",
-      "updated_when": "2025-09-26 18:02:38",
-      "updated_by": "44",
-      "deleted": "0",
-      "output_message": "1",
-      "task_list": "0"
-    }
-  ],
-  "bookings_group_id": null,
-  "bookings_group_name": null,
-  "booking_cancelled": null,
-  "booking_cancelled_by": "None",
-  "booking_cancelled_by_id": null,
-  "booking_cancelled_reason_id": null,
-  "booking_cancelled_reason_name": null,
-  "required_checkin_documents_ids": [],
-  "split_booking": false,
-  "account_breakdown": {
-    "1": {
-      "name": "Accommodation",
-      "gl_category_id": "1",
-      "balance": "0.00"
+  }
+}
+{
+  "category_id": 39,
+  "category_name": "Beach - Back In Site - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 48,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 490.56,
+      "revenue_net": 438
     },
-    "3": {
-      "name": "Storage",
-      "gl_category_id": "3",
-      "balance": "0.00"
-    },
-    "4": {
-      "name": "Annual Lease",
-      "gl_category_id": "4",
-      "balance": "0.00"
-    },
-    "5": {
-      "name": "Mobile Home",
-      "gl_category_id": "5",
-      "balance": "0.00"
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 48,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1101.12,
+      "revenue_net": 996
     }
-  },
-  "charges": [
-    {
-      "id": "1083095",
-      "account_id": "492300",
-      "gl_category_id": "1",
-      "gl_account_id": "5",
-      "description": "Daily Rate (Sat Sep 27 2025) ",
-      "amount": 73,
-      "tax_free": "0",
-      "generated_by": "44",
-      "generated_when": "2025-09-27 00:00:00",
-      "inventory_item_id": null,
-      "voided_by": "0",
-      "voided_when": null,
-      "link_type": "tariffs_quoted",
-      "link_type_id": "1315501",
-      "link_period_from": "2025-09-27",
-      "link_period_to": "2025-09-27",
-      "literal_pms_booking": "1",
-      "guest_visible": "1",
-      "discounts_apply": "1",
-      "booking_id": "374903",
-      "booking_name": "Bret Byrd",
-      "booking_status": "Departed",
-      "booking_site_id": "117",
-      "booking_period_from": "2025-09-26 14:00:00",
-      "booking_period_to": "2025-09-28 11:00:00",
-      "booking_reference_id": "",
-      "activity_ticket_id": null,
-      "gl_group_id": null,
-      "link_timestamp": "2025-09-26 15:30:32",
-      "taxes": [
-        {
-          "tax_id": 107,
-          "tax_name": "Sales & Accommodation Tax",
-          "tax_inclusive": false,
-          "tax_amount": 8.76
-        }
-      ],
-      "outstanding": 0
+  }
+}
+{
+  "category_id": 43,
+  "category_name": "LakeFront - Shaded area WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 23,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1352.96,
+      "revenue_net": 1208
     },
-    {
-      "id": "1083096",
-      "account_id": "492300",
-      "gl_category_id": "1",
-      "gl_account_id": "5",
-      "description": "Daily Rate (Fri Sep 26 2025) ",
-      "amount": 73,
-      "tax_free": "0",
-      "generated_by": "44",
-      "generated_when": "2025-09-26 00:00:00",
-      "inventory_item_id": null,
-      "voided_by": "0",
-      "voided_when": null,
-      "link_type": "tariffs_quoted",
-      "link_type_id": "1317293",
-      "link_period_from": "2025-09-26",
-      "link_period_to": "2025-09-26",
-      "literal_pms_booking": "1",
-      "guest_visible": "1",
-      "discounts_apply": "1",
-      "booking_id": "374903",
-      "booking_name": "Bret Byrd",
-      "booking_status": "Departed",
-      "booking_site_id": "117",
-      "booking_period_from": "2025-09-26 14:00:00",
-      "booking_period_to": "2025-09-28 11:00:00",
-      "booking_reference_id": "",
-      "activity_ticket_id": null,
-      "gl_group_id": null,
-      "link_timestamp": "2025-09-26 15:30:32",
-      "taxes": [
-        {
-          "tax_id": 107,
-          "tax_name": "Sales & Accommodation Tax",
-          "tax_inclusive": false,
-          "tax_amount": 8.76
-        }
-      ],
-      "outstanding": 0
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 23,
+      "occupied": 17,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1352.96,
+      "revenue_net": 1208
+    }
+  }
+}
+{
+  "category_id": 40,
+  "category_name": "Shaded - Back In - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 56,
+      "occupied": 26,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1598.75,
+      "revenue_net": 1427.46
     },
-    {
-      "id": "1083097",
-      "account_id": "492300",
-      "gl_category_id": "1",
-      "gl_account_id": "5",
-      "description": "Online Booking Fee (Sep 26 2025)",
-      "amount": 3,
-      "tax_free": "1",
-      "generated_by": "44",
-      "generated_when": "2025-09-26 00:00:00",
-      "inventory_item_id": "418",
-      "voided_by": "0",
-      "voided_when": null,
-      "link_type": "bookings_inventory_items",
-      "link_type_id": "87342",
-      "link_period_from": "2025-09-26",
-      "link_period_to": "2025-09-26",
-      "literal_pms_booking": "1",
-      "guest_visible": "1",
-      "discounts_apply": "1",
-      "booking_id": "374903",
-      "booking_name": "Bret Byrd",
-      "booking_status": "Departed",
-      "booking_site_id": "117",
-      "booking_period_from": "2025-09-26 14:00:00",
-      "booking_period_to": "2025-09-28 11:00:00",
-      "booking_reference_id": "",
-      "activity_ticket_id": null,
-      "gl_group_id": null,
-      "link_timestamp": "2025-09-26 15:30:32",
-      "taxes": [],
-      "outstanding": 0
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 56,
+      "occupied": 22,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1713.5,
+      "revenue_net": 1534.2
     }
-  ],
-  "credits": [],
-  "payments": [
-    {
-      "id": "355250",
-      "account_id": "492300",
-      "gl_category_id": "1",
-      "paid_by": "492299",
-      "transaction_method": "cc_gateway",
-      "transaction_id": "270349",
-      "disbursed_booking_id": null,
-      "disbursed_gl_account_id": null,
-      "description": "Booking #374903 at Myrtle Beach Travel Park",
-      "amount": 166.52,
-      "tendered": 166.52,
-      "type": "mastercard",
-      "type_reference": "81220827541",
-      "type_instance_id": null,
-      "deposit": "1",
-      "balance_transfer_reason_id": null,
-      "generated_by": "-1",
-      "generated_when": "2025-09-22 07:10:50",
-      "voided_by": "0",
-      "voided_when": null,
-      "link_type": null,
-      "link_type_id": null,
-      "link_period_from": null,
-      "link_period_to": null,
-      "literal_pms_booking": "0",
-      "guest_visible": "1",
-      "discounts_apply": "0",
-      "booking_id": null,
-      "booking_name": "None Found",
-      "booking_status": null,
-      "booking_site_id": null,
-      "booking_period_from": null,
-      "booking_period_to": null,
-      "booking_reference_id": null,
-      "activity_ticket_id": null,
-      "type_id": "8",
-      "credits": [],
-      "charges": [
-        {
-          "link_id": 1320116,
-          "charge_id": 1083095,
-          "reconciled_amount": 81.76,
-          "timestamp": "2025-09-28 11:05:46",
-          "voided_when": null
-        },
-        {
-          "link_id": 1320117,
-          "charge_id": 1083096,
-          "reconciled_amount": 81.76,
-          "timestamp": "2025-09-28 11:05:46",
-          "voided_when": null
-        },
-        {
-          "link_id": 1320118,
-          "charge_id": 1083097,
-          "reconciled_amount": 3,
-          "timestamp": "2025-09-28 11:05:46",
-          "voided_when": null
-        }
-      ]
+  }
+}
+{
+  "category_id": 2,
+  "category_name": "Water & Electric Only",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 6,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 6,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
     }
-  ],
-  "refunds": [],
-  "access_codes": [],
-  "booking_source": "Google",
-  "booking_reason": "None",
-  "booking_demographic": "None",
-  "booking_method": "Newbook Online",
-  "facilities_hire": [],
-  "activities": [],
-  "additional_guests": [
-    {
-      "guest_id": 116164,
-      "guest_type": "adults",
-      "guest_type_id": "1"
+  }
+}
+{
+  "category_id": 1,
+  "category_name": "FRONT PARKING LOT",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 8,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 8,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
     }
-  ]
+  }
+}
+{
+  "category_id": 50,
+  "category_name": "Cottage Rental",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 5,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 611.52,
+      "revenue_net": 546
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 5,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 761.28,
+      "revenue_net": 684
+    }
+  }
+}
+{
+  "category_id": 15,
+  "category_name": "Ocean Villa",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 35,
+      "occupied": 17,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1408.16,
+      "revenue_net": 1268
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 35,
+      "occupied": 31,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4251.71,
+      "revenue_net": 3831.53
+    }
+  }
+}
+{
+  "category_id": 4,
+  "category_name": "Travel Trailer - South Beach",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 15,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1027.2,
+      "revenue_net": 960
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 15,
+      "occupied": 10,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2788.8,
+      "revenue_net": 2640
+    }
+  }
+}
+{
+  "category_id": 27,
+  "category_name": "Travel Trailer - Mid Beach",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 10,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 818.53,
+      "revenue_net": 752.26
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 10,
+      "occupied": 8,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2095.65,
+      "revenue_net": 1978.26
+    }
+  }
+}
+{
+  "category_id": 13,
+  "category_name": "Cabin",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 1,
+      "occupied": 1,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 126.56,
+      "revenue_net": 113
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 1,
+      "occupied": 1,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 309.76,
+      "revenue_net": 298
+    }
+  }
+}
+{
+  "category_id": 47,
+  "category_name": "Golf Cart Rental - ADA only",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 50,
+      "occupied": 22,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 50,
+      "occupied": 21,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    }
+  }
+}
+{
+  "category_id": 8,
+  "category_name": "Employee Site",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 11,
+      "occupied": 11,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 87.63,
+      "revenue_net": 87.63
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 11,
+      "occupied": 11,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 87.63,
+      "revenue_net": 87.63
+    }
+  }
+}
+{
+  "category_id": 17,
+  "category_name": "Mobile Home Lease",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 148,
+      "occupied": 148,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2909.76,
+      "revenue_net": 2909.76
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 148,
+      "occupied": 148,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2909.76,
+      "revenue_net": 2909.76
+    }
+  }
+}
+{
+  "category_id": 18,
+  "category_name": "Storage - Travel Trailer",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 635,
+      "occupied": 625,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1537.54,
+      "revenue_net": 1537.54
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 635,
+      "occupied": 625,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1537.54,
+      "revenue_net": 1537.54
+    }
+  }
+}
+{
+  "category_id": 19,
+  "category_name": "Storage - Motor Home",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 2,
+      "occupied": 2,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4.66,
+      "revenue_net": 4.66
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 2,
+      "occupied": 2,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4.66,
+      "revenue_net": 4.66
+    }
+  }
+}
+{
+  "category_id": 20,
+  "category_name": "Storage - Fifth Wheel",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 72,
+      "occupied": 65,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 179.97,
+      "revenue_net": 179.97
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 72,
+      "occupied": 65,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 179.97,
+      "revenue_net": 179.97
+    }
+  }
+}
+{
+  "category_id": 22,
+  "category_name": "Storage-misc(boats/utility Trailers Etc)",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2.98,
+      "revenue_net": 2.98
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2.98,
+      "revenue_net": 2.98
+    }
+  }
+}
+{
+  "category_id": 51,
+  "category_name": "Beach Pull Thru Site- Concrete Pad - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 73.99,
+      "revenue_net": 66.07
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 73.99,
+      "revenue_net": 66.07
+    }
+  }
+}
+{
+  "category_id": 41,
+  "category_name": "OceanFront WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 22,
+      "occupied": 20,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1606.64,
+      "revenue_net": 1434.5
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 22,
+      "occupied": 20,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1480.32,
+      "revenue_net": 1326
+    }
+  }
+}
+{
+  "category_id": 38,
+  "category_name": "Beach - Pull Thru - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 478,
+      "occupied": 369,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 21868.47,
+      "revenue_net": 20047.21
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 478,
+      "occupied": 385,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 19670.74,
+      "revenue_net": 17610.31
+    }
+  }
+}
+{
+  "category_id": 42,
+  "category_name": "LakeFront - Beachside WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 22,
+      "occupied": 19,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1644.99,
+      "revenue_net": 1473.03
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 22,
+      "occupied": 21,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1729.55,
+      "revenue_net": 1548.53
+    }
+  }
+}
+{
+  "category_id": 39,
+  "category_name": "Beach - Back In Site - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 48,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 490.56,
+      "revenue_net": 438
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 48,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1101.12,
+      "revenue_net": 996
+    }
+  }
+}
+{
+  "category_id": 43,
+  "category_name": "LakeFront - Shaded area WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 23,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1352.96,
+      "revenue_net": 1208
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 23,
+      "occupied": 17,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1352.96,
+      "revenue_net": 1208
+    }
+  }
+}
+{
+  "category_id": 40,
+  "category_name": "Shaded - Back In - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 56,
+      "occupied": 26,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1598.75,
+      "revenue_net": 1427.46
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 56,
+      "occupied": 22,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1713.5,
+      "revenue_net": 1534.2
+    }
+  }
+}
+{
+  "category_id": 2,
+  "category_name": "Water & Electric Only",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 6,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 6,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    }
+  }
+}
+{
+  "category_id": 1,
+  "category_name": "FRONT PARKING LOT",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 8,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 8,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    }
+  }
+}
+{
+  "category_id": 50,
+  "category_name": "Cottage Rental",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 5,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 611.52,
+      "revenue_net": 546
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 5,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 761.28,
+      "revenue_net": 684
+    }
+  }
+}
+{
+  "category_id": 15,
+  "category_name": "Ocean Villa",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 35,
+      "occupied": 17,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1408.16,
+      "revenue_net": 1268
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 35,
+      "occupied": 31,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4251.71,
+      "revenue_net": 3831.53
+    }
+  }
+}
+{
+  "category_id": 4,
+  "category_name": "Travel Trailer - South Beach",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 15,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1027.2,
+      "revenue_net": 960
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 15,
+      "occupied": 10,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2788.8,
+      "revenue_net": 2640
+    }
+  }
+}
+{
+  "category_id": 27,
+  "category_name": "Travel Trailer - Mid Beach",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 10,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 818.53,
+      "revenue_net": 752.26
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 10,
+      "occupied": 8,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2095.65,
+      "revenue_net": 1978.26
+    }
+  }
+}
+{
+  "category_id": 13,
+  "category_name": "Cabin",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 1,
+      "occupied": 1,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 126.56,
+      "revenue_net": 113
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 1,
+      "occupied": 1,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 309.76,
+      "revenue_net": 298
+    }
+  }
+}
+{
+  "category_id": 47,
+  "category_name": "Golf Cart Rental - ADA only",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 50,
+      "occupied": 23,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 50,
+      "occupied": 22,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    }
+  }
+}
+{
+  "category_id": 8,
+  "category_name": "Employee Site",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 10,
+      "occupied": 10,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 87.63,
+      "revenue_net": 87.63
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 10,
+      "occupied": 10,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 87.63,
+      "revenue_net": 87.63
+    }
+  }
+}
+{
+  "category_id": 17,
+  "category_name": "Mobile Home Lease",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 148,
+      "occupied": 148,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2909.76,
+      "revenue_net": 2909.76
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 148,
+      "occupied": 148,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2909.76,
+      "revenue_net": 2909.76
+    }
+  }
+}
+{
+  "category_id": 18,
+  "category_name": "Storage - Travel Trailer",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 635,
+      "occupied": 625,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1537.54,
+      "revenue_net": 1537.54
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 635,
+      "occupied": 625,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1537.54,
+      "revenue_net": 1537.54
+    }
+  }
+}
+{
+  "category_id": 19,
+  "category_name": "Storage - Motor Home",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 2,
+      "occupied": 2,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4.66,
+      "revenue_net": 4.66
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 2,
+      "occupied": 2,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4.66,
+      "revenue_net": 4.66
+    }
+  }
+}
+{
+  "category_id": 20,
+  "category_name": "Storage - Fifth Wheel",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 72,
+      "occupied": 65,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 179.97,
+      "revenue_net": 179.97
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 72,
+      "occupied": 65,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 179.97,
+      "revenue_net": 179.97
+    }
+  }
+}
+{
+  "category_id": 22,
+  "category_name": "Storage-misc(boats/utility Trailers Etc)",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2.98,
+      "revenue_net": 2.98
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2.98,
+      "revenue_net": 2.98
+    }
+  }
+}
+{
+  "category_id": 51,
+  "category_name": "Beach Pull Thru Site- Concrete Pad - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 73.99,
+      "revenue_net": 66.07
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 73.99,
+      "revenue_net": 66.07
+    }
+  }
+}
+{
+  "category_id": 41,
+  "category_name": "OceanFront WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 22,
+      "occupied": 20,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1606.64,
+      "revenue_net": 1434.5
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 22,
+      "occupied": 20,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1480.32,
+      "revenue_net": 1326
+    }
+  }
+}
+{
+  "category_id": 38,
+  "category_name": "Beach - Pull Thru - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 478,
+      "occupied": 369,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 21868.47,
+      "revenue_net": 20047.21
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 478,
+      "occupied": 385,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 19670.74,
+      "revenue_net": 17610.31
+    }
+  }
+}
+{
+  "category_id": 42,
+  "category_name": "LakeFront - Beachside WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 22,
+      "occupied": 19,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1644.99,
+      "revenue_net": 1473.03
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 22,
+      "occupied": 21,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1729.55,
+      "revenue_net": 1548.53
+    }
+  }
+}
+{
+  "category_id": 39,
+  "category_name": "Beach - Back In Site - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 48,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 490.56,
+      "revenue_net": 438
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 48,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1101.12,
+      "revenue_net": 996
+    }
+  }
+}
+{
+  "category_id": 43,
+  "category_name": "LakeFront - Shaded area WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 23,
+      "occupied": 18,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1352.96,
+      "revenue_net": 1208
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 23,
+      "occupied": 17,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1352.96,
+      "revenue_net": 1208
+    }
+  }
+}
+{
+  "category_id": 40,
+  "category_name": "Shaded - Back In - WESC",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 56,
+      "occupied": 26,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1598.75,
+      "revenue_net": 1427.46
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 56,
+      "occupied": 22,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1713.5,
+      "revenue_net": 1534.2
+    }
+  }
+}
+{
+  "category_id": 2,
+  "category_name": "Water & Electric Only",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 6,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 6,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    }
+  }
+}
+{
+  "category_id": 1,
+  "category_name": "FRONT PARKING LOT",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 8,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 8,
+      "occupied": 0,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    }
+  }
+}
+{
+  "category_id": 50,
+  "category_name": "Cottage Rental",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 5,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 611.52,
+      "revenue_net": 546
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 5,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 761.28,
+      "revenue_net": 684
+    }
+  }
+}
+{
+  "category_id": 15,
+  "category_name": "Ocean Villa",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 35,
+      "occupied": 17,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1408.16,
+      "revenue_net": 1268
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 35,
+      "occupied": 31,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4251.71,
+      "revenue_net": 3831.53
+    }
+  }
+}
+{
+  "category_id": 4,
+  "category_name": "Travel Trailer - South Beach",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 15,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1027.2,
+      "revenue_net": 960
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 15,
+      "occupied": 10,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2788.8,
+      "revenue_net": 2640
+    }
+  }
+}
+{
+  "category_id": 27,
+  "category_name": "Travel Trailer - Mid Beach",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 10,
+      "occupied": 4,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 818.53,
+      "revenue_net": 752.26
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 10,
+      "occupied": 8,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2095.65,
+      "revenue_net": 1978.26
+    }
+  }
+}
+{
+  "category_id": 13,
+  "category_name": "Cabin",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 1,
+      "occupied": 1,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 126.56,
+      "revenue_net": 113
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 1,
+      "occupied": 1,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 309.76,
+      "revenue_net": 298
+    }
+  }
+}
+{
+  "category_id": 47,
+  "category_name": "Golf Cart Rental - ADA only",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 50,
+      "occupied": 23,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 50,
+      "occupied": 22,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 0,
+      "revenue_net": 0
+    }
+  }
+}
+{
+  "category_id": 8,
+  "category_name": "Employee Site",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 10,
+      "occupied": 10,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 87.63,
+      "revenue_net": 87.63
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 10,
+      "occupied": 10,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 87.63,
+      "revenue_net": 87.63
+    }
+  }
+}
+{
+  "category_id": 17,
+  "category_name": "Mobile Home Lease",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 148,
+      "occupied": 148,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2909.76,
+      "revenue_net": 2909.76
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 148,
+      "occupied": 148,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2909.76,
+      "revenue_net": 2909.76
+    }
+  }
+}
+{
+  "category_id": 18,
+  "category_name": "Storage - Travel Trailer",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 635,
+      "occupied": 625,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1537.54,
+      "revenue_net": 1537.54
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 635,
+      "occupied": 625,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 1537.54,
+      "revenue_net": 1537.54
+    }
+  }
+}
+{
+  "category_id": 19,
+  "category_name": "Storage - Motor Home",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 2,
+      "occupied": 2,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4.66,
+      "revenue_net": 4.66
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 2,
+      "occupied": 2,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 4.66,
+      "revenue_net": 4.66
+    }
+  }
+}
+{
+  "category_id": 20,
+  "category_name": "Storage - Fifth Wheel",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 72,
+      "occupied": 65,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 179.97,
+      "revenue_net": 179.97
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 72,
+      "occupied": 65,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 179.97,
+      "revenue_net": 179.97
+    }
+  }
+}
+{
+  "category_id": 22,
+  "category_name": "Storage-misc(boats/utility Trailers Etc)",
+  "occupancy": {
+    "2025-10-03": {
+      "date": "2025-10-03",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2.98,
+      "revenue_net": 2.98
+    },
+    "2025-10-04": {
+      "date": "2025-10-04",
+      "available": 3,
+      "occupied": 3,
+      "maintenance": 0,
+      "allotted": 0,
+      "revenue_gross": 2.98,
+      "revenue_net": 2.98
+    }
+  }
 }

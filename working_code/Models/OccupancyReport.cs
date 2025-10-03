@@ -11,7 +11,7 @@ namespace MBTP.Models
         public string CategoryName { get; set; }
 
         [JsonProperty("occupancy")]
-        public Dictionary<string, OccDetails> Occupancy { get; set; }
+        public Dictionary<string, OccDetails>? Occupancy { get; set; }
 
         [JsonProperty("available")]
         public int? Available { get; set; }
@@ -34,6 +34,11 @@ namespace MBTP.Models
         [JsonProperty("revenue_net")]
         public decimal? RevenueNet { get; set; }
         public int? Sites { get; set; }
+        public decimal? ProjEarnings_PerBooking_TaxInc { get; set; }
+        public decimal? ProjEarnings_PerBooking_TaxExc { get; set; }
+        public decimal? ProjEarnings_PerOccNight_TaxInc { get; set; }
+        public decimal? ProjEarnings_PerOccNight_TaxExc { get; set; }
+
     }
 
     public class OccDetails
