@@ -82,15 +82,15 @@ namespace MBTP.Retrieval
                     apStatusTable.Columns.Add("APLocation", typeof(string)); 
                     apStatusTable.Columns.Add("LastConnectTime", typeof(DateTime));
                     apStatusTable.Columns.Add("HubName", typeof(string));
-//                    foreach (var device in devices)
-//                    {
-//                        DataRow row = apStatusTable.NewRow();
-//                        row["Connected"] = device.Connected;
-//                        row["APLocation"] = device.hostname ?? "Unknown";
-//                        row["LastConnectTime"] = device.last_connect_time;
-//                        row["HubName"] = device.hubName ?? "Unknown";
-//                        apStatusTable.Rows.Add(row);
-//                    }
+                    foreach (var device in devices)
+                    {
+                        DataRow row = apStatusTable.NewRow();
+                        row["Connected"] = device.Connected;
+                        row["APLocation"] = device.hostname ?? "Unknown";
+                        row["LastConnectTime"] = device.last_connect_time;
+                        row["HubName"] = device.hubName ?? "Unknown";
+                        apStatusTable.Rows.Add(row);
+                    }
                     myDS.Tables.Add(apStatusTable);
                 }
                 return myDS;
