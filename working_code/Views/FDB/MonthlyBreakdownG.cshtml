@@ -40,138 +40,137 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {  
-<div class="table-responsive"> 
-<table id="monthly-table" class="breakdown clickable-tableG" style="width:240px">
-   <tr>
-       <th class="breakdownBigTitle" colspan="20">General Store</th>
-   </tr>
-   <tr>
-       <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Month</th>
-       <th class="breakdownTaxBig" colspan="8">Sales Tax: 8% (Tax Inclusive)</th>
-       <th class="breakdownTaxBig" colspan="1">Tax: 10.5% (Tax Inclusive)</th>
-       <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Month</th>
-       <th class="breakdownTaxBig" colspan="5">Non-Taxable</th>
-       <th class="breakdownTotalsHead" rowspan="3">Total Gross Revenue</th>
-       <th class="breakdownTotalsHead" rowspan="3">Total Tax Collected</th>
-       <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
-       <th class="breakdownTaxHead" rowspan="3">Total Tax Expected</th>
-   </tr>
-   <tr>
-       <th class="breakdownTitle" colspan="3">322</th>
-       <th class="breakdownTitle" colspan="4">324</th>
-       <th class="breakdownTotalsHead" rowspan="2">Total</th>
-       <th class="breakdownTitle">323</th>
-       <th class="breakdownTitle" colspan="2">325</th>
-       <th class="breakdownTitle">326</th>
-       <th class="breakdownTitle">327</th>
-       <th class="breakdownTotalsHead" rowspan="2">Total</th>
-   </tr>
-   <tr>
-       <th class="breakdownTitle">Apparel</th>
-       <th class="breakdownTitle">Seasonal Novelty</th>
-       <th class="breakdownTitle">Other Novelty</th>
-       <th class="breakdownTitle">Alcohol</th>
-       <th class="breakdownTitle">Hard Goods</th>
-       <th class="breakdownTitle">RV Parts</th>
-       <th class="breakdownTitle">Seasonal Merch</th>
-       <th class="breakdownTitle">Food Counter</th>
-       <th class="breakdownTitle">Food</th>
-       <th class="breakdownTitle">Ice</th>
-       <th class="breakdownTitle">Vending</th>
-       <th class="breakdownTitle">Stamps</th>
-   </tr>
-  @foreach (DataRow row in Model!.Tables[0].Rows)
-   {
-       var monthDate = startDate.AddMonths(monthIndex);
-       var month = startDate.AddMonths(monthIndex).ToString("MMMM");
-       var TenP = 1.105m;
-       var EightP = 1.08m;
+    <div class="table-responsive"> 
+        <table id="monthly-table" class="breakdown clickable-tableG" style="width:240px">
+            <tr>
+                <th class="breakdownBigTitle" colspan="19">General Store</th>
+            </tr>
+            <tr>
+                <th class="breakdownMonthScrolling"></th>
+                <th class="breakdownTaxBig" colspan="8">Sales Tax: 8% (Tax Inclusive)</th>
+                <th class="breakdownTaxBig" colspan="1">Tax: 10.5% (Tax Inclusive)</th>
+                <th class="breakdownTaxBig" colspan="5">Non-Taxable</th>
+                <th class="breakdownTotalsHead" rowspan="3">Total Gross Revenue</th>
+                <th class="breakdownTotalsHead" rowspan="3">Total Tax Collected</th>
+                <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
+                <th class="breakdownTaxHead" rowspan="3">Total Tax Expected</th>
+            </tr>
+            <tr>
+                <th class="breakdownMonthScrolling"></th>
+                <th class="breakdownTitle" colspan="3">322</th>
+                <th class="breakdownTitle" colspan="4">324</th>
+                <th class="breakdownTotalsHead" rowspan="2">Total</th>
+                <th class="breakdownTitle">323</th>
+                <th class="breakdownTitle" colspan="2">325</th>
+                <th class="breakdownTitle">326</th>
+                <th class="breakdownTitle">327</th>
+                <th class="breakdownTotalsHead" rowspan="2">Total</th>
+            </tr>
+            <tr>
+                <th class="breakdownMonthScrolling">Month</th>
+                <th class="breakdownTitle">Apparel</th>
+                <th class="breakdownTitle">Seasonal Novelty</th>
+                <th class="breakdownTitle">Other Novelty</th>
+                <th class="breakdownTitle">Alcohol</th>
+                <th class="breakdownTitle">Hard Goods</th>
+                <th class="breakdownTitle">RV Parts</th>
+                <th class="breakdownTitle">Seasonal Merch</th>
+                <th class="breakdownTitle">Food Counter</th>
+                <th class="breakdownTitle">Food</th>
+                <th class="breakdownTitle">Ice</th>
+                <th class="breakdownTitle">Vending</th>
+                <th class="breakdownTitle">Stamps</th>
+            </tr>
+            @foreach (DataRow row in Model!.Tables[0].Rows)
+            {
+                var monthDate = startDate.AddMonths(monthIndex);
+                var month = startDate.AddMonths(monthIndex).ToString("MMMM");
+                var TenP = 1.105m;
+                var EightP = 1.08m;
 
-       var apparel = (decimal)row["Apparel"];
-       var seasonalNov = (decimal)row["SeasonalNovelty"];
-       var otherNovelty = (decimal)row["OtherNovelty"];
-       var alc = (decimal)row["Alcohol"];
-       var hardGoods = (decimal)row["HardGoods"];
-       var rvParts = (decimal)row["RVParts"];
-       var seasonalMerch = (decimal)row["SeasonalMerch"];
-       var foodCounter = (decimal)row["FoodCounter"];
-       var food = (decimal)row["Food"];
-       var ice = (decimal)row["Ice"];
-       var vending = (decimal)row["Vending"];
-       var stamps = (decimal)row["Stamps"];
-       var total = apparel + seasonalNov + otherNovelty + alc + hardGoods + rvParts + seasonalMerch;
-       var total2 = food + ice + vending + stamps;
-       var grossRevenue = total + total2 + foodCounter;
-       var taxCollected = (decimal)row["TaxS"];
-       var netRevenue = grossRevenue - taxCollected;
-       var taxExpected = (foodCounter - (foodCounter / TenP)) + (total - (total / EightP));
+                var apparel = (decimal)row["Apparel"];
+                var seasonalNov = (decimal)row["SeasonalNovelty"];
+                var otherNovelty = (decimal)row["OtherNovelty"];
+                var alc = (decimal)row["Alcohol"];
+                var hardGoods = (decimal)row["HardGoods"];
+                var rvParts = (decimal)row["RVParts"];
+                var seasonalMerch = (decimal)row["SeasonalMerch"];
+                var foodCounter = (decimal)row["FoodCounter"];
+                var food = (decimal)row["Food"];
+                var ice = (decimal)row["Ice"];
+                var vending = (decimal)row["Vending"];
+                var stamps = (decimal)row["Stamps"];
+                var total = apparel + seasonalNov + otherNovelty + alc + hardGoods + rvParts + seasonalMerch;
+                var total2 = food + ice + vending + stamps;
+                var grossRevenue = total + total2 + foodCounter;
+                var taxCollected = (decimal)row["TaxS"];
+                var netRevenue = grossRevenue - taxCollected;
+                var taxExpected = (foodCounter - (foodCounter / TenP)) + (total - (total / EightP));
 
-       totalApparel += apparel;
-       totalSeasonalNov += seasonalNov;
-       totalOtherNovelty += otherNovelty;
-       totalAlc += alc;
-       totalHardGoods += hardGoods;
-       totalRvParts += rvParts;
-       totalSeasonalMerch += seasonalMerch;
-       totalFoodCounter += foodCounter;
-       totalFood += food;
-       totalIce += ice;
-       totalVending += vending;
-       totalStamps += stamps;
-       tTotal += total;
-       tTotal2 += total2;
-       totalGrossRevenue += grossRevenue;
-       totalTaxCollected += taxCollected;
-       totalNetRevenue += netRevenue;
-       totalTaxExpected += taxExpected;
-  <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
-       <td class="breakdownData">@month</td>
-       <td class="breakdownData">@apparel</td>
-       <td class="breakdownData">@seasonalNov</td>
-       <td class="breakdownData">@otherNovelty</td>
-       <td class="breakdownData">@alc</td>
-       <td class="breakdownData">@hardGoods</td>
-       <td class="breakdownData">@rvParts</td>
-       <td class="breakdownData">@seasonalMerch</td>
-       <td class="breakdownTotals">@total</td>
-       <td class="breakdownData">@foodCounter</td>
-       <td class="breakdownData">@month</td>
-       <td class="breakdownData">@food</td>
-       <td class="breakdownData">@ice</td>
-       <td class="breakdownData">@vending</td>
-       <td class="breakdownData">@stamps</td>
-       <td class="breakdownTotals">@total2</td>
-       <td class="breakdownTotals">@grossRevenue</td>
-       <td class="breakdownTotals">@taxCollected</td>
-       <td class="breakdownTotals">@netRevenue</td>
-       <td class="breakdownTax">@taxExpected</td>
-  </tr>
-  monthIndex++;
-}
-<tr>
-       <td class="breakdownMonth">Totals:</td>
-       <td class="breakdownTotals2">@totalApparel</td>
-       <td class="breakdownTotals2">@totalSeasonalNov</td>
-       <td class="breakdownTotals2">@totalOtherNovelty</td>
-       <td class="breakdownTotals2">@totalAlc</td>
-       <td class="breakdownTotals2">@totalHardGoods</td>
-       <td class="breakdownTotals2">@totalRvParts</td>
-       <td class="breakdownTotals2">@totalSeasonalMerch</td>
-       <td class="breakdownTotals2">@tTotal</td>
-       <td class="breakdownTotals2">@totalFoodCounter</td>
-       <td class="breakdownMonth">&nbsp;</td>
-       <td class="breakdownTotals2">@totalFood</td>
-       <td class="breakdownTotals2">@totalIce</td>
-       <td class="breakdownTotals2">@totalVending</td>
-       <td class="breakdownTotals2">@totalStamps</td>
-       <td class="breakdownTotals2">@tTotal2</td>
-       <td class="breakdownTotals2">@totalGrossRevenue</td>
-       <td class="breakdownTotals2">@totalTaxCollected</td>
-       <td class="breakdownTotals2">@totalNetRevenue</td>
-       <td class="breakdownTotals2">@totalTaxExpected</td>
-</tr>
-</table>
-</div>
+                totalApparel += apparel;
+                totalSeasonalNov += seasonalNov;
+                totalOtherNovelty += otherNovelty;
+                totalAlc += alc;
+                totalHardGoods += hardGoods;
+                totalRvParts += rvParts;
+                totalSeasonalMerch += seasonalMerch;
+                totalFoodCounter += foodCounter;
+                totalFood += food;
+                totalIce += ice;
+                totalVending += vending;
+                totalStamps += stamps;
+                tTotal += total;
+                tTotal2 += total2;
+                totalGrossRevenue += grossRevenue;
+                totalTaxCollected += taxCollected;
+                totalNetRevenue += netRevenue;
+                totalTaxExpected += taxExpected;
+                <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
+                    <td class="breakdownData">@month</td>
+                    <td class="breakdownData">@apparel</td>
+                    <td class="breakdownData">@seasonalNov</td>
+                    <td class="breakdownData">@otherNovelty</td>
+                    <td class="breakdownData">@alc</td>
+                    <td class="breakdownData">@hardGoods</td>
+                    <td class="breakdownData">@rvParts</td>
+                    <td class="breakdownData">@seasonalMerch</td>
+                    <td class="breakdownTotals">@total</td>
+                    <td class="breakdownData">@foodCounter</td>
+                    <td class="breakdownData">@food</td>
+                    <td class="breakdownData">@ice</td>
+                    <td class="breakdownData">@vending</td>
+                    <td class="breakdownData">@stamps</td>
+                    <td class="breakdownTotals">@total2</td>
+                    <td class="breakdownTotals">@grossRevenue</td>
+                    <td class="breakdownTotals">@taxCollected</td>
+                    <td class="breakdownTotals">@netRevenue</td>
+                    <td class="breakdownTax">@taxExpected</td>
+                </tr>
+                monthIndex++;
+            }
+            <tr>
+                <td class="breakdownTotalsScrolling">Totals:</td>
+                <td class="breakdownTotals2">@totalApparel</td>
+                <td class="breakdownTotals2">@totalSeasonalNov</td>
+                <td class="breakdownTotals2">@totalOtherNovelty</td>
+                <td class="breakdownTotals2">@totalAlc</td>
+                <td class="breakdownTotals2">@totalHardGoods</td>
+                <td class="breakdownTotals2">@totalRvParts</td>
+                <td class="breakdownTotals2">@totalSeasonalMerch</td>
+                <td class="breakdownTotals2">@tTotal</td>
+                <td class="breakdownTotals2">@totalFoodCounter</td>
+                <td class="breakdownTotals2">@totalFood</td>
+                <td class="breakdownTotals2">@totalIce</td>
+                <td class="breakdownTotals2">@totalVending</td>
+                <td class="breakdownTotals2">@totalStamps</td>
+                <td class="breakdownTotals2">@tTotal2</td>
+                <td class="breakdownTotals2">@totalGrossRevenue</td>
+                <td class="breakdownTotals2">@totalTaxCollected</td>
+                <td class="breakdownTotals2">@totalNetRevenue</td>
+                <td class="breakdownTotals2">@totalTaxExpected</td>
+            </tr>
+        </table>
+    </div>
 }
 </body>
 <script>

@@ -31,10 +31,10 @@
 {
 <table id="monthly-table" class="breakdown clickable-tableC" style="width:240px" data-MonthlyBreakdown="/FDB/MonthlyBreakdownC">
    <tr>
-       <td class="breakdownBigTitle" colspan="8">Coffee Camper</td>
+       <th class="breakdownBigTitle" colspan="8">Coffee Camper</th>
    </tr>
    <tr>
-       <th class="breakdownMonth" rowspan="2">Month</th>
+       <th class="breakdownMonthScrolling"></th>
        <th class="breakdownTitle">330</th>
        <th class="breakdownTitle">331</th>
        <th class="breakdownTitle">332</th>
@@ -44,6 +44,7 @@
        <th class="breakdownTotalsHead" rowspan="2">Total Tax Expected</th>        
    </tr>
    <tr>
+       <th class="breakdownMonthScrolling">Month</th>
        <th class="breakdownTitle">Prepared Food</th>
        <th class="breakdownTitle">Merchandise</th>
        <th class="breakdownTitle">Non-Tax Food</th>
@@ -81,7 +82,7 @@
        monthIndex++;
    }
    <tr>
-       <td class="breakdownMonth">Totals:</td>
+       <td class="breakdownTotalsScrolling">Totals:</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalPreparedFoodC)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalMerchandiseC)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTaxC)</td>

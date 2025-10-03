@@ -32,10 +32,10 @@
 <div class="table-responsive">
 <table id="monthly-table" class="breakdown clickable-tableA" style="width:240px">
    <tr>
-       <td class="breakdownBigTitle" colspan="7">Snack Bar/Arcade</td>
+       <th class="breakdownBigTitle" colspan="7">Snack Bar/Arcade</th>
    </tr>
    <tr>
-       <th class="breakdownMonth" rowspan="2">Month</th>
+       <th class="breakdownMonthScrolling"></th>
        <th class="breakdownTitle">318</th>
        <th class="breakdownTitle">348</th>
        <th class="breakdownTotalsHead" rowspan="2">Total Gross Revenue</th>
@@ -44,6 +44,7 @@
        <th class="breakdownTaxHead" rowspan="2">Total Tax Expected</th>
    </tr>
    <tr>
+       <th class="breakdownMonthScrolling">Month</th>
        <th class="breakdownTitle">Prepared Food</th>
        <th class="breakdownTitle">Arcade Games</th>
    </tr>
@@ -78,7 +79,7 @@
        monthIndex++;
    }
    <tr>
-       <td class="breakdownMonth">Totals:</td>
+       <td class="breakdownTotalsScrolling">Totals:</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalPreparedFoodA)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalArcadeGames)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGrossRevenue)</td>

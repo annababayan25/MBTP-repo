@@ -42,17 +42,17 @@
 <div class="table-responsive">
 <table id="monthly-table" class="breakdown clickable-tableR" style="width:240px">
     <tr>
-        <th class="breakdownMonth" rowspan="4"><br><br>Month</th>
         <th class="breakdownBigTitle" colspan="18">Reservations Deposits</th>
     </tr>
     <tr>
+        <th class="breakdownMonthScrolling"></th>
         <th class="breakdownTaxBig" colspan="4">Campsites</th>
         <th class="breakdownTaxBig" colspan="4">Rentals</th>
         <th class="breakdownTaxBig" colspan="4">Golf Carts</th>
-        <th class="breakdownMonth" rowspan="3"><br><br>Month</th>
         <th class="breakdownTaxBig" colspan="5">Gift Vouchers</th>
     </tr>
     <tr>
+        <th class="breakdownMonthScrolling"></th>
         <th class="breakdownTitle" colspan="3">281</th>
                 <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
         <th class="breakdownTitle" colspan="3">283</th>
@@ -63,6 +63,7 @@
                 <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
     </tr>
     <tr>
+        <th class="breakdownMonthScrolling">Month</th>
         <th class="breakdownTitle">Deposits Taken</th>
         <th class="breakdownTitle">Deposits Applied</th>
         <th class="breakdownRefTitle">Manual Refunds Generated</th>
@@ -135,7 +136,6 @@
         <td class="breakdownData">@GDA</td>
         <td class="breakdownRef">@GDMRG</td>
         <td class="breakdownTotals">@netChange3</td>
-        <td class="breakdownData">@month</td>
         <td class="breakdownData">@VP</td>
         <td class="breakdownData">@VRS</td>
         <td class="breakdownData">@VRR</td>
@@ -145,7 +145,7 @@
     monthIndex++;
 }
 <tr>
-    <td class ="breakdownMonth">Totals:</td>
+    <td class ="breakdownTotalsScrolling">Totals:</td>
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDTaken)</td>
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDApplied)</td>
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDMR)</td>
@@ -158,7 +158,6 @@
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDApplied)</td>
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDMR)</td>
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange3)</td>
-    <td class ="breakdownMonth">&nbsp;</td>
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalPurchased)</td>
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSite)</td>
     <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedRent)</td>      
