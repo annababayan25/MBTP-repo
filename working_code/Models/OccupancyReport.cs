@@ -20,7 +20,7 @@ namespace MBTP.Models
         public int? Occupied { get; set; }
 
         [JsonProperty("date")]
-        public DateTime Date { get; set; }
+        public string? OccupancyDate { get; set; }
 
         [JsonProperty("maintenance")]
         public int? Maintenance { get; set; }
@@ -45,7 +45,7 @@ namespace MBTP.Models
         public int? Occupied { get; set; }
 
         [JsonProperty("date")]
-        public DateTime Date { get; set; }
+        public string? OccupancyDate { get; set; }
 
         [JsonProperty("maintenance")]
         public int? Maintenance { get; set; }
