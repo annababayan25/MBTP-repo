@@ -189,7 +189,9 @@ namespace MBTP.Retrieval
                 throw;
             }
 
-            return ds;
+            DataSet snapshotDs = ds.Copy();
+
+            return snapshotDs;
         });
     }
 
