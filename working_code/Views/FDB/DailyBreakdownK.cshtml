@@ -78,7 +78,7 @@
         <th class="breakdownBigTitle" colspan="9">Kayak Shack</th>
     </tr>
     <tr>
-        <th class="breakdownMonth" rowspan="2"><br><br>Day</th>
+        <th class="breakdownDayScrolling"></th>
         <th class="breakdownTitle" colspan="1">317</th>
         <th class="breakdownTitle" colspan="1">352</th>
         <th class="breakdownTitle" colspan="1">354</th>
@@ -96,6 +96,7 @@
         <th class="breakdownTaxHead" rowspan="2">Total Tax Expected</th>
     </tr>
     <tr>
+        <th class="breakdownDayScrolling">Day</th>
         @if(startDate.Date >= DateTime.Parse("06-01-2025"))
         {
             <th class="breakdownTitle">Prepared Food</th>
@@ -145,7 +146,7 @@
         combinedFood = noTaxFood + PreparedFood;
 
         <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
-            <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
+            <td class="breakdownDate">@transDate.ToString("MM/dd/yyyy")</td>
             @if(combinedFood + KayBo + PedBo + Misc == 0)
             {
                 if(blackedOutDate && gross <= 0)
@@ -178,7 +179,7 @@
         combinedFood = totalNoTaxFood + totalPreparedFood;
     }
     <tr>
-        <td class="breakdownMonthSmallText">Month-to-Date Totals:</td>
+        <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
         <td class="breakdownTotals2">@combinedFood</td>
         <td class="breakdownTotals2">@totalKayBo</td>
         <td class="breakdownTotals2">@totalPedBo</td>
@@ -203,7 +204,7 @@
         projTaxExpected = totalTaxExpected + (projPedBo + projKayBo) - ((projPedBo + projKayBo)/EightP) + projPreparedFood - (projPreparedFood/TenP);
         combinedFood = projNoTaxFood + projPreparedFood;
         <tr>
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
+            <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projKayBo)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projPedBo)</td>
@@ -228,7 +229,7 @@
         combinedFood = ptotalNoTaxFood + ptotalPreparedFood;
     }
     <tr>
-        <td class="breakdownMonthSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
+        <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalKayBo)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPedBo)</td>
@@ -252,7 +253,7 @@
         combinedFood = p2totalNoTaxFood + p2totalPreparedFood;
     }
     <tr>
-        <td class="breakdownMonthSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
+        <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalKayBo)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPedBo)</td>
@@ -299,15 +300,17 @@
     }
     @{
         combinedFood = deltaNoTaxFood + deltaPreparedFood;
+        string dateString = startDate.ToString("MMM yyyy");
+        dateString = dateString.Replace(" ", "\u00A0") + "\u00A0" + "Over/Under:";
     }
     <tr>
         @if (startDate.Month == currentDate.Month)
         {
-            <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM yyyy") Over/Under:</td>
+            <td class="breakdownTotalsScrollingSmallText">Projected&nbsp;@(dateString)</td>
         }
         else
         {
-            <td class="breakdownMonthSmallText">@startDate.ToString("MMM yyyy") Over/Under:</td>
+            <td class="breakdownTotalsScrollingSmallText">@(dateString)</td>
         }
         <td class="@(deltaNoTaxFood < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", combinedFood)</td>
         <td class="@(deltaKayBo < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaKayBo)</td>
@@ -321,10 +324,10 @@
     @if (startDate.Month == currentDate.Month)
     {
         <tr>
-            <td class="breakdownLegend" colspan="20"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+            <td class="breakdownLegendTop" colspan="9"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
         </tr>
         <tr>
-            <td class="breakdownLegend" colspan="20"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
+            <td class="breakdownLegendBottom" colspan="9"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
         </tr>
     }
     </table>

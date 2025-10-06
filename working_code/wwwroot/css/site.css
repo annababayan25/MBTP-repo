@@ -303,10 +303,24 @@ a{
 .breakdownMonth{
   text-align: center;
   font-weight: bold;
-  border: 1px black solid;
+  border-right: none;
+  padding-left: 10px;
+  padding-right: 10px;
+  color:rgb(0, 0, 0);
+}
+.breakdownMonthScrolling{
+  text-align: center;
+  vertical-align: top;
+  font-weight: bold;
+  border-right: none;
+  border-left: 1px black solid;
   padding-left: 25px;
   padding-right: 25px;
   color:rgb(0, 0, 0);
+  position: sticky;
+  left: 0;
+  background-color: #f2f2f2;
+  z-index: 1;
 }
 .breakdownMonthSmallText{
   text-align: center;
@@ -317,16 +331,52 @@ a{
   padding-right: 10px;
   color:rgb(0, 0, 0);
 }
+.breakdownDayScrolling{
+  text-align: center;
+  vertical-align: top;
+  font-weight: bold;
+  border-right: none;
+  border-left: 1px black solid;
+  padding-left: 25px;
+  padding-right: 25px;
+  color:rgb(0, 0, 0);
+  position: sticky;
+  left: 0;
+  background-color: #f2f2f2;
+  z-index: 1;
+}
+.breakdownTotalsScrolling{
+  text-align: center;
+  vertical-align: top;
+  font-weight: bold;
+  border-right: none;
+  border-left: 1px black solid;
+  border-bottom: 1px solid black;  
+  padding-left: 25px;
+  padding-right: 25px;
+  color:rgb(0, 0, 0);
+}
+.breakdownTotalsScrollingSmallText{
+  text-align: center;
+  vertical-align: top;
+  font-weight: bold;
+  border-right: none;
+  border-left: 1px black solid;
+  border-bottom: 1px solid black;  
+  padding-left: 10px;
+  padding-right: 10px;
+  color:rgb(0, 0, 0);
+}
 .breakdownData{
   text-align: right;
   border: 1px black solid;
   padding-left: 60px;
   padding-right: 7px;
-}.breakdownDate{
-  text-align: right;
+}
+.breakdownDate{
+  text-align: center;
   border: 1px black solid;
-  padding-left: 60px;
-  padding-right: 7px;
+  font-weight: bold;
 }
 .breakdownBigTitle{
   text-align:center;
@@ -412,10 +462,23 @@ a{
   background-color:rgb(208, 125, 125);
   color:rgb(0, 0, 0);
 }
-.breakdownLegend{
-  border-left: none;
+.breakdownLegendTop{
+  border-left: 1px solid black;
   border-bottom: none;
   border-right: none;
+  position: sticky;
+  left: 0;
+  background-color: #f2f2f2;
+  z-index: 1;
+}
+.breakdownLegendBottom{
+  border-left: 1px solid black;
+  border-bottom: 1px solid black;
+  border-right: none;
+  position: sticky;
+  left: 0;
+  background-color: #f2f2f2;
+  z-index: 1;
 }
 .dashboardTableHeader{
   background-color: rgb(255, 245, 137);
@@ -664,11 +727,37 @@ tr.flag td {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
+  overflow-y: hidden;
   -webkit-overflow-scrolling: touch; 
 }
 
 .table-responsive table {
   min-width: 800px; 
+}
+
+.breakdown    td:first-child {
+        position: sticky;
+        left: 0;
+        background-color: #f2f2f2;
+        z-index: 1; /* Ensures it stays on top of scrolling content */
+    }
+.breakdown th:first-child::before,
+.breakdown td:first-child::before {
+  content: " ";
+  background: black;
+  width: 1px;
+  height: 100%;
+  position: absolute;
+  left: -1px;
+}
+.breakdown th:first-child::after,
+.breakdown td:first-child::after {
+  content: " ";
+  background: black;
+  width: 1px;
+  height: 100%;
+  position: absolute;
+  right: 0;
 }
 
 @media (max-width: 1024px) {
