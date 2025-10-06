@@ -85,11 +85,11 @@ namespace MBTP.Retrieval
                     foreach (var device in devices)
                     {
                         DataRow row = apStatusTable.NewRow();
-                       row["Connected"] = device.Connected;
-                       row["APLocation"] = device.hostname ?? "Unknown";
-                       row["LastConnectTime"] = device.last_connect_time;
-                       row["HubName"] = device.hubName ?? "Unknown";
-                       apStatusTable.Rows.Add(row);
+                        row["Connected"] = device.Connected;
+                        row["APLocation"] = device.hostname ?? "Unknown";
+                        row["LastConnectTime"] = device.last_connect_time;
+                        row["HubName"] = device.hubName ?? "Unknown";
+                        apStatusTable.Rows.Add(row);
                     }
                     myDS.Tables.Add(apStatusTable);
                 }

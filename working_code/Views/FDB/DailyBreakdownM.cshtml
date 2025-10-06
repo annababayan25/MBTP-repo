@@ -2,6 +2,10 @@
 @using MBTP.Controllers
 @using MBTP.Retrieval
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+#breakdownLegendId::after{content: ''; background: blue; width: 0px; height: 100%; position: absolute; right: 0;}
+#breakdownLegendId2::after{content: ''; background: blue; width: 0px; height: 100%; position: absolute; right: 0;}
+</style>
 
 @{
     DateTime startDate = ViewBag.date != null ? (DateTime)ViewBag.date : DateTime.Now.AddDays(-4);
@@ -93,18 +97,19 @@
     {
         <div class="table-responsive">
         <table id="daily-table" class="breakdown clickable-tableM"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownM" style="width:240px">
+            <thead class="breakdownHead">
             <tr>
                 @if(accID == "4")
                 {
-                    <td class="breakdownBigTitle" colspan="6">Miscellaneous Income</td>
+                    <th class="breakdownBigTitle" colspan="6">Miscellaneous Income</th>
                 }
                 else
                 {
-                    <td class="breakdownBigTitle" colspan="15">Miscellaneous Income</td>
+                    <th class="breakdownBigTitle" colspan="15">Miscellaneous Income</th>
                 }
             </tr>
             <tr>
-                <th class="breakdownMonth" rowspan="3">Day</th>
+                <th class="breakdownDayScrolling"></th>
                 @if(accID == "4")
                 {
                     <td class="breakdownTaxBig">Commissions</td>
@@ -118,6 +123,7 @@
                 <th class="breakdownTotalsHead" rowspan="3">Total</th> 
             </tr>
             <tr>
+                <th class="breakdownDayScrolling"></th>
                 @if(accID != "4")
                 {
                     <th class="breakdownTitle">384</th>
@@ -149,6 +155,7 @@
                 }
             </tr>
             <tr>
+                <th class="breakdownDayScrolling">Day</th>
                 @if(startDate.Month == currentDate.Month) 
                 {
                     @if(accID != "4")
@@ -196,6 +203,7 @@
                     }
                 }
             </tr>
+            </thead>
             @foreach (DataRow row in Model!.Tables[0].Rows)
             {
                 var transDate = (DateTime)row["TransDate"];
@@ -247,7 +255,7 @@
                 totalSupplementalS += SupplementalS;
                 totalTotals += totals;
                 <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
-                    <td class="breakdownDate">@transDate.ToString("MM/dd")</td>
+                    <td class="breakdownDate">@transDate.ToString("MM/dd/yyyy")</td>
                     @if(accID != "4")
                     {
                         <td class="breakdownData">@row["CATV"]</td>
@@ -288,7 +296,7 @@
                 </tr>
             }
         <tr>
-            <td class="breakdownMonthSmallText">Month-to-Date Totals:</td>
+            <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
             @if(accID != "4")
             {
                 <td class="breakdownTotals2">@String.Format("{0:F2}", totalCATV)</td>
@@ -340,7 +348,7 @@
                                 projStoreEvents + projVendorDecals + projParkModelSales + projSupplementalO + projSupplementalS;
             }
             <tr>
-                <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
+                <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
                 @if(accID != "4")
                 {
                     <td class="breakdownTotals2">@String.Format("{0:F2}", projCATV)</td>
@@ -392,7 +400,7 @@
             }
         }
         <tr>
-            <td class="breakdownMonthSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
+            <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
             @if(accID != "4")
             {
                 <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalCATV)</td>
@@ -443,7 +451,7 @@
             }
         }
         <tr>
-            <td class="breakdownMonthSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
+            <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
             @if(accID != "4")
             {
                 <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalCATV)</td>
@@ -518,14 +526,18 @@
             deltaSupplementalS = totalSupplementalS - ptotalSupplementalS;
             deltaTotals = totalTotals - ptotalTotals;
         }
+        @{
+            string dateString = startDate.ToString("MMM yyyy");
+            dateString = dateString.Replace(" ", "\u00A0") + "\u00A0" + "Over/Under:";
+        }
         <tr>
             @if (startDate.Month == currentDate.Month)
             {
-                <td class="breakdownMonthSmallText">Projected @startDate.ToString("MMM yyyy") Over/Under:</td>
+                <td class="breakdownTotalsScrollingSmallText">Projected&nbsp;@dateString</td>
             }
             else
             {
-                <td class="breakdownMonthSmallText">@startDate.ToString("MMM yyyy") Over/Under:</td>
+                <td class="breakdownTotalsScrollingSmallText">@dateString</td>
             }
             @if(accID != "4")
             {
@@ -553,13 +565,24 @@
         </tr>
         @if (startDate.Month == currentDate.Month)
         {
-            <tr>
-                <td class="breakdownLegend" colspan="20"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
-            </tr>
             @if(accID != "4")
             {
                 <tr>
-                    <td class="breakdownLegend" colspan="20"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
+                    <td class="breakdownLegendTop" colspan="5" id="breakdownLegendId"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+                    <td colspan="10" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: none; border-right: 1px solid black;">&nbsp;</td>
+                </tr>
+                <tr>
+                    <td class="breakdownLegendBottom" colspan="5" id="breakdownLegendId2"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
+                    <td colspan="10" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black;">&nbsp;</td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td class="breakdownLegendTop" colspan="6"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+                </tr>
+                <tr>
+                    <td class="breakdownLegendBottom" colspan="6"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
                 </tr>
             }
         }

@@ -42,28 +42,29 @@
         <tr>
             @if(accID == "4")
             {
-                <td class="breakdownBigTitle" colspan="6">Miscellaneous Income</td>
+                <th class="breakdownBigTitle" colspan="6">Miscellaneous Income</th>
             }
             else
             {
-                <td class="breakdownBigTitle" colspan="15">Miscellaneous Income</td>
+                <th class="breakdownBigTitle" colspan="15">Miscellaneous Income</th>
             }
         </tr>
         <tr>
-            <th class="breakdownMonth" rowspan="3">Month</th>
+            <th class="breakdownMonthScrolling"></th>
             @if(accID == "4")
             {
-                <td class="breakdownTaxBig">Commissions</td>
-                <td class="breakdownTaxBig" colspan="3">Other</td>
+                <th class="breakdownTaxBig">Commissions</th>
+                <th class="breakdownTaxBig" colspan="3">Other</th>
             }
             else
             {
-                <td class="breakdownTaxBig" colspan="4">Commissions</td>
-                <td class="breakdownTaxBig" colspan="9">Other</td>
+                <th class="breakdownTaxBig" colspan="4">Commissions</th>
+                <th class="breakdownTaxBig" colspan="9">Other</th>
             }
             <th class="breakdownTotalsHead" rowspan="3">Total</th> 
         </tr>
         <tr>
+            <th class="breakdownMonthScrolling"></th>
             @if(accID != "4")
             {
                 <th class="breakdownTitle">384</th>
@@ -87,6 +88,7 @@
             }
         </tr>
         <tr>
+            <th class="breakdownMonthScrolling">Month</th>
             @if(accID != "4")
             {
                 <th class="breakdownTitle">CATV</th>
@@ -184,7 +186,7 @@
             monthIndex ++;
         }
         <tr>
-            <td class="breakdownMonth">Totals:</td>
+            <td class="breakdownTotalsScrolling">Totals:</td>
             @if(accID != "4")
             {
                 <td class="breakdownTotals2">@String.Format("{0:F2}", totalCATV)</td>

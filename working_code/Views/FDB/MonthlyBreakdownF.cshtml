@@ -49,21 +49,21 @@
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
 <div class="table-responsive">
-<table id="monthly-table" class="breakdown clickable-tableF" style="width:240px">
+<table id="monthly-table" class="breakdown clickable-tableF">
    <tr>
-       <th class="breakdownBigTitle" colspan="28">Front Office</th>
+       <th class="breakdownBigTitle" colspan="27">Front Office</th>
    </tr>
    <tr>
-       <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Month</th>
+       <th class="breakdownMonthScrolling"></th>
        <th class="breakdownTaxBig" colspan="7">Taxable Transactions: 12% (Tax Inclusive)</th>
        <th class="breakdownTaxBig" colspan="1">Tax: 5% (Tax Inclusive)</th>
        <th class="breakdownTaxBig" colspan="2">Tax: 8% (Tax Inclusive)</th>
        <th class="breakdownTaxBig" colspan="3">Taxable Transactions Summary:</th>
-       <th class="breakdownMonth" rowspan="3" colspan="1"><br><br>Month</th>
        <th class="breakdownTaxBig" colspan="12">No Tax Transactions:</th>
        <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
    </tr>
    <tr>
+       <th class="breakdownMonthScrolling"></th>
        <th class="breakdownTitle">304</th>
        <th class="breakdownTitle">307</th>
        <th class="breakdownTitle">309</th>
@@ -87,6 +87,7 @@
        <th class="breakdownTotalsHead" rowspan="2">Other Non-Taxable Subtotal</th>
    </tr>
    <tr>
+       <th class="breakdownMonthScrolling">Month</th>
        <th class="breakdownTitle">Sites</th>
        <th class="breakdownTitle">Rentals</th>
        <th class="breakdownTitle">Lock Fees</th>
@@ -183,7 +184,6 @@
            <td class="breakdownTotals">@String.Format("{0:F2}", grossRevenue1)</td>
            <td class="breakdownTotals">@String.Format("{0:F2}", taxLi)</td>
            <td class="breakdownTotals">@String.Format("{0:F2}", netRevSub)</td>
-           <td class="breakdownData">@month</td>
            <td class="breakdownData">@annual</td>
            <td class="breakdownData">@employee</td>
            <td class="breakdownData">@lts</td>
@@ -201,7 +201,7 @@
        monthIndex++;
    }
    <tr>
-       <td class="breakdownMonth">Totals:</td>
+       <td class="breakdownTotalsScrolling">Totals:</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalSites)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRentals)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalLockFees)</td>
@@ -215,7 +215,6 @@
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGross)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxLi)</td>      
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevSub)</td>
-       <td class="breakdownMonth">&nbsp;</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalAnnual)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalEmployee)</td>
        <td class="breakdownTotals2">@String.Format("{0:F2}", totalLTS)</td>
