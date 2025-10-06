@@ -18,6 +18,7 @@ namespace MBTP.Extreme
         public ExtremeService(HttpClient httpClient, IDatabaseConnectionService dbConnectionService)
         {
             _httpClient = httpClient;
+            _httpClient.Timeout = TimeSpan.FromMinutes(2);
             _dbConnectionService = dbConnectionService;
         }
 
