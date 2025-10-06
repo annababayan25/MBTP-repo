@@ -297,9 +297,9 @@ namespace MBTP.Controllers
                 return writer.GetStringBuilder().ToString();
             }
         }
-            public IActionResult Index()
+            public async Task<IActionResult> Index()
         {
-            DataSet dashData = _dashboard.RetrieveDashboardData();
+            DataSet dashData = await _dashboard.RetrieveDashboardDataAsync();
 
             if (dashData.Tables.Contains("Alerts"))
             {
