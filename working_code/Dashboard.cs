@@ -26,7 +26,7 @@ namespace MBTP.Retrieval
             _extremeService = extremeService;
         }
 
-        public DataSet RetrieveDashboardData()
+        public async Task<DataSet> RetrieveDashboardDataAsync()
         {
             DataSet myDS = new DataSet();
 
@@ -75,7 +75,7 @@ namespace MBTP.Retrieval
                         }
                     }
                     sqlConn.Close();
-                    List<Device> devices = Task.Run(() => _extremeService.FetchExtremeKey()).Result;
+                    List<Device> devices = await _extremeService.FetchExtremeKey();
                     // Now we'll add a new DataTable for AP Status
                     DataTable apStatusTable = new DataTable("APStatus");
                     apStatusTable.Columns.Add("Connected", typeof(bool));
