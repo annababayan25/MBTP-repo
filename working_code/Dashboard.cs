@@ -26,7 +26,7 @@ namespace MBTP.Retrieval
             _extremeService = extremeService;
         }
 
-        public DataSet RetrieveDashboardData()
+        public async Task<DataSet> RetrieveDashboardDataAsync()
         {
             DataSet myDS = new DataSet();
 
@@ -75,22 +75,22 @@ namespace MBTP.Retrieval
                         }
                     }
                     sqlConn.Close();
-                    List<Device> devices = Task.Run(() => _extremeService.FetchExtremeKey()).Result;
+                    List<Device> devices = await _extremeService.FetchExtremeKey();
                     // Now we'll add a new DataTable for AP Status
                     DataTable apStatusTable = new DataTable("APStatus");
                     apStatusTable.Columns.Add("Connected", typeof(bool));
                     apStatusTable.Columns.Add("APLocation", typeof(string)); 
                     apStatusTable.Columns.Add("LastConnectTime", typeof(DateTime));
                     apStatusTable.Columns.Add("HubName", typeof(string));
-//                    foreach (var device in devices)
-//                    {
-//                        DataRow row = apStatusTable.NewRow();
-//                        row["Connected"] = device.Connected;
-//                        row["APLocation"] = device.hostname ?? "Unknown";
-//                        row["LastConnectTime"] = device.last_connect_time;
-//                        row["HubName"] = device.hubName ?? "Unknown";
-//                        apStatusTable.Rows.Add(row);
-//                    }
+                    foreach (var device in devices)
+                    {
+                        DataRow row = apStatusTable.NewRow();
+                       row["Connected"] = device.Connected;
+                       row["APLocation"] = device.hostname ?? "Unknown";
+                       row["LastConnectTime"] = device.last_connect_time;
+                       row["HubName"] = device.hubName ?? "Unknown";
+                       apStatusTable.Rows.Add(row);
+                    }
                     myDS.Tables.Add(apStatusTable);
                 }
                 return myDS;
