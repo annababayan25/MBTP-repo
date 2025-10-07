@@ -50,6 +50,7 @@ namespace MBTP.Controllers
         private readonly TransactionFlowApi _transactionFlowApi;
         private readonly DailyReport _dailyReport;
         private readonly OccupancyApi _occupancyApi;
+        private readonly BookingsDepartureApi _bookingsDepartureApi;
 
 
         public AdminController(
@@ -67,7 +68,8 @@ namespace MBTP.Controllers
             DailyReport dailyReport,
             ReconApi reconApi,
             TransactionFlowApi transactionFlowApi,
-            OccupancyApi occupancyApi
+            OccupancyApi occupancyApi,
+            BookingsDepartureApi bookingsDepartureApi
         )
 
         {
@@ -85,6 +87,7 @@ namespace MBTP.Controllers
             _reconApi = reconApi;
             _transactionFlowApi = transactionFlowApi;
             _occupancyApi = occupancyApi;
+            _bookingsDepartureApi = bookingsDepartureApi;
         }
 
         [Authorize]
@@ -263,6 +266,24 @@ namespace MBTP.Controllers
             if (day is not null)
             {
                 await _transactionFlowApi.PopulateTransactions(periodFrom, periodTo);
+            }
+
+            return View();
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateBookingsDeparting(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+
+            // One full day range
+            var periodFrom = selectedDay.Date; // midnight
+            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
+
+            if (day is not null)
+            {
+                await _bookingsDepartureApi.PopulateBookingsDeparting(periodFrom, periodTo);
             }
 
             return View();

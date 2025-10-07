@@ -32,6 +32,7 @@ namespace MBTP
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             services.AddHttpContextAccessor();
+            services.AddHttpClient<BookingsDepartureApi>();
             services.AddHttpClient<OccupancyApi>();
             services.AddHttpClient<ReconApi>();
             services.AddScoped<InventoryApi>();
