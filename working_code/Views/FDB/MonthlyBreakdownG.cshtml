@@ -13,13 +13,16 @@
    decimal totalApparel = 0;
    decimal totalSeasonalNov = 0;
    decimal totalOtherNovelty = 0;
+   decimal totalTotalNovelty = 0;
    decimal totalAlc = 0;
    decimal totalHardGoods = 0;
    decimal totalRvParts = 0;
    decimal totalSeasonalMerch = 0;
+   decimal totalTotalMerch = 0;
    decimal totalFoodCounter = 0;
    decimal totalFood = 0;
    decimal totalIce = 0;
+   decimal totalTotalFoodAndIce = 0;
    decimal totalVending = 0;
    decimal totalStamps = 0;
    decimal tTotal = 0;
@@ -43,13 +46,13 @@
     <div class="table-responsive"> 
         <table id="monthly-table" class="breakdown clickable-tableG" style="width:240px">
             <tr>
-                <th class="breakdownBigTitle" colspan="19">General Store</th>
+                <th class="breakdownBigTitle" colspan="22">General Store</th>
             </tr>
             <tr>
                 <th class="breakdownMonthScrolling"></th>
-                <th class="breakdownTaxBig" colspan="8">Sales Tax: 8% (Tax Inclusive)</th>
+                <th class="breakdownTaxBig" colspan="10">Sales Tax: 8% (Tax Inclusive)</th>
                 <th class="breakdownTaxBig" colspan="1">Tax: 10.5% (Tax Inclusive)</th>
-                <th class="breakdownTaxBig" colspan="5">Non-Taxable</th>
+                <th class="breakdownTaxBig" colspan="6">Non-Taxable</th>
                 <th class="breakdownTotalsHead" rowspan="3">Total Gross Revenue</th>
                 <th class="breakdownTotalsHead" rowspan="3">Total Tax Collected</th>
                 <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
@@ -57,11 +60,11 @@
             </tr>
             <tr>
                 <th class="breakdownMonthScrolling"></th>
-                <th class="breakdownTitle" colspan="3">322</th>
-                <th class="breakdownTitle" colspan="4">324</th>
+                <th class="breakdownTitle" colspan="4">322</th>
+                <th class="breakdownTitle" colspan="5">324</th>
                 <th class="breakdownTotalsHead" rowspan="2">Total</th>
                 <th class="breakdownTitle">323</th>
-                <th class="breakdownTitle" colspan="2">325</th>
+                <th class="breakdownTitle" colspan="3">325</th>
                 <th class="breakdownTitle">326</th>
                 <th class="breakdownTitle">327</th>
                 <th class="breakdownTotalsHead" rowspan="2">Total</th>
@@ -71,13 +74,16 @@
                 <th class="breakdownTitle">Apparel</th>
                 <th class="breakdownTitle">Seasonal Novelty</th>
                 <th class="breakdownTitle">Other Novelty</th>
+                <th class="breakdownSubtotalTitle">Total Novelty</th>
                 <th class="breakdownTitle">Alcohol</th>
                 <th class="breakdownTitle">Hard Goods</th>
                 <th class="breakdownTitle">RV Parts</th>
                 <th class="breakdownTitle">Seasonal Merch</th>
+                <th class="breakdownSubtotalTitle">Total Merch</th>
                 <th class="breakdownTitle">Food Counter</th>
                 <th class="breakdownTitle">Food</th>
                 <th class="breakdownTitle">Ice</th>
+                <th class="breakdownSubtotalTitle">Total Food & Ice</th>
                 <th class="breakdownTitle">Vending</th>
                 <th class="breakdownTitle">Stamps</th>
             </tr>
@@ -91,13 +97,16 @@
                 var apparel = (decimal)row["Apparel"];
                 var seasonalNov = (decimal)row["SeasonalNovelty"];
                 var otherNovelty = (decimal)row["OtherNovelty"];
+                var totalNovelty = apparel + seasonalNov + otherNovelty;
                 var alc = (decimal)row["Alcohol"];
                 var hardGoods = (decimal)row["HardGoods"];
                 var rvParts = (decimal)row["RVParts"];
                 var seasonalMerch = (decimal)row["SeasonalMerch"];
+                var totalMerch = alc + hardGoods + rvParts + seasonalMerch;
                 var foodCounter = (decimal)row["FoodCounter"];
                 var food = (decimal)row["Food"];
                 var ice = (decimal)row["Ice"];
+                var totalFoodAndIce = food + ice;
                 var vending = (decimal)row["Vending"];
                 var stamps = (decimal)row["Stamps"];
                 var total = apparel + seasonalNov + otherNovelty + alc + hardGoods + rvParts + seasonalMerch;
@@ -110,13 +119,16 @@
                 totalApparel += apparel;
                 totalSeasonalNov += seasonalNov;
                 totalOtherNovelty += otherNovelty;
+                totalTotalNovelty += totalNovelty;
                 totalAlc += alc;
                 totalHardGoods += hardGoods;
                 totalRvParts += rvParts;
                 totalSeasonalMerch += seasonalMerch;
+                totalTotalMerch += totalMerch;
                 totalFoodCounter += foodCounter;
                 totalFood += food;
                 totalIce += ice;
+                totalTotalFoodAndIce += totalFoodAndIce;
                 totalVending += vending;
                 totalStamps += stamps;
                 tTotal += total;
@@ -130,14 +142,17 @@
                     <td class="breakdownData">@apparel</td>
                     <td class="breakdownData">@seasonalNov</td>
                     <td class="breakdownData">@otherNovelty</td>
+                    <td class="breakdownSubTotals">@totalNovelty</td>
                     <td class="breakdownData">@alc</td>
                     <td class="breakdownData">@hardGoods</td>
                     <td class="breakdownData">@rvParts</td>
                     <td class="breakdownData">@seasonalMerch</td>
+                    <td class="breakdownSubTotals">@totalMerch</td>
                     <td class="breakdownTotals">@total</td>
                     <td class="breakdownData">@foodCounter</td>
                     <td class="breakdownData">@food</td>
                     <td class="breakdownData">@ice</td>
+                    <td class="breakdownSubTotals">@totalFoodAndIce</td>
                     <td class="breakdownData">@vending</td>
                     <td class="breakdownData">@stamps</td>
                     <td class="breakdownTotals">@total2</td>
@@ -153,14 +168,17 @@
                 <td class="breakdownTotals2">@totalApparel</td>
                 <td class="breakdownTotals2">@totalSeasonalNov</td>
                 <td class="breakdownTotals2">@totalOtherNovelty</td>
+                <td class="breakdownTotals2">@totalTotalNovelty</td>
                 <td class="breakdownTotals2">@totalAlc</td>
                 <td class="breakdownTotals2">@totalHardGoods</td>
                 <td class="breakdownTotals2">@totalRvParts</td>
                 <td class="breakdownTotals2">@totalSeasonalMerch</td>
+                <td class="breakdownTotals2">@totalTotalMerch</td>
                 <td class="breakdownTotals2">@tTotal</td>
                 <td class="breakdownTotals2">@totalFoodCounter</td>
                 <td class="breakdownTotals2">@totalFood</td>
                 <td class="breakdownTotals2">@totalIce</td>
+                <td class="breakdownTotals2">@totalTotalFoodAndIce</td>
                 <td class="breakdownTotals2">@totalVending</td>
                 <td class="breakdownTotals2">@totalStamps</td>
                 <td class="breakdownTotals2">@tTotal2</td>
@@ -188,7 +206,7 @@ $(document).ready(function () {
            console.error('URL is undefined');
        }
    });
-   var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
+   var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownSubTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
 cells.forEach(function (cell) { 
    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
    if (!isNaN(amount)) { 
