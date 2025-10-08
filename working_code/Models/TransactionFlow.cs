@@ -28,7 +28,7 @@ namespace MBTP.Models
         public string? TransType { get; set; }
 
         [JsonProperty("item_date")]
-        public DateTime? TransDate { get; set; }
+        public string? TransDate { get; set; }
 
         [JsonProperty("client_account")]
         public string? ClientAccount { get; set; }

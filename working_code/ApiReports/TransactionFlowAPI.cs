@@ -101,9 +101,6 @@ namespace MBTP.Services
                     transactions.GroupedPaymentType = "Balance Transfer";
                 }
 
-                string filename = "output.txt";
-                File.AppendAllText(filename, item.ToString() + Environment.NewLine);
-
                 transactionFlow.Add(transactions);
             }
 
@@ -112,13 +109,16 @@ namespace MBTP.Services
 
             foreach (var transactions in transactionFlow)
             {
+                var dateValue = Convert.ToDateTime(transactions.TransDate);
+                var stringValue = dateValue.ToString("MMM dd yyyy hh:mm tt");
+
                 using (SqlCommand cmd = new SqlCommand(@"dbo.UpdateTransactionFlowTable", sqlConn))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@PaymentMethod", $"{transactions.PaymentMethod} {transactions.GroupedPaymentType} {transactions.PaymentTypeAction} - For {Convert.ToDateTime(transactions.TransDate).ToString("MMM dd yyyy")}");
                     cmd.Parameters.AddWithValue("@Category", transactions.Category ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@TransNumber", transactions.PaymentTypeReference != null ? $"{transactions.TransType} #{transactions.ItemId} (Ref #{transactions.PaymentTypeReference})" : $"{transactions.TransType} #{transactions.ItemId}");
-                    cmd.Parameters.AddWithValue("@TransDate", transactions.TransDate);
+                    cmd.Parameters.AddWithValue("@TransDate", stringValue);
                     cmd.Parameters.AddWithValue("@ClientAccount", transactions.ClientAccount);
                     cmd.Parameters.AddWithValue("@GeneratedBy", transactions.GeneratedBy);
                     cmd.Parameters.AddWithValue("@Description", transactions.Description);
