@@ -32,13 +32,13 @@
 </div>
 
 
-<form method="get" asp-action="PopulateOccupancy">
-    <div class="navigation-container">
-        <div class="label-input-container">
-            <label style="padding-left: 22px; font-weight: 500" for="dayPicker">Select Day:</label>
-            <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
-        </div>
-    </div>
+<form method="get" asp-action="PopulateOccupancy" class="navigation-container">
+    <label for="dayPicker">Select Day:</label>
+    <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
+
+    <button type="submit" class="btn btn-success small-btn" formaction="@Url.Action("ExportOccupancyToExcel")">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
 </form>
 
 

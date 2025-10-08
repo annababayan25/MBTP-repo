@@ -22,7 +22,7 @@
 <html lang="en">
 
 <h2 style="text-align: center;">
-    Daily Checked In Report for @titleDate
+    Daily Checked-In Report for @titleDate
     @if (checkInCount > 0)
     {
         <p style="text-align: centered;">(Total Checked In: @checkInCount)</p>
@@ -42,14 +42,15 @@
 </div>
 
 
-<form method="get" asp-action="PopulateCheckedIn">
-    <div class="navigation-container">
-        <div class="label-input-container">
-            <label style="padding-left: 22px; font-weight: 500" for="dayPicker">Select Day:</label>
-            <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
-        </div>
-    </div>
+<form method="get" asp-action="PopulateCheckIns" class="navigation-container">
+    <label for="dayPicker">Select Day:</label>
+    <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
+
+    <button type="submit" class="btn btn-success small-btn" formaction="@Url.Action("ExportCheckInsToExcel")">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
 </form>
+
 
 
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
@@ -174,16 +175,28 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     flatpickr("#dayPicker", {
-        dateFormat: "Y-m-d",
-        maxDate: "today",
-        defaultDate: "@SelectedDay?.ToString("yyyy-MM-dd")",
-        onChange: function(selectedDates, dateStr, instance) {
-            var newUrl = new URL(window.location.href);
-          +
-            newUrl.searchParams.set("day", dateStr);
-            sessionStorage.setItem('loading', 'true');
-            loadingOverlay.style.display = 'flex';
-            window.location.href = newUrl.toString();
+    dateFormat: "Y-m-d",
+    maxDate: "today",
+    defaultDate: "@SelectedDay?.ToString("yyyy-MM-dd")",
+    onChange: function(selectedDates, dateStr, instance) {
+    var newUrl = new URL(window.location.href);
+    newUrl.searchParams.set("day", dateStr);
+     history.pushState({ day: dateStr }, "", newUrl.toString());
+    sessionStorage.setItem('loading', 'true');
+    loadingOverlay.style.display = 'flex';
+    window.location.href = newUrl.toString();
+    }
+    });
+
+    window.addEventListener("popstate", function (event) {
+        const dateStr = event.state?.day;
+        if (dateStr) {
+            picker.setDate(dateStr, true);
+            updateContentForDate(dateStr);
+        } else {
+            // default state (no day)
+            picker.clear();
+            updateContentForDate(null);
         }
     });
     
@@ -198,6 +211,11 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     
     });
+
+    history.pushState({ day: dateStr }, "", newUrl.toString());
+    updateContentForDate(dateStr);
+
+}
 
 
 </script>

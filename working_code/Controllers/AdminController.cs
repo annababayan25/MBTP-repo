@@ -27,6 +27,8 @@ using MBTP.Logins;
 using FinancialC_;
 using GenericSupport;
 using System.Runtime.CompilerServices;
+using ClosedXML.Excel;
+using System.IO;
 
 
 
@@ -39,7 +41,6 @@ namespace MBTP.Controllers
         private readonly IConfiguration _configuration;
         private readonly IDatabaseConnectionService _dbConnectionService;
         private readonly AccessLevelsActions _accessLevelsActions;
-        
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
@@ -187,24 +188,20 @@ namespace MBTP.Controllers
         [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
-            var selectedDay = day ?? DateTime.Today;
-            await _checkedInApi.PopulateCheckIns(selectedDay, selectedDay.AddDays(1));
-            var reportData = await _dailyReport.RetrieveCheckedInReport(selectedDay, selectedDay.AddDays(1));
-
-            if (reportData == null || reportData.Tables.Count == 0 || reportData.Tables[0].Rows.Count == 0)
+             if (day == null)
             {
-                var yesterday = DateTime.Today.AddDays(-1);
-                await _checkedInApi.PopulateCheckIns(yesterday, yesterday.AddDays(1));
-                reportData = await _dailyReport.RetrieveCheckedInReport(yesterday, yesterday.AddDays(1));
-                ViewBag.SelectedDay = yesterday;
-            }
-            else
-            {
-                ViewBag.SelectedDay = selectedDay;
+                ViewBag.SelectedDay = null;
+                return View();
             }
 
-            ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
+            var selectedDay = day.Value;
+            ViewBag.SelectedDay = selectedDay;
+            await _checkedInApi.PopulateCheckIns(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            var reportData = await _dailyReport.RetrieveCheckInsReport(selectedDay, selectedDay.AddDays(1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
+            
         }
 
         [Authorize]
@@ -228,26 +225,20 @@ namespace MBTP.Controllers
         [Authorize]
         public async Task<IActionResult> PopulateOccupancy(DateTime? day)
         {
+             if (day == null)
             {
-                var selectedDay = day ?? DateTime.Today;
-                await _occupancyApi.PopulateOccupancy(selectedDay, selectedDay.AddDays(1));
-                var reportData = await _dailyReport.RetrieveOccupancyReport(selectedDay, selectedDay.AddDays(1));
-
-                if (reportData == null || reportData.Tables.Count == 0 || reportData.Tables[0].Rows.Count == 0)
-                {
-                    var yesterday = DateTime.Today.AddDays(-1);
-                    await _occupancyApi.PopulateOccupancy(yesterday, yesterday.AddDays(1));
-                    reportData = await _dailyReport.RetrieveOccupancyReport(yesterday, yesterday.AddDays(1));
-                    ViewBag.SelectedDay = yesterday;
-                }
-                else
-                {
-                    ViewBag.SelectedDay = selectedDay;
-                }
-
-                ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
-                return View(reportData);
+                ViewBag.SelectedDay = null;
+                return View();
             }
+
+            var selectedDay = day.Value;
+            ViewBag.SelectedDay = selectedDay;
+            await _occupancyApi.PopulateOccupancy(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            var reportData = await _dailyReport.RetrieveOccupancyReport(selectedDay, selectedDay.AddDays(1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+            return View(reportData);
+            
         }
 
         [Authorize]
@@ -462,7 +453,71 @@ namespace MBTP.Controllers
             return Ok(new { sucess = true, message = "Blackout added." });
         }
 
+        public async Task<IActionResult> ExportCheckInsToExcel(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            DataSet ds = await _dailyReport.RetrieveCheckInsReport(selectedDay, selectedDay.AddDays(1));
 
+            if (ds == null || ds.Tables.Count == 0)
+            {
+                return Content("No data available");
+            }
+
+            DataTable dt = ds.Tables[0];
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Checked In");
+                if (dt.Columns.Count > 0)
+                {
+                    dt.Columns.RemoveAt(dt.Columns.Count - 1);
+                }
+                worksheet.Cell(1, 1).InsertTable(dt);
+                worksheet.Columns().AdjustToContents();
+
+                worksheet.Protect("readonly");
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+
+                    string fileName = $"Checked_In_List_{selectedDay:MMMdd}.xlsx";
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+        }
+        public async Task<IActionResult> ExportOccupancyToExcel(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            DataSet ds = await _dailyReport.RetrieveOccupancyReport(selectedDay, selectedDay.AddDays(1));
+
+            if (ds == null || ds.Tables.Count == 0)
+            {
+                return Content("No data available");
+            }
+
+            DataTable dt = ds.Tables[0];
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Occupancy");
+                worksheet.Cell(1, 1).InsertTable(dt);
+                worksheet.Columns().AdjustToContents();
+
+                worksheet.Protect("readonly");
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+
+                    string fileName = $"Occupancy_Report_{selectedDay:MMMdd}.xlsx";
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+
+        }
 
 
     }
