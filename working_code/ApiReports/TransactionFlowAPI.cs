@@ -101,6 +101,8 @@ namespace MBTP.Services
                     transactions.GroupedPaymentType = "Balance Transfer";
                 }
 
+                string filename = "output.txt";
+                File.AppendAllText(filename, item.ToString() + Environment.NewLine);
 
                 transactionFlow.Add(transactions);
             }

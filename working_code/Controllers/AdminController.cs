@@ -188,7 +188,7 @@ namespace MBTP.Controllers
         [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
-             if (day == null)
+            if (day == null)
             {
                 ViewBag.SelectedDay = null;
                 return View();
@@ -201,31 +201,13 @@ namespace MBTP.Controllers
 
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
-            
+
         }
 
         [Authorize]
         public async Task<IActionResult> PopulateRecons(DateTime? day)
         {
-            var selectedDay = day ?? DateTime.Today;
-            ViewBag.SelectedDay = selectedDay;
-
-            // One full day range
-            var periodFrom = selectedDay.Date; // midnight
-            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
-
-            if (day is not null)
-            {
-                await _reconApi.PopulateRecons(periodFrom, periodTo);
-            }
-
-            return View();
-        }
-
-        [Authorize]
-        public async Task<IActionResult> PopulateOccupancy(DateTime? day)
-        {
-             if (day == null)
+            if (day == null)
             {
                 ViewBag.SelectedDay = null;
                 return View();
@@ -233,28 +215,47 @@ namespace MBTP.Controllers
 
             var selectedDay = day.Value;
             ViewBag.SelectedDay = selectedDay;
+            await _reconApi.PopulateRecons(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+            return View();
+
+
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateOccupancy(DateTime? day)
+        {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
+
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
             await _occupancyApi.PopulateOccupancy(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
             var reportData = await _dailyReport.RetrieveOccupancyReport(selectedDay, selectedDay.AddDays(1));
 
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
-            
+
         }
 
         [Authorize]
         public async Task<IActionResult> PopulateTransactions(DateTime? day)
         {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
+
             var selectedDay = day ?? DateTime.Today;
             ViewBag.SelectedDay = selectedDay;
+            await _transactionFlowApi.PopulateTransactions(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
 
-            // One full day range
-            var periodFrom = selectedDay.Date; // midnight
-            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
-
-            if (day is not null)
-            {
-                await _transactionFlowApi.PopulateTransactions(periodFrom, periodTo);
-            }
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
 
             return View();
         }
@@ -519,6 +520,52 @@ namespace MBTP.Controllers
 
         }
 
+        public IActionResult ExportTransactionFlowToExcel(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            DataSet ds = new DataSet();
+    
+            try
+            {
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand(@"dbo.RetrieveTransactionFlowReport", sqlConn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@StartDate", selectedDay);
+                    cmd.Parameters.AddWithValue("@EndDate", selectedDay.AddDays(1).AddTicks(-1));
 
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    sqlConn.Open();
+                    da.Fill(ds);
+                    sqlConn.Close();
+
+                    DataTable dt = ds.Tables[0];
+
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Transaction Flow");
+                        worksheet.Cell(1, 1).InsertTable(dt);
+                        worksheet.Columns().AdjustToContents();
+
+                        worksheet.Protect("readonly");
+
+                        using (var stream = new MemoryStream())
+                        {
+                            workbook.SaveAs(stream);
+                            var content = stream.ToArray();
+
+                            string fileName = $"Transaction_Flow_{selectedDay:MMMdd}.xlsx";
+                            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving recon report: " + ex.Message);
+                throw;
+            }
+        }
     }
 }
