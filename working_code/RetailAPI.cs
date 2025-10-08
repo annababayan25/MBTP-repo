@@ -262,7 +262,15 @@ namespace MBTP.Services
                         case "Guest Services":
                             Guest += salesEntry.net_sales; break;
                         default:
-                            Events += salesEntry.net_sales; break;
+                            Events += salesEntry.net_sales * preparedFoodTax;
+                            if (transDate >= DateTime.Parse("2025-09-23") && transDate <= DateTime.Parse("2025-10-10")) // spaghetti dinner
+                            {
+                                if (transDate <= DateTime.Parse("2025-10-07"))
+                                {
+                                    Events += (salesEntry.net_sales * (salesTax - 1.0m)); // Early tickets double charged tax
+                                }
+                            }
+                            break;
                     }
                 }
             }
