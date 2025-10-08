@@ -524,7 +524,7 @@ namespace MBTP.Controllers
         {
             var selectedDay = day ?? DateTime.Today;
             DataSet ds = new DataSet();
-    
+
             try
             {
                 using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
@@ -555,6 +555,54 @@ namespace MBTP.Controllers
                             var content = stream.ToArray();
 
                             string fileName = $"Transaction_Flow_{selectedDay:MMMdd}.xlsx";
+                            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving recon report: " + ex.Message);
+                throw;
+            }
+        }
+        
+        public IActionResult ExportReconsToExcel(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            DataSet ds = new DataSet();
+    
+            try
+            {
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand(@"dbo.RetrieveReconReport", sqlConn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@StartDate", selectedDay);
+                    cmd.Parameters.AddWithValue("@EndDate", selectedDay.AddDays(1).AddTicks(-1));
+
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    sqlConn.Open();
+                    da.Fill(ds);
+                    sqlConn.Close();
+
+                    DataTable dt = ds.Tables[0];
+
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Reconciliation");
+                        worksheet.Cell(1, 1).InsertTable(dt);
+                        worksheet.Columns().AdjustToContents();
+
+                        worksheet.Protect("readonly");
+
+                        using (var stream = new MemoryStream())
+                        {
+                            workbook.SaveAs(stream);
+                            var content = stream.ToArray();
+
+                            string fileName = $"Reconciliation_Report_{selectedDay:MMMdd}.xlsx";
                             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
                         }
                     }
