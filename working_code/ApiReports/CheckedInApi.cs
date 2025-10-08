@@ -269,6 +269,12 @@ namespace MBTP.Services
 
             foreach (var checkedIn in checkedInList)
             {
+                var bookingArrivaldateValue = Convert.ToDateTime(checkedIn.BookingArrival);
+                var bookingArrivalStringValue = bookingArrivaldateValue.ToString("MMM dd yyyy hh:mm tt");
+
+                var checkedInDateValue = Convert.ToDateTime(checkedIn.BookingCheckedIn);
+                var checkedInStringValue = checkedInDateValue.ToString("MMM dd yyyy hh:mm tt");
+
                 using (SqlCommand command = new SqlCommand("dbo.UpdateCheckedInTable", sqlConn))
                 {
                     command.CommandType = CommandType.StoredProcedure;
@@ -285,8 +291,8 @@ namespace MBTP.Services
                     command.Parameters.AddWithValue("@Refunds", checkedIn.RefundedAmount);
                     command.Parameters.AddWithValue("@CancellationFee", checkedIn.CancellationFee);
                     command.Parameters.AddWithValue("@AccountBalance", checkedIn.AccountBalance == null ? (object)DBNull.Value : checkedIn.AccountBalance);
-                    command.Parameters.AddWithValue("@BookingArrival", checkedIn.BookingArrival ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@BookingCheckedIn", (object?)checkedIn.BookingCheckedIn ?? DBNull.Value);
+                    command.Parameters.AddWithValue("@BookingArrival", bookingArrivalStringValue);
+                    command.Parameters.AddWithValue("@BookingCheckedIn", checkedInStringValue);
                     command.Parameters.AddWithValue("@BookingDeparture", checkedIn.BookingDeparture ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@CarLicensePlate", checkedIn.CarLicensePlate ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@CarLicensePlateExtra", checkedIn.CarLicensePlateExtra ?? (object)DBNull.Value);

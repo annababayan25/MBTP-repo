@@ -85,9 +85,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                @foreach (DataRow row in Model.Tables[0].AsEnumerable()
-                .OrderByDescending(r => r.Field<DateTime?>("BookingCheckedIn")))
-                {
+                @{
+                    var orderedRows = Model.Tables[0].AsEnumerable()
+                        .OrderByDescending(r =>
+                        {
+                            DateTime parsed;
+                            return DateTime.TryParse(r["BookingCheckedIn"]?.ToString(), out parsed)
+                                ? parsed
+                                : DateTime.MinValue;
+                        });
+                }
+                    @foreach (DataRow row in orderedRows)
+                    {
                     <tr>
                         <td>@row["BookingId"]</td>
                         <td>@row["BookingName"]</td>
@@ -154,7 +163,7 @@
                             @(row["BookingCheckedIn"] != DBNull.Value
                                 ? String.Format("{0:MM/dd/yyyy hh:mm tt}", row["BookingCheckedIn"])
                                 : "-")
-                        </td>
+                        </td>     
                 </tr>
 
                 }

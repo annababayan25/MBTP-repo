@@ -19,8 +19,7 @@ namespace MBTP.Services
 
     public class ReconApi : NewbookBaseApi
     {
-        private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
-        private readonly string region = "us";
+
         private readonly IDatabaseConnectionService _dbConnectionService;
 
         public ReconApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
@@ -131,14 +130,17 @@ namespace MBTP.Services
             
             foreach (var recon in reconReport)
             {
+                var dateValue = Convert.ToDateTime(recon.ItemDate);
+                var stringValue = dateValue.ToString("MMM dd yyyy hh:mm tt");
+
                 using (SqlCommand command = new SqlCommand("dbo.UpdateReconReportTable", sqlConn))
-                    {
+                {
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("@GLAccount", recon.GLAccountCode);
                     command.Parameters.AddWithValue("@ClientAccount", $"(Booking #{recon.BookingId}) {recon.AccountForName}");
                     command.Parameters.AddWithValue("@Item", recon.ItemDescription ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Description", recon.GLAccountDescr ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@Date", recon.ItemDate);
+                    command.Parameters.AddWithValue("@Date", stringValue);
                     command.Parameters.AddWithValue("@Total_TaxInc", recon.Total_TaxInc ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Total_TaxEx", recon.Total_TaxEx ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Total_Tax", recon.Total_Tax ?? (object)DBNull.Value);

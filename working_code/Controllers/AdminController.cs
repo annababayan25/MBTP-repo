@@ -469,10 +469,6 @@ namespace MBTP.Controllers
             using (var workbook = new XLWorkbook())
             {
                 var worksheet = workbook.Worksheets.Add("Checked In");
-                if (dt.Columns.Count > 0)
-                {
-                    dt.Columns.RemoveAt(dt.Columns.Count - 1);
-                }
                 worksheet.Cell(1, 1).InsertTable(dt);
                 worksheet.Columns().AdjustToContents();
 

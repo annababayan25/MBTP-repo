@@ -15,7 +15,7 @@ namespace MBTP.Services
     {
         private readonly string apiUrl = "https://api.newbook.cloud/rest/inventory_item_list";
         private readonly string apiKey = "instances_1b18c45bae491e9564647b2cb2ef376a";
-        private readonly string region = "us";
+        private readonly string regionString = "us";
         private readonly string username = "myrtle_beach";
         private readonly string password = "Gemb$np(QqEnB9V3";
         private readonly IDatabaseConnectionService _dbConnectionService;
@@ -42,7 +42,7 @@ namespace MBTP.Services
 
             var requestBody = new
             {
-                region = region,
+                region = regionString,
                 api_key = apiKey,
                 data_limit = 500,
             };

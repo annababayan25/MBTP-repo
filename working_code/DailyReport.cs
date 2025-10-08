@@ -198,7 +198,5 @@ namespace MBTP.Retrieval
         });
     }
 
-
-
     }
 }
