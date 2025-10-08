@@ -139,3 +139,33 @@ tbody tr:nth-child(even) td {
         padding: 6px 3px;
     }
 }
+
+.btn-success {
+    background-color: #217346; 
+    border-color: #217346;
+  }
+
+.btn-success:hover {
+    background-color: #1a5c38;
+    border-color: #1a5c38;
+  }
+
+  .navigation-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 32px; 
+}
+
+#dayPicker {
+    width: 180px;
+    height: 32px;
+}
+
+.small-btn {
+    padding: 2px 8px; 
+    font-size: 14px;
+    line-height: 1.2;
+    height: 32px; 
+}

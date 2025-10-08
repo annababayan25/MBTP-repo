@@ -27,6 +27,8 @@ using MBTP.Logins;
 using FinancialC_;
 using GenericSupport;
 using System.Runtime.CompilerServices;
+using ClosedXML.Excel;
+using System.IO;
 
 
 
@@ -39,7 +41,6 @@ namespace MBTP.Controllers
         private readonly IConfiguration _configuration;
         private readonly IDatabaseConnectionService _dbConnectionService;
         private readonly AccessLevelsActions _accessLevelsActions;
-        
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AdministrationService _adminActions;
         private readonly RetailService _retailService;
@@ -187,83 +188,74 @@ namespace MBTP.Controllers
         [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
-            var selectedDay = day ?? DateTime.Today;
-            await _checkedInApi.PopulateCheckIns(selectedDay, selectedDay.AddDays(1));
-            var reportData = await _dailyReport.RetrieveCheckedInReport(selectedDay, selectedDay.AddDays(1));
-
-            if (reportData == null || reportData.Tables.Count == 0 || reportData.Tables[0].Rows.Count == 0)
+            if (day == null)
             {
-                var yesterday = DateTime.Today.AddDays(-1);
-                await _checkedInApi.PopulateCheckIns(yesterday, yesterday.AddDays(1));
-                reportData = await _dailyReport.RetrieveCheckedInReport(yesterday, yesterday.AddDays(1));
-                ViewBag.SelectedDay = yesterday;
-            }
-            else
-            {
-                ViewBag.SelectedDay = selectedDay;
+                ViewBag.SelectedDay = null;
+                return View();
             }
 
-            ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
+            var selectedDay = day.Value;
+            ViewBag.SelectedDay = selectedDay;
+            await _checkedInApi.PopulateCheckIns(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            var reportData = await _dailyReport.RetrieveCheckInsReport(selectedDay, selectedDay.AddDays(1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
+
         }
 
         [Authorize]
         public async Task<IActionResult> PopulateRecons(DateTime? day)
         {
-            var selectedDay = day ?? DateTime.Today;
-            ViewBag.SelectedDay = selectedDay;
-
-            // One full day range
-            var periodFrom = selectedDay.Date; // midnight
-            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
-
-            if (day is not null)
+            if (day == null)
             {
-                await _reconApi.PopulateRecons(periodFrom, periodTo);
+                ViewBag.SelectedDay = null;
+                return View();
             }
 
+            var selectedDay = day.Value;
+            ViewBag.SelectedDay = selectedDay;
+            await _reconApi.PopulateRecons(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View();
+
+
         }
 
         [Authorize]
         public async Task<IActionResult> PopulateOccupancy(DateTime? day)
         {
+            if (day == null)
             {
-                var selectedDay = day ?? DateTime.Today;
-                await _occupancyApi.PopulateOccupancy(selectedDay, selectedDay.AddDays(1));
-                var reportData = await _dailyReport.RetrieveOccupancyReport(selectedDay, selectedDay.AddDays(1));
-
-                if (reportData == null || reportData.Tables.Count == 0 || reportData.Tables[0].Rows.Count == 0)
-                {
-                    var yesterday = DateTime.Today.AddDays(-1);
-                    await _occupancyApi.PopulateOccupancy(yesterday, yesterday.AddDays(1));
-                    reportData = await _dailyReport.RetrieveOccupancyReport(yesterday, yesterday.AddDays(1));
-                    ViewBag.SelectedDay = yesterday;
-                }
-                else
-                {
-                    ViewBag.SelectedDay = selectedDay;
-                }
-
-                ViewBag.TitleDate = ViewBag.SelectedDay.ToString("MMMM dd, yyyy");
-                return View(reportData);
+                ViewBag.SelectedDay = null;
+                return View();
             }
+
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+            await _occupancyApi.PopulateOccupancy(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            var reportData = await _dailyReport.RetrieveOccupancyReport(selectedDay, selectedDay.AddDays(1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+            return View(reportData);
+
         }
 
         [Authorize]
         public async Task<IActionResult> PopulateTransactions(DateTime? day)
         {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
+
             var selectedDay = day ?? DateTime.Today;
             ViewBag.SelectedDay = selectedDay;
+            await _transactionFlowApi.PopulateTransactions(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
 
-            // One full day range
-            var periodFrom = selectedDay.Date; // midnight
-            var periodTo = selectedDay.Date.AddDays(1).AddTicks(-1); // 23:59:59.9999999
-
-            if (day is not null)
-            {
-                await _transactionFlowApi.PopulateTransactions(periodFrom, periodTo);
-            }
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
 
             return View();
         }
@@ -462,8 +454,118 @@ namespace MBTP.Controllers
             return Ok(new { sucess = true, message = "Blackout added." });
         }
 
+        public async Task<IActionResult> ExportCheckInsToExcel(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            DataSet ds = await _dailyReport.RetrieveCheckInsReport(selectedDay, selectedDay.AddDays(1));
 
+            if (ds == null || ds.Tables.Count == 0)
+            {
+                return Content("No data available");
+            }
 
+            DataTable dt = ds.Tables[0];
 
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Checked In");
+                if (dt.Columns.Count > 0)
+                {
+                    dt.Columns.RemoveAt(dt.Columns.Count - 1);
+                }
+                worksheet.Cell(1, 1).InsertTable(dt);
+                worksheet.Columns().AdjustToContents();
+
+                worksheet.Protect("readonly");
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+
+                    string fileName = $"Checked_In_List_{selectedDay:MMMdd}.xlsx";
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+        }
+        public async Task<IActionResult> ExportOccupancyToExcel(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            DataSet ds = await _dailyReport.RetrieveOccupancyReport(selectedDay, selectedDay.AddDays(1));
+
+            if (ds == null || ds.Tables.Count == 0)
+            {
+                return Content("No data available");
+            }
+
+            DataTable dt = ds.Tables[0];
+
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Occupancy");
+                worksheet.Cell(1, 1).InsertTable(dt);
+                worksheet.Columns().AdjustToContents();
+
+                worksheet.Protect("readonly");
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var content = stream.ToArray();
+
+                    string fileName = $"Occupancy_Report_{selectedDay:MMMdd}.xlsx";
+                    return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                }
+            }
+
+        }
+
+        public IActionResult ExportTransactionFlowToExcel(DateTime? day)
+        {
+            var selectedDay = day ?? DateTime.Today;
+            DataSet ds = new DataSet();
+    
+            try
+            {
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                using (SqlCommand cmd = new SqlCommand(@"dbo.RetrieveTransactionFlowReport", sqlConn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@StartDate", selectedDay);
+                    cmd.Parameters.AddWithValue("@EndDate", selectedDay.AddDays(1).AddTicks(-1));
+
+                    SqlDataAdapter da = new SqlDataAdapter(cmd);
+                    sqlConn.Open();
+                    da.Fill(ds);
+                    sqlConn.Close();
+
+                    DataTable dt = ds.Tables[0];
+
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Transaction Flow");
+                        worksheet.Cell(1, 1).InsertTable(dt);
+                        worksheet.Columns().AdjustToContents();
+
+                        worksheet.Protect("readonly");
+
+                        using (var stream = new MemoryStream())
+                        {
+                            workbook.SaveAs(stream);
+                            var content = stream.ToArray();
+
+                            string fileName = $"Transaction_Flow_{selectedDay:MMMdd}.xlsx";
+                            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error retrieving recon report: " + ex.Message);
+                throw;
+            }
+        }
     }
 }

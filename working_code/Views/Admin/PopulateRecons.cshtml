@@ -3,40 +3,26 @@
 @{
     ViewData["Title"] = "Populate Reconciliations";
     var SelectedDay = ViewBag.SelectedDay as DateTime?;
+    var titleDate = SelectedDay.HasValue
+        ? $"for {SelectedDay.Value.ToString("dddd, MMMM dd, yyyy")}"
+        : "";
 }
+
+<link rel="stylesheet" href="~/css/reports.css"/>
 
 <!DOCTYPE html>
 <html lang="en">
+
+<h2 style="text-align: center;">
+    Daily Reconciliations Report @titleDate
+</h2>
+
+
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Reconciliations Report</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        .spinner {
-            font-size: 3rem;
-        }
-        .label-input-container {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-    </style>
 </head>
 <body>
 
@@ -44,18 +30,15 @@
     <i class="fas fa-spinner fa-spin spinner"></i>
 </div>
 
-<h1>Populate Reconciliations</h1>
 
-<form method="get" asp-action="PopulateRecons">
-    <div class="navigation-container">
-        <div class="label-input-container">
-            <label for="dayPicker">Select Day:</label>
-            <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
-        </div>
-        <button type="submit" style="display: none;"></button>
-    </div>
+<form method="get" asp-action="PopulateRecons" class="navigation-container">
+    <label for="dayPicker">Select Day:</label>
+    <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
+
+    <button type="submit" class="btn btn-success small-btn" formaction="@Url.Action("ExportReconsToExcel")" formtarget="_blank">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
 </form>
-
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
 {
     <div class="alert alert-danger">@ViewBag.ErrorMessage</div>
@@ -66,21 +49,25 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const loadingOverlay = document.getElementById('loadingOverlay');
+    const form = document.querySelector('form');
 
-    // Show loading overlay when form is submitted
-    document.querySelector('form').addEventListener('submit', function() {
+    form.addEventListener('submit', function (e) {
+        const submitter = e.submitter;
+
+        if (submitter && submitter.formTarget === '_blank') {
+            return
+        }
         sessionStorage.setItem('loading', 'true');
         loadingOverlay.style.display = 'flex';
     });
 
-    // Set up the date picker with Flatpickr (day picker)
     flatpickr("#dayPicker", {
         dateFormat: "Y-m-d",
         maxDate: "today",
-        defaultDate: "@SelectedDay?.ToString("yyyy-MM-dd")",
+        defaultDate: "@(SelectedDay.HasValue ? SelectedDay.Value.ToString("yyyy-MM-dd") : DateTime.Now.ToString("yyyy-MM-dd"))",
         onChange: function(selectedDates, dateStr, instance) {
             var newUrl = new URL(window.location.href);
-            newUrl.searchParams.set("day", dateStr); // 👈 Use day instead of month
+            newUrl.searchParams.set("day", dateStr); 
             sessionStorage.setItem('loading', 'true');
             loadingOverlay.style.display = 'flex';
             window.location.href = newUrl.toString();
@@ -92,10 +79,18 @@ document.addEventListener("DOMContentLoaded", function() {
         sessionStorage.removeItem('loading');
     });
 
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    });
+
     if (sessionStorage.getItem('loading') === 'true') {
         loadingOverlay.style.display = 'flex';
     }
-});
+    });
+
+
 </script>
 
 </body>

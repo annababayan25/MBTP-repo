@@ -5,8 +5,8 @@
     ViewData["Title"] = "Populate Check Ins";
     var SelectedDay = ViewBag.SelectedDay as DateTime?;
     var titleDate = SelectedDay.HasValue
-        ? SelectedDay.Value.ToString("dddd, MMMM dd, yyyy")
-        : "No Data Selected";
+        ? $"for {SelectedDay.Value.ToString("dddd, MMMM dd, yyyy")}"
+        : "";
 
     int checkInCount = 0;
     if (Model != null && Model.Tables.Count > 0)
@@ -22,7 +22,7 @@
 <html lang="en">
 
 <h2 style="text-align: center;">
-    Daily Checked In Report for @titleDate
+    Daily Checked-In Report @titleDate
     @if (checkInCount > 0)
     {
         <p style="text-align: centered;">(Total Checked In: @checkInCount)</p>
@@ -30,7 +30,7 @@
 </h2>
 
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daily Checked In Report</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -42,14 +42,15 @@
 </div>
 
 
-<form method="get" asp-action="PopulateCheckedIn">
-    <div class="navigation-container">
-        <div class="label-input-container">
-            <label style="padding-left: 22px; font-weight: 500" for="dayPicker">Select Day:</label>
-            <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
-        </div>
-    </div>
+<form method="get" asp-action="PopulateCheckIns" class="navigation-container">
+    <label for="dayPicker">Select Day:</label>
+    <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
+
+    <button type="submit" class="btn btn-success small-btn" formaction="@Url.Action("ExportCheckInsToExcel")" formtarget="_blank">
+        <i class="fas fa-file-excel"></i> Export
+    </button>
 </form>
+
 
 
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
@@ -167,8 +168,14 @@
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const loadingOverlay = document.getElementById('loadingOverlay');
+    const form = document.querySelector('form');
 
-    document.querySelector('form').addEventListener('submit', function() {
+    form.addEventListener('submit', function (e) {
+        const submitter = e.submitter;
+
+        if (submitter && submitter.formTarget === '_blank') {
+            return
+        }
         sessionStorage.setItem('loading', 'true');
         loadingOverlay.style.display = 'flex';
     });
@@ -176,27 +183,30 @@ document.addEventListener("DOMContentLoaded", function() {
     flatpickr("#dayPicker", {
         dateFormat: "Y-m-d",
         maxDate: "today",
-        defaultDate: "@SelectedDay?.ToString("yyyy-MM-dd")",
+        defaultDate: "@(SelectedDay.HasValue ? SelectedDay.Value.ToString("yyyy-MM-dd") : DateTime.Now.ToString("yyyy-MM-dd"))",
         onChange: function(selectedDates, dateStr, instance) {
             var newUrl = new URL(window.location.href);
-          +
-            newUrl.searchParams.set("day", dateStr);
+            newUrl.searchParams.set("day", dateStr); 
             sessionStorage.setItem('loading', 'true');
             loadingOverlay.style.display = 'flex';
             window.location.href = newUrl.toString();
         }
     });
-    
 
     window.addEventListener('load', function() {
         loadingOverlay.style.display = 'none';
         sessionStorage.removeItem('loading');
     });
 
+    window.addEventListener('pageshow', function (event) {
+        if (event.persisted) {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    });
+
     if (sessionStorage.getItem('loading') === 'true') {
         loadingOverlay.style.display = 'flex';
     }
-    
     });
 
 

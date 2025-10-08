@@ -5,6 +5,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using MBTP.Interfaces;
+using MBTP.Services;
 
 namespace MBTP.Retrieval
 {
@@ -131,7 +132,7 @@ namespace MBTP.Retrieval
             }
         }
 
-        public async Task<DataSet> RetrieveCheckedInReport(DateTime startDate, DateTime endDate)
+        public async Task<DataSet> RetrieveCheckInsReport(DateTime startDate, DateTime endDate)
         {
             return await Task.Run(() =>
             {
@@ -139,7 +140,7 @@ namespace MBTP.Retrieval
 
                 try
                 {
-                    using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                    using (SqlConnection sqlConn = _dbConnectionService.CreateConnection()) 
                     using (SqlCommand cmd = new SqlCommand("dbo.RetrieveCheckedInReport", sqlConn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
@@ -158,7 +159,9 @@ namespace MBTP.Retrieval
                     throw;
                 }
 
-                return ds;
+                DataSet snapshotDs = ds.Copy();
+
+                return snapshotDs;
             });
         }
 
