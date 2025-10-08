@@ -61,7 +61,7 @@
         @if(accIDInt != 0)
         {
         <div class="centered-buttons my-4">
-            @if (accIDInt < 8)
+            @if (accIDInt < 8 || accIDInt == 11)
             {
                 <a class="pdfButton" asp-area="" asp-controller="Home" asp-action="FDB">Financial <br> Database</a>
             }

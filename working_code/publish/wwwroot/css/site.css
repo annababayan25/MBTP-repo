@@ -300,6 +300,15 @@ a{
   padding-right: 25px;
   color:blue;
 }
+.breakdownSubtotalTitle{
+  text-align: center;
+  font-weight: bold;
+  border: 1px black solid;
+  padding-left: 25px;
+  padding-right: 25px;
+  color:blue;
+  background-color:rgb(255, 192, 129);
+}
 .breakdownMonth{
   text-align: center;
   font-weight: bold;

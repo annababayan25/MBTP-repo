@@ -389,6 +389,22 @@ a{
 .colorAlt:nth-child(even){
   background-color:rgb(229, 229, 229);
 }
+.breakdownSubtotalTitle{
+  text-align: center;
+  font-weight: bold;
+  border: 1px black solid;
+  padding-left: 25px;
+  padding-right: 25px;
+  color: black;
+  background-color: rgb(180, 213, 255);
+}
+.breakdownSubTotals{
+  background-color:rgb(180, 213, 255);
+  text-align: right;
+  border: 1px black solid;
+  padding-left: 60px;
+  padding-right: 7px;
+}
 .breakdownTotals{
   background-color:rgb(207, 252, 201);
   text-align: right;
