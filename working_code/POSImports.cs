@@ -461,9 +461,11 @@ namespace FinancialC_
                     {
                         if (columns[0].Value == null) { break; }
                         str = columns[0].Value;
-                        if (str == "Net Sales" || str == "Cash" || str == "Visa" || str == "MasterCard" || str == "Discover" || str == "American Express") // this is an item row to be processed
+// changed 10/06/25 from Net Sales to Amount Collected so that tax is included for those tickets where tax is charged
+                        //                      if (str == "Net Sales" || str == "Cash" || str == "Visa" || str == "MasterCard" || str == "Discover" || str == "American Express") // this is an item row to be processed
+                        if (str == "Amount Collected" || str == "Cash" || str == "Visa" || str == "MasterCard" || str == "Discover" || str == "American Express") // this is an item row to be processed
                         {
-                            if (str == "Net Sales")
+                            if (str == "Amount Collected")
                             {
                                 numStr = columns[1].Value.Replace("$", ""); // remove $ sign or TryParse will fail
                             }
@@ -473,7 +475,7 @@ namespace FinancialC_
                             }
                             if (double.TryParse(numStr, out double cellVal)) // attempt conversion to double, ignore if false (cellVal will = 0)
                             {
-                                if (str == "Net Sales") { netSum = cellVal; break; }
+                                if (str == "Amount Collected") { netSum = cellVal; break; }
                                 else if (str == "Cash") { cashSum = cellVal; break; }
                                 else if (str == "Visa") { ccSum += cellVal; break; }
                                 else if (str == "MasterCard") { ccSum += cellVal; break; }

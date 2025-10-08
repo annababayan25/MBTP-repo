@@ -147,7 +147,7 @@
     <div class="grid-container">
         @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Front Office Transactions
         {
-            @if(accIDInt < 4 || accIDInt == 6 || accIDInt == 7)
+            @if(accIDInt < 4 || accIDInt == 6 || accIDInt == 7 || accIDInt == 11)
             {
                 <div class="table-wrapper">
                     <table id="table1" class="column-side clickable-table" data-MonthlyBreakdown="/FDB/MonthlyBreakdownF">
@@ -329,7 +329,7 @@
         <div class="table-wrapper">
             @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Reservations Deposits
             {
-                @if(accIDInt < 4 || accIDInt == 6 || accIDInt == 7)
+                @if(accIDInt < 4 || accIDInt == 6 || accIDInt == 7 || accIDInt == 11)
                 {
                     <table id="table2" class="column-side clickable-table" data-MonthlyBreakdown="/FDB/MonthlyBreakdownR">
                         <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
@@ -402,7 +402,7 @@
         <div class="grid-container">
             @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Snack Bar
             {
-                @if(accIDInt < 3 || (accIDInt >= 5 && accIDInt < 8))
+                @if(accIDInt < 3 || (accIDInt >= 5 && accIDInt < 8) || accIDInt == 11)
                 {
                     <table id="table3" class="column-middle clickable-table" data-MonthlyBreakdown="/FDB/MonthlyBreakdownA" style="width:240px">
                         <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
@@ -429,7 +429,7 @@
             <p></p>
             @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Coffee
             {
-                @if(accIDInt < 3 || (accIDInt >= 5 && accIDInt < 8))
+                @if(accIDInt < 3 || (accIDInt >= 5 && accIDInt < 8) || accIDInt == 11)
                 {
                     <table id="table4" class="column-side clickable-table" data-MonthlyBreakdown="/FDB/MonthlyBreakdownC" style="width:240px">
                         <thead>
@@ -459,7 +459,7 @@
             }
             @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Kayak
             {
-                @if(accIDInt < 3 || accID == "6"|| accID == "7")
+                @if(accIDInt < 3 || accIDInt == 6 || accIDInt == 7 || accIDInt == 11)
                 {
                     <table id="table5" class="column-middle clickable-table" data-MonthlyBreakdown="/FDB/MonthlyBreakdownK" style="width:240px">
                         <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
@@ -502,7 +502,7 @@
         <div class="grid-container">
             @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Miscellaneous Income
             {
-                @if(accIDInt < 3 || (accIDInt >= 4 && accIDInt < 8))
+                @if(accIDInt < 3 || (accIDInt >= 4 && accIDInt < 8) || accIDInt == 11)
                 {
                     <table id="table6" class="column-middle clickable-table" data-MonthlyBreakdown="/FDB/MonthlyBreakdownM" style="width:240px">
                         <tbody> @foreach (DataRow row in Model!.Tables[0].Rows)
@@ -607,7 +607,7 @@
         <div class="table-wrapper">
             @if (Model is not null && Model.Tables[0].Rows.Count > 0) // Store
             {
-                @if(accIDInt < 3 || accID == "6" || accID == "7")
+                @if(accIDInt < 3 || accIDInt == 6 || accIDInt == 7 || accIDInt == 11)
                 {
                     <table id="table7" class="column-side clickable-table" data-MonthlyBreakdown="/FDB/MonthlyBreakdownG" >
                         <thead>

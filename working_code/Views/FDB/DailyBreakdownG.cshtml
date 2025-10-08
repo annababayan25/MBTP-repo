@@ -26,13 +26,16 @@
     decimal totalApparel = 0;
     decimal totalSeasonalNov = 0;
     decimal totalOtherNovelty = 0;
+    decimal totalTotalNovelty = 0;
     decimal totalAlc = 0;
     decimal totalHardGoods = 0;
     decimal totalRvParts = 0;
     decimal totalSeasonalMerch = 0;
+    decimal totalTotalMerch = 0;
     decimal totalFoodCounter = 0;
     decimal totalFood = 0;
     decimal totalIce = 0;
+    decimal totalTotalFoodAndIce = 0;
     decimal totalVending = 0;
     decimal totalStamps = 0;
     decimal tTotal = 0;
@@ -44,13 +47,16 @@
     decimal ptotalApparel = 0;
     decimal ptotalSeasonalNov = 0;
     decimal ptotalOtherNovelty = 0;
+    decimal ptotalTotalNovelty = 0;
     decimal ptotalAlc = 0;
     decimal ptotalHardGoods = 0;
     decimal ptotalRvParts = 0;
     decimal ptotalSeasonalMerch = 0;
+    decimal ptotalTotalMerch = 0;
     decimal ptotalFoodCounter = 0;
     decimal ptotalFood = 0;
     decimal ptotalIce = 0;
+    decimal ptotalTotalFoodAndIce = 0;
     decimal ptotalVending = 0;
     decimal ptotalStamps = 0;
     decimal ptTotal = 0;
@@ -62,13 +68,16 @@
     decimal p2totalApparel = 0;
     decimal p2totalSeasonalNov = 0;
     decimal p2totalOtherNovelty = 0;
+    decimal p2totalTotalNovelty = 0;
     decimal p2totalAlc = 0;
     decimal p2totalHardGoods = 0;
     decimal p2totalRvParts = 0;
     decimal p2totalSeasonalMerch = 0;
+    decimal p2totalTotalMerch = 0;
     decimal p2totalFoodCounter = 0;
     decimal p2totalFood = 0;
     decimal p2totalIce = 0;
+    decimal p2totalTotalFoodAndIce = 0;
     decimal p2totalVending = 0;
     decimal p2totalStamps = 0;
     decimal p2tTotal = 0;
@@ -80,13 +89,16 @@
     decimal projApparel = 0;
     decimal projSeasonalNov = 0;
     decimal projOtherNovelty = 0;
+    decimal projTotalNovelty = 0;
     decimal projAlc = 0;
     decimal projHardGoods = 0;
     decimal projRvParts = 0;
     decimal projSeasonalMerch = 0;
+    decimal projTotalMerch = 0;
     decimal projFoodCounter = 0;
     decimal projFood = 0;
     decimal projIce = 0;
+    decimal projTotalFoodAndIce = 0;
     decimal projVending = 0;
     decimal projStamps = 0;
     decimal projtTotal = 0;
@@ -113,13 +125,13 @@
 <div class="table-responsive">
 <table id="daily-table" class="breakdown clickable-tableG" data-MonthlyBreakdown="/FDB/MonthlyBreakdownG" style="width:240px">
     <tr>
-        <th class="breakdownBigTitle" colspan="19">General Store</th>
+        <th class="breakdownBigTitle" colspan="22">General Store</th>
     </tr>
     <tr>
         <th class="breakdownDayScrolling"></th>
-        <th class="breakdownTaxBig" colspan="8">Sales Tax: 8% (Tax Inclusive)</th>
+        <th class="breakdownTaxBig" colspan="10">Sales Tax: 8% (Tax Inclusive)</th>
         <th class="breakdownTaxBig" colspan="1">Tax: 10.5% (Tax Inclusive)</th>
-        <th class="breakdownTaxBig" colspan="5">Non-Taxable</th>
+        <th class="breakdownTaxBig" colspan="6">Non-Taxable</th>
         <th class="breakdownTotalsHead" rowspan="3">Total Gross Revenue</th>
         <th class="breakdownTotalsHead" rowspan="3">Total Tax Collected</th>
         <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
@@ -127,11 +139,11 @@
     </tr>
     <tr>
         <th class="breakdownDayScrolling"></th>
-        <th class="breakdownTitle" colspan="3">322</th>
-        <th class="breakdownTitle" colspan="4">324</th>
+        <th class="breakdownTitle" colspan="4">322</th>
+        <th class="breakdownTitle" colspan="5">324</th>
         <th class="breakdownTotalsHead" rowspan="2">Total</th>
         <th class="breakdownTitle">323</th>
-        <th class="breakdownTitle" colspan="2">325</th>
+        <th class="breakdownTitle" colspan="3">325</th>
         <th class="breakdownTitle">326</th>
         <th class="breakdownTitle">327</th>
         <th class="breakdownTotalsHead" rowspan="2">Non-Taxable Total</th>
@@ -141,13 +153,16 @@
         <th class="breakdownTitle">Apparel</th>
         <th class="breakdownTitle">Seasonal Novelty</th>
         <th class="breakdownTitle">Other Novelty</th>
+        <th class="breakdownSubtotalTitle">Total Novelty</th>
         <th class="breakdownTitle">Alcohol</th>
         <th class="breakdownTitle">Hard Goods</th>
         <th class="breakdownTitle">RV Parts</th>
         <th class="breakdownTitle">Seasonal Merch</th>
+        <th class="breakdownSubtotalTitle">Total Merch</th>        
         <th class="breakdownTitle">Food Counter</th>
         <th class="breakdownTitle">Food</th>
         <th class="breakdownTitle">Ice</th>
+        <th class="breakdownSubtotalTitle">Total Food & Ice</th>
         <th class="breakdownTitle">Vending</th>
         <th class="breakdownTitle">Stamps</th>
     </tr>
@@ -171,13 +186,16 @@
         var apparel = (decimal)row["Apparel"];
         var seasonalNov = (decimal)row["SeasonalNovelty"];
         var otherNovelty = (decimal)row["OtherNovelty"];
+        var totalNovelty = apparel + seasonalNov + otherNovelty;
         var alc = (decimal)row["Alcohol"];
         var hardGoods = (decimal)row["HardGoods"];
         var rvParts = (decimal)row["RVParts"];
         var seasonalMerch = (decimal)row["SeasonalMerch"];
+        var totalMerch = alc + hardGoods + rvParts + seasonalMerch;
         var foodCounter = (decimal)row["FoodCounterS"];
         var food = (decimal)row["Food"];
         var ice = (decimal)row["Ice"];
+        var totalFoodAndIce = food + ice;
         var vending = (decimal)row["Vending"];
         var stamps = (decimal)row["Stamps"];
         var total = apparel + seasonalNov + otherNovelty + alc + hardGoods + rvParts + seasonalMerch;
@@ -190,13 +208,16 @@
         totalApparel += apparel;
         totalSeasonalNov += seasonalNov;
         totalOtherNovelty += otherNovelty;
+        totalTotalNovelty += totalNovelty;
         totalAlc += alc;
         totalHardGoods += hardGoods;
         totalRvParts += rvParts;
         totalSeasonalMerch += seasonalMerch;
+        totalTotalMerch += totalMerch;
         totalFoodCounter += foodCounter;
         totalFood += food;
         totalIce += ice;
+        totalTotalFoodAndIce += totalFoodAndIce;
         totalVending += vending;
         totalStamps += stamps;
         tTotal += total;
@@ -228,15 +249,18 @@
                 <td class="breakdownData">@apparel</td>
                 <td class="breakdownData">@seasonalNov</td>
                 <td class="breakdownData">@otherNovelty</td>
+                <td class="breakdownSubTotals">@totalNovelty</td>
                 <td class="breakdownData">@alc</td>
                 <td class="breakdownData">@hardGoods</td>
                 <td class="breakdownData">@rvParts</td>
                 <td class="breakdownData">@seasonalMerch</td>
+                <td class="breakdownSubTotals">@totalMerch</td>
             }
         <td class="breakdownTotals">@total</td>
         <td class="breakdownData">@foodCounter</td>
         <td class="breakdownData">@food</td>
         <td class="breakdownData">@ice</td>
+        <td class="breakdownSubTotals">@totalFoodAndIce</td>
         <td class="breakdownData">@vending</td>
         <td class="breakdownData">@stamps</td>
         <td class="breakdownTotals">@total2</td>
@@ -251,14 +275,17 @@
         <td class="breakdownTotals2">@totalApparel</td>
         <td class="breakdownTotals2">@totalSeasonalNov</td>
         <td class="breakdownTotals2">@totalOtherNovelty</td>
+        <td class="breakdownTotals2">@totalTotalNovelty</td>
         <td class="breakdownTotals2">@totalAlc</td>
         <td class="breakdownTotals2">@totalHardGoods</td>
         <td class="breakdownTotals2">@totalRvParts</td>
         <td class="breakdownTotals2">@totalSeasonalMerch</td>
+        <td class="breakdownTotals2">@totalTotalMerch</td>
         <td class="breakdownTotals2">@tTotal</td>
         <td class="breakdownTotals2">@totalFoodCounter</td>
         <td class="breakdownTotals2">@totalFood</td>
         <td class="breakdownTotals2">@totalIce</td>
+        <td class="breakdownTotals2">@totalTotalFoodAndIce</td>
         <td class="breakdownTotals2">@totalVending</td>
         <td class="breakdownTotals2">@totalStamps</td>
         <td class="breakdownTotals2">@tTotal2</td>
@@ -274,13 +301,16 @@
         projApparel = totalApparel + (((decimal)Model.Tables["YTD"].Rows[0]["Apparel"] / totalFiscalDays) * monthDaysRemaining);
         projSeasonalNov = totalSeasonalNov + (((decimal)Model.Tables["YTD"].Rows[0]["SeasonalNovelty"] / totalFiscalDays) * monthDaysRemaining);
         projOtherNovelty = totalOtherNovelty + (((decimal)Model.Tables["YTD"].Rows[0]["OtherNovelty"] / totalFiscalDays) * monthDaysRemaining);
+        projTotalNovelty = projApparel + projSeasonalNov + projOtherNovelty;
         projAlc = totalAlc + (((decimal)Model.Tables["YTD"].Rows[0]["Alcohol"] / totalFiscalDays) * monthDaysRemaining);
         projHardGoods = totalHardGoods + (((decimal)Model.Tables["YTD"].Rows[0]["HardGoods"] / totalFiscalDays) * monthDaysRemaining);
         projRvParts = totalRvParts + (((decimal)Model.Tables["YTD"].Rows[0]["RvParts"] / totalFiscalDays) * monthDaysRemaining);
         projSeasonalMerch = totalSeasonalMerch + (((decimal)Model.Tables["YTD"].Rows[0]["SeasonalMerch"] / totalFiscalDays) * monthDaysRemaining);
+        projTotalMerch = projAlc + projHardGoods + projRvParts + projSeasonalMerch;
         projFoodCounter = totalFoodCounter + (((decimal)Model.Tables["YTD"].Rows[0]["FoodCounter"] / totalFiscalDays) * monthDaysRemaining);
         projFood = totalFood + (((decimal)Model.Tables["YTD"].Rows[0]["Food"] / totalFiscalDays) * monthDaysRemaining);
         projIce = totalIce + (((decimal)Model.Tables["YTD"].Rows[0]["Ice"] / totalFiscalDays) * monthDaysRemaining);
+        projTotalFoodAndIce = projFood + projIce;
         projVending = totalVending + (((decimal)Model.Tables["YTD"].Rows[0]["Vending"] / totalFiscalDays) * monthDaysRemaining);
         projStamps = totalStamps + (((decimal)Model.Tables["YTD"].Rows[0]["Stamps"] / totalFiscalDays) * monthDaysRemaining);
         projtTotal = projApparel + projSeasonalNov + projOtherNovelty + projAlc + projHardGoods + projRvParts + projSeasonalMerch;
@@ -294,14 +324,17 @@
             <td class="breakdownTotals2">@String.Format("{0:F2}", projApparel)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projSeasonalNov)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projOtherNovelty)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projTotalNovelty)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projAlc)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projHardGoods)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projRvParts)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projSeasonalMerch)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projTotalMerch)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projtTotal)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projFoodCounter)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projFood)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projIce)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projTotalFoodAndIce)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projVending)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projStamps)</td>
             <td class="breakdownTotals2">@String.Format("{0:F2}", projtTotal2)</td>
@@ -316,13 +349,16 @@
         ptotalApparel += (decimal)row["Apparel"];
         ptotalSeasonalNov += (decimal)row["SeasonalNovelty"];
         ptotalOtherNovelty += (decimal)row["OtherNovelty"];
+        ptotalTotalNovelty += (decimal)row["Apparel"] + (decimal)row["SeasonalNovelty"] + (decimal)row["OtherNovelty"];
         ptotalAlc += (decimal)row["Alcohol"];
         ptotalHardGoods += (decimal)row["HardGoods"];
         ptotalRvParts += (decimal)row["RVParts"];
         ptotalSeasonalMerch += (decimal)row["SeasonalMerch"];
+        ptotalTotalMerch += (decimal)row["Alcohol"] + (decimal)row["HardGoods"] + (decimal)row["RVParts"] + (decimal)row["SeasonalMerch"];
         ptotalFoodCounter += (decimal)row["FoodCounterS"];
         ptotalFood += (decimal)row["Food"];
         ptotalIce += (decimal)row["Ice"];
+        ptotalTotalFoodAndIce += ptotalFood + ptotalIce;
         ptotalVending += (decimal)row["Vending"];
         ptotalStamps += (decimal)row["Stamps"];
         ptTotal = ptotalApparel + ptotalSeasonalNov + ptotalOtherNovelty + ptotalAlc + ptotalHardGoods + ptotalRvParts + ptotalSeasonalMerch;
@@ -337,14 +373,17 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalApparel)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSeasonalNov)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalOtherNovelty)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotalNovelty)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalAlc)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalHardGoods)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRvParts)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSeasonalMerch)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotalMerch)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptTotal)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFoodCounter)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFood)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalIce)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotalFoodAndIce)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalVending)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalStamps)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", ptTotal2)</td>
@@ -358,13 +397,16 @@
         p2totalApparel += (decimal)row["Apparel"];
         p2totalSeasonalNov += (decimal)row["SeasonalNovelty"];
         p2totalOtherNovelty += (decimal)row["OtherNovelty"];
+        p2totalTotalNovelty += (decimal)row["Apparel"] + (decimal)row["SeasonalNovelty"] + (decimal)row["OtherNovelty"];
         p2totalAlc += (decimal)row["Alcohol"];
         p2totalHardGoods += (decimal)row["HardGoods"];
         p2totalRvParts += (decimal)row["RVParts"];
         p2totalSeasonalMerch += (decimal)row["SeasonalMerch"];
+        p2totalTotalMerch += (decimal)row["Alcohol"] + (decimal)row["HardGoods"] + (decimal)row["RVParts"] + (decimal)row["SeasonalMerch"];
         p2totalFoodCounter += (decimal)row["FoodCounterS"];
         p2totalFood += (decimal)row["Food"];
         p2totalIce += (decimal)row["Ice"];
+        p2totalTotalFoodAndIce += p2totalFood + p2totalIce;
         p2totalVending += (decimal)row["Vending"];
         p2totalStamps += (decimal)row["Stamps"];
         p2tTotal = p2totalApparel + p2totalSeasonalNov + p2totalOtherNovelty + p2totalAlc + p2totalHardGoods + p2totalRvParts + p2totalSeasonalMerch;
@@ -379,14 +421,17 @@
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalApparel)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSeasonalNov)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalOtherNovelty)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotalNovelty)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalAlc)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalHardGoods)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRvParts)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSeasonalMerch)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotalMerch)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2tTotal)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFoodCounter)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFood)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalIce)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotalFoodAndIce)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalVending)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalStamps)</td>
         <td class="breakdownTotals2">@String.Format("{0:F2}", p2tTotal2)</td>
@@ -399,13 +444,16 @@
         decimal deltaApparel;
         decimal deltaSeasonalNov;
         decimal deltaOtherNovelty;
+        decimal deltaTotalNovelty;
         decimal deltaAlc;
         decimal deltaHardGoods;
         decimal deltaRvParts;
         decimal deltaSeasonalMerch;
+        decimal deltaTotalMerch;
         decimal deltaFoodCounter;
         decimal deltaFood;
         decimal deltaIce;
+        decimal deltaTotalFoodAndIce;
         decimal deltaVending;
         decimal deltaStamps;
         decimal deltatTotal;
@@ -420,13 +468,16 @@
         deltaApparel = projApparel - ptotalApparel;
         deltaSeasonalNov = projSeasonalNov - ptotalSeasonalNov;
         deltaOtherNovelty = projOtherNovelty - ptotalOtherNovelty;
+        deltaTotalNovelty = projTotalNovelty - ptotalTotalNovelty;
         deltaAlc = projAlc - ptotalAlc;
         deltaHardGoods = projHardGoods - ptotalHardGoods;
         deltaRvParts = projRvParts - ptotalRvParts;
         deltaSeasonalMerch = projSeasonalMerch - ptotalSeasonalMerch;
+        deltaTotalMerch = projTotalMerch - ptotalTotalMerch;
         deltaFoodCounter = projFoodCounter - ptotalFoodCounter;
         deltaFood = projFood - ptotalFood;
         deltaIce = projIce - ptotalIce;
+        deltaTotalFoodAndIce = projTotalFoodAndIce - ptotalTotalFoodAndIce;
         deltaVending = projVending - ptotalVending;
         deltaStamps = projStamps - ptotalStamps;
         deltatTotal = projtTotal - ptTotal;
@@ -441,13 +492,16 @@
         deltaApparel = totalApparel - ptotalApparel;
         deltaSeasonalNov = totalSeasonalNov - ptotalSeasonalNov;
         deltaOtherNovelty = totalOtherNovelty - ptotalOtherNovelty;
+        deltaTotalNovelty = totalTotalNovelty - ptotalTotalNovelty;
         deltaAlc = totalAlc - ptotalAlc;
         deltaHardGoods = totalHardGoods - ptotalHardGoods;
         deltaRvParts = totalRvParts - ptotalRvParts;
         deltaSeasonalMerch = totalSeasonalMerch - ptotalSeasonalMerch;
+        deltaTotalMerch = totalTotalMerch - ptotalTotalMerch;
         deltaFoodCounter = totalFoodCounter - ptotalFoodCounter;
         deltaFood = totalFood - ptotalFood;
         deltaIce = totalIce - ptotalIce;
+        deltaTotalFoodAndIce = totalTotalFoodAndIce - ptotalTotalFoodAndIce;
         deltaVending = totalVending - ptotalVending;
         deltaStamps = totalStamps - ptotalStamps;
         deltatTotal = tTotal - ptTotal;
@@ -473,14 +527,17 @@
         <td class="@(deltaApparel < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaApparel)</td>
         <td class="@(deltaSeasonalNov < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSeasonalNov)</td>
         <td class="@(deltaOtherNovelty < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaOtherNovelty)</td>
+        <td class="@(deltaTotalNovelty < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaTotalNovelty)</td>
         <td class="@(deltaAlc < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaAlc)</td>
         <td class="@(deltaHardGoods < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaHardGoods)</td>
         <td class="@(deltaRvParts < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaRvParts)</td>
         <td class="@(deltaSeasonalMerch < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSeasonalMerch)</td>
+        <td class="@(deltaTotalMerch < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaTotalMerch)</td>
         <td class="@(deltatTotal < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltatTotal)</td>
         <td class="@(deltaFoodCounter < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaFoodCounter)</td>
         <td class="@(deltaFood < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaFood)</td>
         <td class="@(deltaIce < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaIce)</td>
+        <td class="@(deltaTotalFoodAndIce < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaTotalFoodAndIce)</td>
         <td class="@(deltaVending < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaVending)</td>
         <td class="@(deltaStamps < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaStamps)</td>
         <td class="@(deltatTotal2 < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltatTotal2)</td>
@@ -493,7 +550,7 @@
     {
         <tr>
             <td class="breakdownLegendBottom" colspan="5" id="breakdownLegendId"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
-            <td colspan="14" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black;">&nbsp;</td>
+            <td colspan="17" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black;">&nbsp;</td>
         </tr>
     }
 </table>
@@ -502,7 +559,7 @@
 </body>
 @section Scripts {
 <script>
-var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
+var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownSubTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
 cells.forEach(function (cell) { 
    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
    if (!isNaN(amount)) { 

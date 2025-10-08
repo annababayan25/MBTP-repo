@@ -53,7 +53,7 @@
             Myrtle Beach Travel Park Financial Database
         </h1>
         <div class="centered-buttons my-4">
-            @if (accIDInt < 8)
+            @if (accIDInt < 8 || accIDInt == 11)
             {
                 <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Yearly">Yearly Report</a>
                 <a class="pdfButton" asp-area="" asp-controller="FDB" asp-action="Monthly" asp-route-whichMonth="Current">Monthly Report</a>
