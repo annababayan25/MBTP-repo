@@ -27,7 +27,7 @@ namespace MBTP.Services
         public async Task PopulateBookings(DateTime startDate, DateTime endDate)
         {
             var dataOffset = 0;
-            var dataCount = 100;
+            var dataCount = 500;
             var dataTotal = 100000;
             var bookings = new List<Booking>();
 
