@@ -17,7 +17,7 @@ namespace MBTP.Models
         public string? GLAccountDescr { get; set; }
 
         [JsonProperty("item_date")]
-        public string ItemDate { get; set; }
+        public DateTime? ItemDate { get; set; }
 
         [JsonProperty("reconciled_amount")]
         public decimal? Total_TaxInc { get; set; }

@@ -130,8 +130,6 @@ namespace MBTP.Services
             
             foreach (var recon in reconReport)
             {
-                var dateValue = Convert.ToDateTime(recon.ItemDate);
-                var stringValue = dateValue.ToString("MMM dd yyyy hh:mm tt");
 
                 using (SqlCommand command = new SqlCommand("dbo.UpdateReconReportTable", sqlConn))
                 {
@@ -140,7 +138,7 @@ namespace MBTP.Services
                     command.Parameters.AddWithValue("@ClientAccount", $"(Booking #{recon.BookingId}) {recon.AccountForName}");
                     command.Parameters.AddWithValue("@Item", recon.ItemDescription ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Description", recon.GLAccountDescr ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@Date", stringValue);
+                    command.Parameters.AddWithValue("@Date", recon.ItemDate);
                     command.Parameters.AddWithValue("@Total_TaxInc", recon.Total_TaxInc ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Total_TaxEx", recon.Total_TaxEx ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Total_Tax", recon.Total_Tax ?? (object)DBNull.Value);
