@@ -93,6 +93,7 @@ namespace MBTP.Services
 
                     // CalculatedStayCost logic 
 
+                    // cleaning fee 
                     decimal cleaningFee = checkedIn.Charges?
                         .Where(c => c.Description?.IndexOf("cleaning fee", StringComparison.OrdinalIgnoreCase) >= 0)
                         .Sum(c => c.Amount ?? 0) ?? 0;
@@ -263,7 +264,7 @@ namespace MBTP.Services
                     }*/
 
                     // debug to see the full json for a booking
-                    if (checkedIn.BookingID == 337449)
+                    if (checkedIn.BookingID == 375791)
                     {
                         string filePath = "checkedinOut.txt";
                         string contentFile = item.ToString();

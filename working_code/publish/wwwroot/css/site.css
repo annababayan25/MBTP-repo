@@ -563,3 +563,11 @@ a{
 .logout-button:hover {
   background-color: #0056b3;
 }
+
+@media (max-width: 1920px) {
+  #daily-table th,
+  #daily-table td {
+    font-size: 12px;
+    padding: 4px;
+  }
+}
