@@ -148,11 +148,13 @@ namespace MBTP.Services
                             p.Description.Contains("booking #", StringComparison.OrdinalIgnoreCase) ||
                             (p.Description.Contains("deposit", StringComparison.OrdinalIgnoreCase) &&
                             !p.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase))
-                        )
-                        && (checkedIn.BookingCheckedIn.HasValue
-                        ? p.GeneratedWhen < checkedIn.BookingCheckedIn.Value : true))
-                        .Sum(p => p.Amount ?? 0) ?? 0;
-
+                        ) &&
+                        (p.Deposit == "1") &&
+                        (checkedIn.BookingCheckedIn.HasValue
+                            ? p.GeneratedWhen < checkedIn.BookingCheckedIn.Value
+                            : true))
+                    .Sum(p => p.Amount ?? 0) ?? 0;
+                    
                     // security deposit column
                     decimal totalPaymentsSecDep = checkedIn.Payments?
                     .Where(p => !string.IsNullOrEmpty(p.Description) &&
