@@ -42,8 +42,9 @@ namespace MBTP.Services
                     list_type = "all",
                     data_offset = dataOffset,
                     data_count = dataCount,
-                    client_account_booking_details = true,
-                    client_account_booking_breakdown = true
+                    client_account_booking_details = "true",
+                    client_account_item_breakdown = "true",
+                    account_breakdown = "true"
                 };
 
                 var json = await PostAsync("bookings_list", body);
@@ -147,6 +148,13 @@ namespace MBTP.Services
                     else
                     {
                         Console.WriteLine("Booking ID " + booking.BookingID + " not added");
+                    }
+
+                    if (booking.BookingID == 366736)
+                    {
+                        string filePath = "booking.txt";
+                        string contentFile = item.ToString();
+                        File.WriteAllText(filePath, contentFile + Environment.NewLine);
                     }
 
                 }
