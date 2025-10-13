@@ -51,6 +51,7 @@ namespace MBTP.Controllers
         private readonly TransactionFlowApi _transactionFlowApi;
         private readonly DailyReport _dailyReport;
         private readonly OccupancyApi _occupancyApi;
+        private readonly PaymentsApi _paymentsApi;
 
 
         public AdminController(
@@ -68,7 +69,9 @@ namespace MBTP.Controllers
             DailyReport dailyReport,
             ReconApi reconApi,
             TransactionFlowApi transactionFlowApi,
-            OccupancyApi occupancyApi
+            OccupancyApi occupancyApi,
+            PaymentsApi paymentsApi
+
         )
 
         {
@@ -86,6 +89,7 @@ namespace MBTP.Controllers
             _reconApi = reconApi;
             _transactionFlowApi = transactionFlowApi;
             _occupancyApi = occupancyApi;
+            _paymentsApi = paymentsApi;
         }
 
         [Authorize]
@@ -259,6 +263,25 @@ namespace MBTP.Controllers
 
             return View();
         }
+
+        [Authorize]
+        public async Task<IActionResult> PopulatePayments(DateTime? day)
+        {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
+
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+            await _paymentsApi.PopulatePayments(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+            return View();
+
+        }
+
 
         [HttpPost]
         public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
