@@ -31,7 +31,7 @@ namespace MBTP.Services
                 api_key = apiKey,
                 period_from = startDate.ToString("yyyy-MM-dd HH:mm:ss"),
                 period_to = endDate.ToString("yyyy-MM-dd HH:mm:ss"),
-                return_all_data = true
+                return_all_data = "true"
             };
 
             var json = await PostAsync("reports_transaction_flow", body);
@@ -58,6 +58,7 @@ namespace MBTP.Services
                     Amount = item.amount,
                     ArrivalDate = item.booking_period_from,
                     DepartureDate = item.booking_period_to,
+                    Deposit = item.deposit,
                 };
 
                 if (item.item_type == "payments_raised")
@@ -102,8 +103,11 @@ namespace MBTP.Services
                 }
 
                 transactionFlow.Add(transactions);
+                var outputFile = "output.txt";
+                File.AppendAllText(outputFile, item.ToString() + Environment.NewLine);
             }
 
+            
             using var sqlConn = _dbConnectionService.CreateConnection();
             await sqlConn.OpenAsync();
 

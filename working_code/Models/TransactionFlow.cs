@@ -48,5 +48,8 @@ namespace MBTP.Models
         [JsonProperty("booking_period_to")]
         public string? DepartureDate { get; set; }
 
+        [JsonProperty("deposit")]
+        public string Deposit { get; set; }
+
     }
 }

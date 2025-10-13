@@ -776,6 +776,14 @@ tr.flag td {
   right: 0;
 }
 
+@media (max-width: 1920px) {
+  #daily-table th,
+  #daily-table td {
+    font-size: 12px;
+    padding: 4px;
+  }
+}
+
 @media (max-width: 1024px) {
   #daily-table th,
   #daily-table td {
