@@ -300,15 +300,6 @@ a{
   padding-right: 25px;
   color:blue;
 }
-.breakdownSubtotalTitle{
-  text-align: center;
-  font-weight: bold;
-  border: 1px black solid;
-  padding-left: 25px;
-  padding-right: 25px;
-  color:blue;
-  background-color:rgb(255, 192, 129);
-}
 .breakdownMonth{
   text-align: center;
   font-weight: bold;
@@ -562,12 +553,4 @@ a{
 
 .logout-button:hover {
   background-color: #0056b3;
-}
-
-@media (max-width: 1920px) {
-  #daily-table th,
-  #daily-table td {
-    font-size: 12px;
-    padding: 4px;
-  }
 }
