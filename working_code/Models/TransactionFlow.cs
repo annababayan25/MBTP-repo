@@ -10,21 +10,24 @@ namespace MBTP.Models
         [JsonProperty("payment_transaction_method")]
         public string? PaymentMethod { get; set; }
 
+        [JsonProperty("account_for")]
+        public string? AccountFor { get; set; }
+
         [JsonProperty("item_description")]
         public string? PaymentDescription { get; set; }
 
         [JsonProperty("payment_type_reference")]
         public string? PaymentTypeReference { get; set; }
 
-        [JsonProperty("grouped_payment_type")]
-        public string? GroupedPaymentType { get; set; }
+        [JsonProperty("translated_payment_type")]
+        public string? TranslatedPaymentType { get; set; }
 
         public string? PaymentTypeAction { get; set; }
 
         [JsonProperty("category_name")]
         public string? Category { get; set; }
 
-        [JsonProperty("item_type")]
+        [JsonProperty("type")]
         public string? TransType { get; set; }
 
         [JsonProperty("item_date")]

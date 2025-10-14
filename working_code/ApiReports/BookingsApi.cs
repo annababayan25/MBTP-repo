@@ -150,7 +150,7 @@ namespace MBTP.Services
                         Console.WriteLine("Booking ID " + booking.BookingID + " not added");
                     }
 
-                    if (booking.BookingID == 366736)
+                    if (booking.BookingID == 375791)
                     {
                         string filePath = "booking.txt";
                         string contentFile = item.ToString();

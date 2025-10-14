@@ -112,7 +112,7 @@
   "auto_billing_type": true,
   "site_id": "205",
   "site_name": "130",
-  "site_status": "Clean",
+  "site_status": "Dirty",
   "category_id": "38",
   "category_name": "Beach - Pull Thru - WESC",
   "company_id": null,
