@@ -76,7 +76,6 @@ document.addEventListener("DOMContentLoaded", function() {
     // Set up the date picker with Flatpickr (day picker)
     flatpickr("#dayPicker", {
         dateFormat: "Y-m-d",
-        minDate: "today",
         defaultDate: "@SelectedDay?.ToString("yyyy-MM-dd")",
         onChange: function(selectedDates, dateStr, instance) {
             var newUrl = new URL(window.location.href);

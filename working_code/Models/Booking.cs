@@ -91,6 +91,7 @@ namespace MBTP.Models
         public int Wristbands { get; set; }
         public string? CarLicensePlate { get; set; }
         public string? CarLicensePlateExtra { get; set; }
+        public string? BookingCheckedIn { get; set; }
 
     }
 

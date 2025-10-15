@@ -203370,3 +203370,1343 @@
     }
   ]
 }
+{
+  "booking_id": 371483,
+  "booking_arrival": "2025-08-18 14:00:00",
+  "booking_departure": "2025-10-14 11:00:00",
+  "booking_eta": null,
+  "booking_length": 57,
+  "booking_status": "Arrived",
+  "booking_checkedin": "2025-08-18 12:15:21",
+  "booking_checkedout": null,
+  "booking_adults": "2",
+  "booking_children": "0",
+  "booking_infants": "0",
+  "booking_animals": "1",
+  "booking_total": "3792.50",
+  "booking_method_id": "-2",
+  "booking_method_name": "Newbook Online",
+  "booking_source_id": "1",
+  "booking_source_name": "Return Visit",
+  "booking_parent_source_id": "-4",
+  "booking_parent_source_name": "General",
+  "booking_reason_id": null,
+  "booking_reason_name": "None",
+  "booking_demographic_id": null,
+  "booking_demographic_name": "None",
+  "booking_market_segment_id": null,
+  "booking_market_segment_name": "None",
+  "booking_placed": "2025-08-09 11:52:55",
+  "booking_modified": "2025-10-10 09:49:50",
+  "booking_booked_by": "Newbook Online",
+  "booking_booked_by_id": "-1",
+  "booking_arrived_by": "Monnie Blackman",
+  "booking_arrived_by_id": "66",
+  "booking_departed_by": "None",
+  "booking_departed_by_id": null,
+  "booking_reference_id": "",
+  "booking_flagged": "0",
+  "booking_locked": "0",
+  "gl_account_id": "5",
+  "gl_category_id": "1",
+  "tariff_name": "Weekly Rate, Daily Rate",
+  "tariff_total": "3792.50",
+  "tariffs_quoted": [
+    {
+      "tariff_quoted_id": "1296557",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-18",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296558",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-19",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296559",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-20",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296560",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-21",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296561",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-22",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296562",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-23",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296563",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-24",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "0.00",
+      "calculated_amount": "0.00",
+      "charge_amount": "0.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 0
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296564",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-25",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296565",
+      "label": "Weekly Rate",
+      "stay_date": "2025-08-26",
+      "tariff_applied_id": "1415",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296566",
+      "label": "Daily Rate",
+      "stay_date": "2025-08-27",
+      "tariff_applied_id": "1167",
+      "type_id": "1",
+      "original_amount": "101.50",
+      "calculated_amount": "101.50",
+      "charge_amount": "101.50",
+      "taxes": [],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296567",
+      "label": "Daily Rate",
+      "stay_date": "2025-08-28",
+      "tariff_applied_id": "1167",
+      "type_id": "1",
+      "original_amount": "101.50",
+      "calculated_amount": "101.50",
+      "charge_amount": "101.50",
+      "taxes": [],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296568",
+      "label": "Daily Rate",
+      "stay_date": "2025-08-29",
+      "tariff_applied_id": "1167",
+      "type_id": "1",
+      "original_amount": "101.50",
+      "calculated_amount": "101.50",
+      "charge_amount": "101.50",
+      "taxes": [],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296569",
+      "label": "Daily Rate",
+      "stay_date": "2025-08-30",
+      "tariff_applied_id": "1167",
+      "type_id": "1",
+      "original_amount": "101.50",
+      "calculated_amount": "101.50",
+      "charge_amount": "101.50",
+      "taxes": [],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296570",
+      "label": "Daily Rate",
+      "stay_date": "2025-08-31",
+      "tariff_applied_id": "1167",
+      "type_id": "1",
+      "original_amount": "101.50",
+      "calculated_amount": "101.50",
+      "charge_amount": "101.50",
+      "taxes": [],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296571",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-01",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296572",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-02",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296573",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-03",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296574",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-04",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296575",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-05",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296576",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-06",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296577",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-07",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "0.00",
+      "calculated_amount": "0.00",
+      "charge_amount": "0.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 0
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296578",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-08",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296579",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-09",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296580",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-10",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1296581",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-11",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308689",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-12",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308690",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-13",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308691",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-14",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "0.00",
+      "calculated_amount": "0.00",
+      "charge_amount": "0.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 0
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308692",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-15",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308693",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-16",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308694",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-17",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308695",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-18",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308696",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-19",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308697",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-20",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1308698",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-21",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "0.00",
+      "calculated_amount": "0.00",
+      "charge_amount": "0.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 0
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1315138",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-22",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 106,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1315139",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-23",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1315140",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-24",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1315141",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-25",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1315142",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-26",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1315143",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-27",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1315144",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-28",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "0.00",
+      "calculated_amount": "0.00",
+      "charge_amount": "0.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 0
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1318498",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-29",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1318499",
+      "label": "Weekly Rate",
+      "stay_date": "2025-09-30",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1318500",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-01",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1318501",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-02",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1319905",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-03",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1320427",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-04",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1320428",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-05",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "0.00",
+      "calculated_amount": "0.00",
+      "charge_amount": "0.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 0
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1320429",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-06",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1320430",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-07",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1320431",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-08",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1320432",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-09",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1320433",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-10",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1322565",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-11",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1322566",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-12",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "0.00",
+      "calculated_amount": "0.00",
+      "charge_amount": "0.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 0
+        }
+      ],
+      "occupant_charges": []
+    },
+    {
+      "tariff_quoted_id": "1322567",
+      "label": "Weekly Rate",
+      "stay_date": "2025-10-13",
+      "tariff_applied_id": "1146",
+      "type_id": "3",
+      "original_amount": "73.00",
+      "calculated_amount": "73.00",
+      "charge_amount": "73.00",
+      "taxes": [
+        {
+          "tax_id": 107,
+          "tax_name": "Sales & Accommodation Tax",
+          "tax_inclusive": false,
+          "tax_amount": 8.76
+        }
+      ],
+      "occupant_charges": []
+    }
+  ],
+  "repeat_charges": [],
+  "inventory_items": [
+    {
+      "id": "83452",
+      "inventory_item_id": "418",
+      "description": "Online Booking Fee (Aug 18 2025)",
+      "gl_account_id": "5",
+      "gl_category_id": "1",
+      "stay_date": "2025-08-18",
+      "stay_cost_contribution": "Exclude",
+      "discounts_apply": "1",
+      "amount": "3.00"
+    }
+  ],
+  "discounts": [],
+  "discount_id": null,
+  "discount_name": "None",
+  "discount_code": "",
+  "discount_total": "0.00",
+  "account_id": "488092",
+  "default_client_account_id": "488092",
+  "account_balance": "0.00",
+  "auto_billing_limit": null,
+  "auto_billing_type": true,
+  "site_id": "705",
+  "site_name": "732A",
+  "site_status": "Dirty",
+  "category_id": "40",
+  "category_name": "Shaded - Back In - WESC",
+  "company_id": null,
+  "company_name": null,
+  "travel_agent_id": null,
+  "travel_agent_name": null,
+  "travel_agent_commission_total": "0.00",
+  "custom_fields": [
+    {
+      "id": "4",
+      "type": "text",
+      "label": "Camper stored with MBTP? (if yes, enter ID number)",
+      "value": "No"
+    },
+    {
+      "id": "5",
+      "type": "text",
+      "label": "Camper being delivered by outside company? (if yes, enter company name)",
+      "value": "No"
+    },
+    {
+      "id": "6",
+      "type": "number",
+      "label": "Wristbands",
+      "value": 2
+    }
+  ],
+  "guests": [
+    {
+      "id": "115516",
+      "title": "",
+      "firstname": "Scott",
+      "lastname": "Gricheck",
+      "othername": "",
+      "gender": null,
+      "date_of_birth": null,
+      "street": "306 Orchard Ave",
+      "city": "Scottsdale",
+      "state_id": "46",
+      "postcode": "15683",
+      "country_id": "219",
+      "company_id": null,
+      "date_created": "2025-08-09 11:52:54",
+      "modified_when": "2025-10-14 11:04:15",
+      "last_note_when": null,
+      "blacklisted_when": null,
+      "blacklisted_by": null,
+      "vip_when": null,
+      "vip_by": null,
+      "member_number": null,
+      "guest_id": "115516",
+      "state_name": "Pennsylvania (PA)",
+      "country_name": "United States of America",
+      "country_code": "US",
+      "state_shortname": "PA",
+      "state": "Pennsylvania (PA)",
+      "country": "United States of America",
+      "company_name": null,
+      "contact_details": [
+        {
+          "id": "255185",
+          "type": "email",
+          "content": "gricheckscott@gmail.com",
+          "notes": "",
+          "uri": [],
+          "allow_transactional": 1,
+          "allow_marketing": 1
+        },
+        {
+          "id": "255186",
+          "type": "phone",
+          "content": "7248102869",
+          "notes": "",
+          "uri": [],
+          "allow_transactional": 1,
+          "allow_marketing": 1
+        },
+        {
+          "id": "255187",
+          "type": "mobile",
+          "content": "7244543012",
+          "notes": "",
+          "uri": [],
+          "allow_transactional": 1,
+          "allow_marketing": 1
+        },
+        {
+          "id": "255188",
+          "type": "car_rego",
+          "content": "Yxs-5598 PA",
+          "notes": "WHITE DODGE RAM",
+          "uri": [],
+          "allow_transactional": 1,
+          "allow_marketing": 1
+        }
+      ],
+      "custom_fields": [
+        {
+          "id": "1",
+          "type": "",
+          "label": "Reference ID",
+          "value": "N/A"
+        }
+      ],
+      "equipment": [
+        {
+          "equipment_id": "111201",
+          "equipment_name": "Dodge  2500 Ram",
+          "equipment_make": "Dodge",
+          "equipment_model": "2500 Ram",
+          "equipment_type_id": "1",
+          "equipment_type_name": "Travel Trailer",
+          "equipment_length": "35.00",
+          "equipment_width": "0.00",
+          "equipment_height": "0.00",
+          "equipment_registration": "",
+          "equipment_registration_expiry": null,
+          "equipment_measurement_unit": "ft",
+          "active": "1",
+          "custom_fields": [],
+          "slideouts": "none",
+          "insurance_policies": []
+        },
+        {
+          "equipment_id": "113551",
+          "equipment_name": "TRL",
+          "equipment_make": "",
+          "equipment_model": "",
+          "equipment_type_id": null,
+          "equipment_type_name": null,
+          "equipment_length": "36.00",
+          "equipment_width": "0.00",
+          "equipment_height": "0.00",
+          "equipment_registration": "",
+          "equipment_registration_expiry": null,
+          "equipment_measurement_unit": "ft",
+          "active": "1",
+          "custom_fields": [],
+          "slideouts": "none",
+          "insurance_policies": []
+        }
+      ],
+      "notes": [],
+      "insurance_policies": [],
+      "dietary_requirements": [],
+      "membership_details": [],
+      "auto_billing_limit": null,
+      "account_currency_code": "USD",
+      "account_currency_id": null,
+      "account_balance": "0.00",
+      "account_id": "488091",
+      "online_login_details": {
+        "id": "18709",
+        "for": "guests",
+        "for_id": "115516",
+        "instance_id": "2706",
+        "username": "gricheckscott@gmail.com",
+        "active": "1"
+      },
+      "primary_client": "1"
+    }
+  ],
+  "guests_memberships_id": null,
+  "equipment": [
+    {
+      "equipment_id": "111201",
+      "equipment_name": "Dodge  2500 Ram",
+      "equipment_make": "Dodge",
+      "equipment_model": "2500 Ram",
+      "equipment_type_id": "1",
+      "equipment_type_name": "Travel Trailer",
+      "equipment_length": "35.00",
+      "equipment_width": "0.00",
+      "equipment_height": "0.00",
+      "equipment_registration": "",
+      "equipment_registration_expiry": null,
+      "equipment_measurement_unit": "ft",
+      "active": "1",
+      "slideouts": "none"
+    }
+  ],
+  "notes": [
+    {
+      "id": "514894",
+      "for": "bookings",
+      "for_id": "371483",
+      "for_label": "Booking",
+      "type_id": "2",
+      "content": "-NO-      732A LOCKED ONLINE\r\nGuest provided Equipment Size - L: 35 (Feet) and Equipment Type - Travel Trailer\r\nD/C PER MR GRICHECK FROM 8/8/25-9/12/25  TO 8/8/25-9/22/25 MS 9/8/25\r\nD/C PER MR GRICHECK 8/18/25-9/22/25  TO 8/18/25-8/29/25 MS 9/21/25 MS 9/21/21\r\nSCOTT CAME IN CAMPER NOT READY EXTENDED TO 10-14-25   10-10-25 MA\r\nSCOTT CAME IN WILL BE LATER CK OUT   WILL LET US KNOW 10-14-25 MA",
+      "created_when": "2025-08-09 11:52:56",
+      "created_by": "-1",
+      "updated_when": "2025-10-14 08:44:11",
+      "updated_by": "49",
+      "deleted": "0",
+      "output_message": "1",
+      "task_list": "0"
+    }
+  ],
+  "bookings_group_id": null,
+  "bookings_group_name": null,
+  "booking_cancelled": null,
+  "booking_cancelled_by": "None",
+  "booking_cancelled_by_id": null,
+  "booking_cancelled_reason_id": null,
+  "booking_cancelled_reason_name": null,
+  "required_checkin_documents_ids": [],
+  "split_booking": false,
+  "access_codes": [],
+  "booking_source": "Return Visit",
+  "booking_reason": "None",
+  "booking_demographic": "None",
+  "booking_method": "Newbook Online",
+  "facilities_hire": [],
+  "activities": [],
+  "additional_guests": [
+    {
+      "guest_id": 115516,
+      "guest_type": "adults",
+      "guest_type_id": "1"
+    }
+  ]
+}
