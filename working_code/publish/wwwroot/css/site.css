@@ -292,6 +292,11 @@ a{
   padding-left: 30px;
   padding-right: 30px;
 }
+.breakdownHead{
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
 .breakdownTitle{
   text-align: center;
   font-weight: bold;
@@ -401,6 +406,7 @@ a{
 }
 .breakdownTaxBig{
   background-color:#fffd8c;
+  color: black;
   text-align: center;
   font-weight: bold;
   border: 1px black solid;
