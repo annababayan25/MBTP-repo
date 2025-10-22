@@ -9,6 +9,7 @@
     string? isCurrentFiscalYear = Context.Session.GetString("IsCurrentFiscalYear");
     DateTime currentDate = DateTime.Now;
     int monthIndex = 0;
+    int dataRecordRow = 0;
 
     decimal totalFood = 0;
     decimal totalKay = 0;
@@ -29,8 +30,9 @@
 
 <body>
    @if (Model is not null && Model.Tables[0].Rows.Count > 0)
-            {
-<table id="monthly-table" class="breakdown clickable-tableK" style="width:240px">
+    {
+<div class="table-responsive " style="max-height: 75vh; overflow-y: auto;"> 
+<table id="monthly-table" class="breakdown clickable-tableK" style="width:240px; border: none;">
     <tr>
         <th class="breakdownBigTitle" colspan="9">Kayak Shack</th>
     </tr>
@@ -46,7 +48,7 @@
         <th class="breakdownTaxHead" rowspan="2">Total Tax Expected</th>
     </tr>
     <tr>
-        <th class="breakdownMonthScrolling">Month</th>
+        <th class="breakdownMonthScrollingBottom">Month</th>
         <th class="breakdownTitle">Food Sales</th>
         <th class="breakdownTitle">Kayaks and Boards</th>
         <th class="breakdownTitle">Pedal Boats</th>
@@ -54,6 +56,22 @@
     </tr>
    @foreach (DataRow row in Model!.Tables[0].Rows)
     {
+        dataRecordRow++;
+        var breakdownMonthClass = new System.Text.StringBuilder("breakdownMonth");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            breakdownMonthClass.Remove(0, "breakdownMonth".Length).Append("breakdownMonthTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        breakdownMonthClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
         var monthDate = startDate.AddMonths(monthIndex);
         var month = startDate.AddMonths(monthIndex).ToString("MMMM");
         var ThirP = 1.08m;
@@ -79,30 +97,38 @@
         totalRevenue += netRevenue;
         totalExpected += taxExpected;
    <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
-        <td class="breakdownDate">@month</td>
-        <td class="breakdownData">@combinedFood</td>
-        <td class="breakdownData">@KayBo</td>
-        <td class="breakdownData">@PedBo</td>
-        <td class="breakdownData">@Misc</td>
-        <td class="breakdownTotals">@total</td>
-        <td class="breakdownTotals">@taxCollected</td>
-        <td class="breakdownTotals">@netRevenue</td>
-        <td class="breakdownTax">@taxExpected</td>
+        <td class="@breakdownMonthClass">@month</td>
+        <td class="@breakdownDataClass">@(@combinedFood != 0 ? String.Format("{0:c2}", @combinedFood) : "")</td>
+        <td class="@breakdownDataClass">@(@KayBo != 0 ? String.Format("{0:c2}", @KayBo) : "")</td>
+        <td class="@breakdownDataClass">@(@PedBo != 0 ? String.Format("{0:c2}", @PedBo) : "")</td>
+        <td class="@breakdownDataClass">@(@Misc != 0 ? String.Format("{0:c2}", @Misc) : "")</td>
+        <td class="@breakdownTotalsClass">@(@total != 0 ? String.Format("{0:c2}", @total) : "")</td>
+        <td class="@breakdownTotalsClass">@(@taxCollected != 0 ? String.Format("{0:c2}", @taxCollected) : "")</td>
+        <td class="@breakdownTotalsClass">@(@netRevenue != 0 ? String.Format("{0:c2}", @netRevenue) : "")</td>
+        <td class="@breakdownTaxClass">@(@taxExpected != 0 ? String.Format("{0:c2}", @taxExpected) : "")</td>
    </tr>
    monthIndex ++;
 }
 <tr>
-        <td class="breakdownTotalsScrolling">Totals:</td>
-        <td class="breakdownTotals2">@totalFood</td>
-        <td class="breakdownTotals2">@totalKay</td>
-        <td class="breakdownTotals2">@totalPed</td>
-        <td class="breakdownTotals2">@totalMisc</td>
-        <td class="breakdownTotals2">@totalTotal</td>
-        <td class="breakdownTotals2">@totalCollected</td>
-        <td class="breakdownTotals2">@totalRevenue</td>
-        <td class="breakdownTotals2">@totalExpected</td>
+        <td class="breakdownTotalsScrolling" style="border-bottom: 1px solid black;">Totals:</td>
+        <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalFood != 0 ? String.Format("{0:c2}", @totalFood) : "")</td>
+        <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalKay != 0 ? String.Format("{0:c2}", @totalKay) : "")</td>
+        <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalPed != 0 ? String.Format("{0:c2}", @totalPed) : "")</td>
+        <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalMisc != 0 ? String.Format("{0:c2}", @totalMisc) : "")</td>
+        <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTotal != 0 ? String.Format("{0:c2}", @totalTotal) : "")</td>
+        <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalCollected != 0 ? String.Format("{0:c2}", @totalCollected) : "")</td>
+        <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRevenue != 0 ? String.Format("{0:c2}", @totalRevenue) : "")</td>
+        <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalExpected != 0 ? String.Format("{0:c2}", @totalExpected) : "")</td>
    </tr>
-</table>}
+</table>
+</div>
+}
+else
+{
+    <div class="no-data-message">
+        <p>No data available for the selected fiscal year.</p>
+    </div>
+}
 </body>
 <script>
 $(document).ready(function () {

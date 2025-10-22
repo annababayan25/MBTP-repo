@@ -10,6 +10,7 @@
     DateTime currentDate = DateTime.Now;
     var accID = User.FindFirst("AccID")?.Value;
     int monthIndex = 0;
+    int dataRecordRow = 0;
 
     decimal totalCATV = 0;
     decimal totalGuestServices = 0;
@@ -37,8 +38,8 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
-<div class="table-responsive">
-    <table id="monthly-table" class="breakdown clickable-tableM" style="width:240px">
+<div class="table-responsive " style="max-height: 75vh; overflow-y: auto;"> 
+    <table id="monthly-table" class="breakdown clickable-tableM" style="width:240px; border: none;">
         <tr>
             @if(accID == "4")
             {
@@ -88,7 +89,7 @@
             }
         </tr>
         <tr>
-            <th class="breakdownMonthScrolling">Month</th>
+            <th class="breakdownMonthScrollingBottom">Month</th>
             @if(accID != "4")
             {
                 <th class="breakdownTitle">CATV</th>
@@ -112,6 +113,22 @@
         </tr>
         @foreach (DataRow row in Model!.Tables[0].Rows)
         {
+        dataRecordRow++;
+        var breakdownMonthClass = new System.Text.StringBuilder("breakdownMonth");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            breakdownMonthClass.Remove(0, "breakdownMonth".Length).Append("breakdownMonthTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        breakdownMonthClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
             var monthDate = startDate.AddMonths(monthIndex);
             var month = startDate.AddMonths(monthIndex).ToString("MMMM");
             var CATV = (decimal)row["CATV"];
@@ -151,65 +168,58 @@
             totalSupplementalS += SupplementalS;
             totalTotals += totals;
             <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
-                <td class="breakdownData">@month</td>
+                <td class="@breakdownMonthClass">@month</td>
                 @if(accID != "4")
                 {
-                    <td class="breakdownData">@row["CATV"]</td>
+                    <td class="@breakdownDataClass">@(@CATV != 0.00m ? String.Format("{0:c2}", @CATV) : "")</td>
                 }
-                    <td class="breakdownData">@row["GuestServices"]</td>
+                    <td class="@breakdownDataClass">@(@GuestServices != 0.00m ? String.Format("{0:c2}", @GuestServices) : "")</td>
                 @if(accID != "4")
                 {
-                    <td class="breakdownData">@row["LeasedConcessions"]</td>
-                    <td class="breakdownData">@row["OtherM"]</td>
+                    <td class="@breakdownDataClass">@(@LeasedConcessions != 0.00m ? String.Format("{0:c2}", @LeasedConcessions) : "")</td>
+                    <td class="@breakdownDataClass">@(@OtherM != 0.00m ? String.Format("{0:c2}", @OtherM) : "")</td>
                 }
-                    <td class="breakdownData">@row["AtSitePropane"]</td>
-                    <td class="breakdownData">@row["PropaneStation"]</td>
-                    <td class="breakdownData">@row["Laundry"]</td>
+                    <td class="@breakdownDataClass">@(@AtSitePropane != 0.00m ? String.Format("{0:c2}", @AtSitePropane) : "")</td>
+                    <td class="@breakdownDataClass">@(@PropaneStation != 0.00m ? String.Format("{0:c2}", @PropaneStation) : "")</td>
+                    <td class="@breakdownDataClass">@(@Laundry != 0.00m ? String.Format("{0:c2}", @Laundry) : "")</td>
                 @if(accID != "4")
                 {
-                    <td class="breakdownData">@row["StoreEvents"]</td>
-                    <td class="breakdownData">@row["FrontEvents"]</td>
-                    <td class="breakdownData">@row["VendorDecals"]</td>
-                    <td class="breakdownData">@row["ParkModelSales"]</td>
-                    <td class="breakdownData">@row["SupplementalO"]</td>
-                    <td class="breakdownData">@row["SupplementalS"]</td>
+                    <td class="@breakdownDataClass">@(@StoreEvents != 0.00m ? String.Format("{0:c2}", @StoreEvents) : "")</td>
+                    <td class="@breakdownDataClass">@(@FrontEvents != 0.00m ? String.Format("{0:c2}", @FrontEvents) : "")</td>
+                    <td class="@breakdownDataClass">@(@VendorDecals != 0.00m ? String.Format("{0:c2}", @VendorDecals) : "")</td>
+                    <td class="@breakdownDataClass">@(@ParkModelSales != 0.00m ? String.Format("{0:c2}", @ParkModelSales) : "")</td>
+                    <td class="@breakdownDataClass">@(@SupplementalO != 0.00m ? String.Format("{0:c2}", @SupplementalO) : "")</td>
+                    <td class="@breakdownDataClass">@(@SupplementalS != 0.00m ? String.Format("{0:c2}", @SupplementalS) : "")</td>
                 }
-                @if(accID == "4")
-                {
-                    <td class="breakdownTotals">@String.Format("{0:F2}",(decimal)row["GuestServices"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"])</td>
-                }
-                else
-                {
-                    <td class="breakdownTotals">@String.Format("{0:F2}",(decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["VendorDecals"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
-                }
+                <td class="@breakdownTotalsClass">@(@totals != 0.00m ? String.Format("{0:c2}", @totals) : "")</td>
             </tr>
             monthIndex ++;
         }
         <tr>
-            <td class="breakdownTotalsScrolling">Totals:</td>
+            <td class="breakdownTotalsScrolling" style="border-bottom: 1px solid black;">Totals:</td>
             @if(accID != "4")
             {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalCATV)</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalCATV != 0.00m ? String.Format("{0:c2}", totalCATV) : "")</td>
             }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalGuestServices)</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalGuestServices != 0.00m ? String.Format("{0:c2}", totalGuestServices) : "")</td>
             @if(accID != "4")
             {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalLeasedConcessions)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalOtherM)</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalLeasedConcessions != 0.00m ? String.Format("{0:c2}", totalLeasedConcessions) : "")</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalOtherM != 0.00m ? String.Format("{0:c2}", totalOtherM) : "")</td>
             }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalAtSitePropane)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalPropaneStation)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalLaundry)</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalAtSitePropane != 0.00m ? String.Format("{0:c2}", totalAtSitePropane) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalPropaneStation != 0.00m ? String.Format("{0:c2}", totalPropaneStation) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalLaundry != 0.00m ? String.Format("{0:c2}", totalLaundry) : "")</td>
             @if(accID != "4")
             {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalStoreEvents)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalFrontEvents)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalVendorDecals)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalParkModelSales)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalO)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalS)</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalStoreEvents != 0.00m ? String.Format("{0:c2}", totalStoreEvents) : "")</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalFrontEvents != 0.00m ? String.Format("{0:c2}", totalFrontEvents) : "")</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalVendorDecals != 0.00m ? String.Format("{0:c2}", totalVendorDecals) : "")</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalParkModelSales != 0.00m ? String.Format("{0:c2}", totalParkModelSales) : "")</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalSupplementalO != 0.00m ? String.Format("{0:c2}", totalSupplementalO) : "")</td>
+                <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalSupplementalS != 0.00m ? String.Format("{0:c2}", totalSupplementalS) : "")</td>
             }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalTotals)</td>     
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTotals != 0.00m ? String.Format("{0:c2}", totalTotals) : "")</td>
         </tr>
     </table>
     </div>

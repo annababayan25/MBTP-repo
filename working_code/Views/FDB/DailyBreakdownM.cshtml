@@ -12,6 +12,7 @@
     DateTime fiscalYearStartDate = ViewBag.fiscalYearStartDate;
     var whichMonth = ViewBag.WhichMonth;    
     var yearName = startDate.ToString("yyyy");
+    int dataRecordRow = 0;
     DateTime currentDate = DateTime.Now;
     DateTime monthStart = new DateTime(startDate.Year, startDate.Month, 1);
     DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
@@ -93,501 +94,531 @@
 </div>
 
 <body>
-    @if (Model is not null && Model.Tables[0].Rows.Count > 0)
-    {
-        <div class="table-responsive">
-        <table id="daily-table" class="breakdown clickable-tableM"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownM" style="width:240px">
-            <thead class="breakdownHead">
-            <tr>
-                @if(accID == "4")
-                {
-                    <th class="breakdownBigTitle" colspan="6">Miscellaneous Income</th>
-                }
-                else
-                {
-                    <th class="breakdownBigTitle" colspan="15">Miscellaneous Income</th>
-                }
-            </tr>
-            <tr>
-                <th class="breakdownDayScrolling"></th>
-                @if(accID == "4")
-                {
-                    <td class="breakdownTaxBig">Commissions</td>
-                    <td class="breakdownTaxBig" colspan="3">Other</td>
-                }
-                else
-                {
-                    <td class="breakdownTaxBig" colspan="4">Commissions</td>
-                    <td class="breakdownTaxBig" colspan="9">Other</td>
-                }
-                <th class="breakdownTotalsHead" rowspan="3">Total</th> 
-            </tr>
-            <tr>
-                <th class="breakdownDayScrolling"></th>
-                @if(accID != "4")
-                {
-                    <th class="breakdownTitle">384</th>
-                }
+@if (Model is not null && Model.Tables[0].Rows.Count > 0)
+{
+<div class="table-responsive " style="max-height: 60vh; overflow-y: auto; max-width: 80vw; overflow-x: auto;">
+    <table id="daily-table" class="breakdown clickable-tableM"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownM" style="width:auto; border: none;">
+        <thead class="breakdownHead">
+        <tr>
+            @if(accID == "4")
+            {
+                <th class="breakdownBigTitle" colspan="6">Miscellaneous Income</th>
+            }
+            else
+            {
+                <th class="breakdownBigTitle" colspan="15">Miscellaneous Income</th>
+            }
+        </tr>
+        <tr>
+            <th class="breakdownDayScrolling"></th>
+            @if(accID == "4")
+            {
+                <td class="breakdownTaxBig" style="border-left: none; border-top: none; border-bottom: 1px solid black">Commissions</td>
+                <td class="breakdownTaxBig" colspan="3" style="border-left: none; border-top: none; border-bottom: 1px solid black">Other</td>
+            }
+            else
+            {
+                <td class="breakdownTaxBig" colspan="4" style="border-left: none; border-top: none; border-bottom: 1px solid black">Commissions</td>
+                <td class="breakdownTaxBig" colspan="9" style="border-left: none; border-top: none; border-bottom: 1px solid black">Other</td>
+            }
+            <th class="breakdownTotalsHead" rowspan="3">Total</th> 
+        </tr>
+        <tr>
+            <th class="breakdownDayScrolling"></th>
+            @if(accID != "4")
+            {
+                <th class="breakdownTitleLeftMost">384</th>
                 <th class="breakdownTitle">392</th>
-                @if(accID != "4")
-                {
-                    <th class="breakdownTitle">352</th>
-                    <th class="breakdownTitle">393</th>
-                }
-                <th class="breakdownTitle">320</th>
-                <th class="breakdownTitle">321</th>
-                <th class="breakdownTitle">328</th>
-                @if(accID != "4")
-                {
-                    <th class="breakdownTitle" colspan="2">359</th>
-                    <th class="breakdownTitle">370</th>
-                    <th class="breakdownTitle">380</th>
-                    @if(startDate.Month == currentDate.Month) 
-                    {
-                        <th class="breakdownTitle" rowspan="2">Other Office Income<sup>#</sup></th>
-                        <th class="breakdownTitle" rowspan="2">Supplemental Income<sup>#</sup></th>
-                    }
-                    else
-                    {
-                        <th class="breakdownTitle" rowspan="2">Other Office Income</th>
-                        <th class="breakdownTitle" rowspan="2">Supplemental Income</th>
-                    }
-                }
-            </tr>
-            <tr>
-                <th class="breakdownDayScrolling">Day</th>
+            }
+            else
+            {
+                <th class="breakdownTitleLeftMost">392</th>
+            }
+            @if(accID != "4")
+            {
+                <th class="breakdownTitle">352</th>
+                <th class="breakdownTitle">393</th>
+            }
+            <th class="breakdownTitle">320</th>
+            <th class="breakdownTitle">321</th>
+            <th class="breakdownTitle">328</th>
+            @if(accID != "4")
+            {
+                <th class="breakdownTitle" colspan="2">359</th>
+                <th class="breakdownTitle">370</th>
+                <th class="breakdownTitle">380</th>
                 @if(startDate.Month == currentDate.Month) 
                 {
-                    @if(accID != "4")
-                    {
-                        <th class="breakdownTitle">CATV<sup>#</sup></th>
-                    }
-                    <th class="breakdownTitle">Guest Services</th>
-                    @if(accID != "4")
-                    {
-                        <th class="breakdownTitle">Leased Concessions<sup>#</sup></th>
-                        <th class="breakdownTitle">Other<sup>#</sup></th>
-                    }
-                    <th class="breakdownTitle">At-Site Propane</th>
-                    <th class="breakdownTitle">Propane Station</th>
-                    <th class="breakdownTitle">Laundry</th>
-                    @if(accID != "4")
-                    {
-                        <th class="breakdownTitle">Activities / Store&nbsp;Events<sup>#</sup></th>
-                        <th class="breakdownTitle">Office Events<sup>#</sup></th>
-                        <th class="breakdownTitle">Vendor Decals<sup>#</sup></th>
-                        <th class="breakdownTitle">Park Model Sales<sup>#</sup></th>
-                    }
+                    <th class="breakdownTitle" rowspan="2">Other Office Income<sup>#</sup></th>
+                    <th class="breakdownTitle" rowspan="2">Supplemental Income<sup>#</sup></th>
                 }
                 else
                 {
-                    @if(accID != "4")
-                    {
-                        <th class="breakdownTitle">CATV</th>
-                    }
-                    <th class="breakdownTitle">Guest Services</th>
-                    @if(accID != "4")
-                    {
-                        <th class="breakdownTitle">Leased Concessions</th>
-                        <th class="breakdownTitle">Other</th>
-                    }
-                    <th class="breakdownTitle">At-Site Propane</th>
-                    <th class="breakdownTitle">Propane Station</th>
-                    <th class="breakdownTitle">Laundry</th>
-                    @if(accID != "4")
-                    {
-                        <th class="breakdownTitle">Activities / Store&nbsp;Events</th>
-                        <th class="breakdownTitle">Office Events</th>
-                        <th class="breakdownTitle">Vendor Decals</th>
-                        <th class="breakdownTitle">Park Model Sales</th>
-                    }
+                    <th class="breakdownTitle" rowspan="2">Other Office Income</th>
+                    <th class="breakdownTitle" rowspan="2">Supplemental Income</th>
                 }
-            </tr>
-            </thead>
-            @foreach (DataRow row in Model!.Tables[0].Rows)
+            }
+        </tr>
+        <tr>
+            <th class="breakdownDayScrollingBottom">Day</th>
+            @if(startDate.Month == currentDate.Month) 
             {
-                var transDate = (DateTime)row["TransDate"];
-                string searchExp = "Transdate = '" + transDate.ToShortDateString() + "'";
-                bool blackedOutDate = false;
-                DataRow[] blackoutRows = Model.Tables["Blackout"].Select(searchExp);
-                if(blackoutRows.Length != 0)
+                @if(accID != "4")
                 {
-                    DataRow blackoutRow = blackoutRows[0];
-                    if((int)blackoutRow["StoreClosedState"] != 0)
-                    {
-                        blackedOutDate = true;
-                    }
+                    <th class="breakdownTitleLeftMost">CATV<sup>#</sup></th>
+                    <th class="breakdownTitle">Guest Services</th>
                 }
-                var CATV = (decimal)row["CATV"];
-                var GuestServices = (decimal)row["GuestServices"];
-                var LeasedConcessions = (decimal)row["LeasedConcessions"];
-                var OtherM = (decimal)row["OtherM"];
-                var AtSitePropane = (decimal)row["AtSitePropane"];
-                var PropaneStation = (decimal)row["PropaneStation"];
-                var Laundry = (decimal)row["Laundry"];
-                var StoreEvents = (decimal)row["StoreEvents"];
-                var FrontEvents = (decimal)row["FrontEvents"];
-                var VendorDecals = (decimal)row["VendorDecals"];
-                var ParkModelSales = (decimal)row["ParkModelSales"];
-                var SupplementalO = (decimal)row["SupplementalO"];
-                var SupplementalS = (decimal)row["SupplementalS"];
-                decimal totals = 0.0m;
+                else
+                {
+                    <th class="breakdownTitleLeftMost">Guest Services</th>
+                }
+                @if(accID != "4")
+                {
+                    <th class="breakdownTitle">Leased Concessions<sup>#</sup></th>
+                    <th class="breakdownTitle">Other<sup>#</sup></th>
+                }
+                <th class="breakdownTitle">At-Site Propane</th>
+                <th class="breakdownTitle">Propane Station</th>
+                <th class="breakdownTitle">Laundry</th>
+                @if(accID != "4")
+                {
+                    <th class="breakdownTitle">Activities / Store&nbsp;Events<sup>#</sup></th>
+                    <th class="breakdownTitle">Office Events<sup>#</sup></th>
+                    <th class="breakdownTitle">Vendor Decals<sup>#</sup></th>
+                    <th class="breakdownTitle">Park Model Sales<sup>#</sup></th>
+                }
+            }
+            else
+            {
+                @if(accID != "4")
+                {
+                    <th class="breakdownTitleLeftMost">CATV</th>
+                    <th class="breakdownTitle">Guest Services</th>
+                }
+                else
+                {
+                    <th class="breakdownTitleLeftMost">Guest Services</th>
+                }
+                @if(accID != "4")
+                {
+                    <th class="breakdownTitle">Leased Concessions</th>
+                    <th class="breakdownTitle">Other</th>
+                }
+                <th class="breakdownTitle">At-Site Propane</th>
+                <th class="breakdownTitle">Propane Station</th>
+                <th class="breakdownTitle">Laundry</th>
+                @if(accID != "4")
+                {
+                    <th class="breakdownTitle">Activities / Store&nbsp;Events</th>
+                    <th class="breakdownTitle">Office Events</th>
+                    <th class="breakdownTitle">Vendor Decals</th>
+                    <th class="breakdownTitle">Park Model Sales</th>
+                }
+            }
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (DataRow row in Model!.Tables[0].Rows)
+        {
+        dataRecordRow++;
+        var alertDataClass = new System.Text.StringBuilder("alertData");
+        var breakdownDateClass = new System.Text.StringBuilder("breakdownDate");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+       if(dataRecordRow == 1)
+        {
+            alertDataClass.Remove(0, "alertData".Length).Append("alertDataTop");
+            breakdownDateClass.Remove(0, "breakdownDate".Length).Append("breakdownDateTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+        }
+        alertDataClass.ToString();
+        breakdownDateClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownTotalsClass.ToString();
+            var transDate = (DateTime)row["TransDate"];
+            string searchExp = "Transdate = '" + transDate.ToShortDateString() + "'";
+            bool blackedOutDate = false;
+            DataRow[] blackoutRows = Model.Tables["Blackout"].Select(searchExp);
+            if(blackoutRows.Length != 0)
+            {
+                DataRow blackoutRow = blackoutRows[0];
+                if((int)blackoutRow["StoreClosedState"] != 0)
+                {
+                    blackedOutDate = true;
+                }
+            }
+            var CATV = (decimal)row["CATV"];
+            var GuestServices = (decimal)row["GuestServices"];
+            var LeasedConcessions = (decimal)row["LeasedConcessions"];
+            var OtherM = (decimal)row["OtherM"];
+            var AtSitePropane = (decimal)row["AtSitePropane"];
+            var PropaneStation = (decimal)row["PropaneStation"];
+            var Laundry = (decimal)row["Laundry"];
+            var StoreEvents = (decimal)row["StoreEvents"];
+            var FrontEvents = (decimal)row["FrontEvents"];
+            var VendorDecals = (decimal)row["VendorDecals"];
+            var ParkModelSales = (decimal)row["ParkModelSales"];
+            var SupplementalO = (decimal)row["SupplementalO"];
+            var SupplementalS = (decimal)row["SupplementalS"];
+            decimal totals = 0.0m;
+            @if(accID == "4")
+            {
+                totals = (decimal)row["GuestServices"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"];
+            }
+            else
+            {
+                totals = (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["VendorDecals"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"];
+            }
+            totalCATV += CATV;
+            totalGuestServices += GuestServices;
+            totalLeasedConcessions += LeasedConcessions;
+            totalOtherM += OtherM;
+            totalAtSitePropane += AtSitePropane;
+            totalPropaneStation += PropaneStation;
+            totalLaundry += Laundry;
+            totalStoreEvents += StoreEvents;
+            totalFrontEvents += FrontEvents;
+            totalVendorDecals += VendorDecals;
+            totalParkModelSales += ParkModelSales;
+            totalSupplementalO += SupplementalO;
+            totalSupplementalS += SupplementalS;
+            totalTotals += totals;
+            <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
+                <td class="@breakdownDateClass">@transDate.ToString("MM/dd/yyyy")</td>
+                @if(accID != "4")
+                {
+                    <td class="@breakdownDataClass">@(@CATV != 0.00m ? @String.Format("{0:c2}", @CATV) : "")</td>
+                }
+                @if(blackedOutDate)
+                {
+                    <td class="@alertDataClass"><b>CLOSED</b></td>
+                }
+                else
+                {
+                    <td class="@breakdownDataClass">@(@GuestServices != 0.00m ? @String.Format("{0:c2}", @GuestServices) : "")</td>
+                }            
+                @if(accID != "4")
+                {
+                    <td class="@breakdownDataClass">@(@LeasedConcessions != 0.00m ? @String.Format("{0:c2}", @LeasedConcessions) : "")</td>
+                    <td class="@breakdownDataClass">@(@OtherM != 0.00m ? @String.Format("{0:c2}", @OtherM) : "")</td>
+                }
+                    <td class="@breakdownDataClass">@(@AtSitePropane != 0.00m ? @String.Format("{0:c2}", @AtSitePropane) : "")</td>
+                    <td class="@breakdownDataClass">@(@PropaneStation != 0.00m ? @String.Format("{0:c2}", @PropaneStation) : "")</td>
+                    <td class="@breakdownDataClass">@(@Laundry != 0.00m ? @String.Format("{0:c2}", @Laundry) : "")</td>
+                @if(accID != "4")
+                {
+                    <td class="@breakdownDataClass">@(@StoreEvents != 0.00m ? @String.Format("{0:c2}", @StoreEvents) : "")</td>
+                    <td class="@breakdownDataClass">@(@FrontEvents != 0.00m ? @String.Format("{0:c2}", @FrontEvents) : "")</td>
+                    <td class="@breakdownDataClass">@(@VendorDecals != 0.00m ? @String.Format("{0:c2}", @VendorDecals) : "")</td>
+                    <td class="@breakdownDataClass">@(@ParkModelSales != 0.00m ? @String.Format("{0:c2}", @ParkModelSales) : "")</td>
+                    <td class="@breakdownDataClass">@(@SupplementalO != 0.00m ? @String.Format("{0:c2}", @SupplementalO) : "")</td>
+                    <td class="@breakdownDataClass">@(@SupplementalS != 0.00m ? @String.Format("{0:c2}", @SupplementalS) : "")</td>
+                }
                 @if(accID == "4")
                 {
-                    totals = (decimal)row["GuestServices"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"];
+                    <td class="@breakdownTotalsClass">@String.Format("{0:c2}",(decimal)row["GuestServices"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"])</td>
                 }
                 else
                 {
-                    totals = (decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["VendorDecals"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"];
+                    <td class="@breakdownTotalsClass">@String.Format("{0:c2}",(decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["VendorDecals"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
                 }
-                totalCATV += CATV;
-                totalGuestServices += GuestServices;
-                totalLeasedConcessions += LeasedConcessions;
-                totalOtherM += OtherM;
-                totalAtSitePropane += AtSitePropane;
-                totalPropaneStation += PropaneStation;
-                totalLaundry += Laundry;
-                totalStoreEvents += StoreEvents;
-                totalFrontEvents += FrontEvents;
-                totalVendorDecals += VendorDecals;
-                totalParkModelSales += ParkModelSales;
-                totalSupplementalO += SupplementalO;
-                totalSupplementalS += SupplementalS;
-                totalTotals += totals;
-                <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
-                    <td class="breakdownDate">@transDate.ToString("MM/dd/yyyy")</td>
-                    @if(accID != "4")
-                    {
-                        <td class="breakdownData">@row["CATV"]</td>
-                    }
-                    @if(blackedOutDate)
-                    {
-                        <td class="alertData"><b>CLOSED</b></td>
-                    }
-                    else
-                    {
-                        <td class="breakdownData">@row["GuestServices"]</td>
-                    }            
-                    @if(accID != "4")
-                    {
-                        <td class="breakdownData">@row["LeasedConcessions"]</td>
-                        <td class="breakdownData">@row["OtherM"]</td>
-                    }
-                        <td class="breakdownData">@row["AtSitePropane"]</td>
-                        <td class="breakdownData">@row["PropaneStation"]</td>
-                        <td class="breakdownData">@row["Laundry"]</td>
-                    @if(accID != "4")
-                    {
-                        <td class="breakdownData">@row["StoreEvents"]</td>
-                        <td class="breakdownData">@row["FrontEvents"]</td>
-                        <td class="breakdownData">@row["VendorDecals"]</td>
-                        <td class="breakdownData">@row["ParkModelSales"]</td>
-                        <td class="breakdownData">@row["SupplementalO"]</td>
-                        <td class="breakdownData">@row["SupplementalS"]</td>
-                    }
-                    @if(accID == "4")
-                    {
-                        <td class="breakdownTotals">@String.Format("{0:F2}",(decimal)row["GuestServices"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"])</td>
-                    }
-                    else
-                    {
-                        <td class="breakdownTotals">@String.Format("{0:F2}",(decimal)row["CATV"]+(decimal)row["GuestServices"]+(decimal)row["LeasedConcessions"]+(decimal)row["OtherM"]+(decimal)row["AtSitePropane"]+(decimal)row["PropaneStation"]+(decimal)row["Laundry"]+(decimal)row["StoreEvents"]+(decimal)row["FrontEvents"]+(decimal)row["VendorDecals"]+(decimal)row["ParkModelSales"]+(decimal)row["SupplementalO"]+(decimal)row["SupplementalS"])</td>
-                    }
-                </tr>
-            }
-        <tr>
-            <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
-            @if(accID != "4")
-            {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalCATV)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalGuestServices)</td>
-            @if(accID != "4")
-            {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalLeasedConcessions)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalOtherM)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalAtSitePropane)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalPropaneStation)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalLaundry)</td>
-            @if(accID != "4")
-            {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalStoreEvents)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalFrontEvents)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalVendorDecals)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalParkModelSales)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalO)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalS)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalTotals)</td>     
-        </tr>
-        @if (startDate.Month == currentDate.Month)
-        {   // some columns are projected only as the sum of what's been found to date since they contain irregular entries
-            int totalFiscalDays = fiscalDays + Model.Tables[0].Rows.Count;
-            int monthDaysRemaining = daysThisMonth - Model.Tables[0].Rows.Count;
-            projCATV = totalCATV;
-            projGuestServices = totalGuestServices + (((decimal)Model.Tables["YTD"].Rows[0]["GuestServices"] / totalFiscalDays) * monthDaysRemaining);
-            projLeasedConcessions = totalLeasedConcessions;
-            projOtherM = totalOtherM;
-            projAtSitePropane = totalAtSitePropane + (((decimal)Model.Tables["YTD"].Rows[0]["AtSitePropane"] / totalFiscalDays) * monthDaysRemaining);
-            projPropaneStation = totalPropaneStation + (((decimal)Model.Tables["YTD"].Rows[0]["PropaneStation"] / totalFiscalDays) * monthDaysRemaining);
-            projLaundry = totalLaundry + (((decimal)Model.Tables["YTD"].Rows[0]["Laundry"] / totalFiscalDays) * monthDaysRemaining);
-            projStoreEvents = totalStoreEvents;
-            projFrontEvents = totalFrontEvents;
-            projVendorDecals = totalVendorDecals;
-            projParkModelSales = totalParkModelSales;
-            projSupplementalO = totalSupplementalO;
-            projSupplementalS = totalSupplementalS;
-            @if(accID == "4")
-            {
-                projTotals = projGuestServices + projAtSitePropane + projPropaneStation + projLaundry;
-            }
-            else
-            {
-                projTotals = projCATV + projGuestServices + projLeasedConcessions + projOtherM + projAtSitePropane + projPropaneStation + projLaundry + 
-                                projStoreEvents + projVendorDecals + projParkModelSales + projSupplementalO + projSupplementalS;
-            }
-            <tr>
-                <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
-                @if(accID != "4")
-                {
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projCATV)</td>
-                }
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projGuestServices)</td>
-                @if(accID != "4")
-                {
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projLeasedConcessions)</td>
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projOtherM)</td>
-                }
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projAtSitePropane)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projPropaneStation)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projLaundry)</td>
-                @if(accID != "4")
-                {
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projStoreEvents)</td>
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projFrontEvents)</td>
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projVendorDecals)</td>
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projParkModelSales)</td>
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projSupplementalO)</td>
-                    <td class="breakdownTotals2">@String.Format("{0:F2}", projSupplementalS)</td>
-                }
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projTotals)</td>
             </tr>
         }
-        @foreach (DataRow row in Model!.Tables["prior"].Rows)
+    <tr>
+        <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
+        @if(accID != "4")
         {
-            ptotalCATV += (decimal)row["CATV"];
-            ptotalGuestServices += (decimal)row["GuestServices"];
-            ptotalLeasedConcessions += (decimal)row["LeasedConcessions"];
-            ptotalOtherM += (decimal)row["OtherM"];
-            ptotalAtSitePropane += (decimal)row["AtSitePropane"];
-            ptotalPropaneStation += (decimal)row["PropaneStation"];
-            ptotalLaundry += (decimal)row["Laundry"];
-            ptotalStoreEvents += (decimal)row["StoreEvents"];
-            ptotalFrontEvents += (decimal)row["FrontEvents"];
-            ptotalSupplementalO += (decimal)row["SupplementalO"];
-            ptotalVendorDecals += (decimal)row["VendorDecals"];
-            ptotalParkModelSales += (decimal)row["ParkModelSales"];
-            ptotalSupplementalS += (decimal)row["SupplementalS"];
-            @if(accID == "4")
-            {
-                ptotalTotals = ptotalGuestServices + ptotalAtSitePropane + ptotalPropaneStation + ptotalLaundry;
-            }
-            else
-            {
-                ptotalTotals = ptotalCATV + ptotalGuestServices + ptotalLeasedConcessions + ptotalOtherM + ptotalAtSitePropane + ptotalPropaneStation + ptotalLaundry + 
-                                ptotalStoreEvents + ptotalFrontEvents + ptotalVendorDecals + ptotalParkModelSales + ptotalSupplementalO + ptotalSupplementalS;
-            }
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalCATV)</td>
         }
-        <tr>
-            <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
-            @if(accID != "4")
-            {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalCATV)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGuestServices)</td>
-            @if(accID != "4")
-            {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLeasedConcessions)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalOtherM)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalAtSitePropane)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPropaneStation)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLaundry)</td>
-            @if(accID != "4")
-            {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalStoreEvents)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFrontEvents)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalVendorDecals)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalParkModelSales)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSupplementalO)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSupplementalS)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotals)</td>
-        </tr>
-        @foreach (DataRow row in Model!.Tables["prior2"].Rows)
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGuestServices)</td>
+        @if(accID != "4")
         {
-            p2totalCATV += (decimal)row["CATV"];
-            p2totalGuestServices += (decimal)row["GuestServices"];
-            p2totalLeasedConcessions += (decimal)row["LeasedConcessions"];
-            p2totalOtherM += (decimal)row["OtherM"];
-            p2totalAtSitePropane += (decimal)row["AtSitePropane"];
-            p2totalPropaneStation += (decimal)row["PropaneStation"];
-            p2totalLaundry += (decimal)row["Laundry"];
-            p2totalStoreEvents += (decimal)row["StoreEvents"];
-            p2totalFrontEvents += (decimal)row["FrontEvents"];
-            p2totalVendorDecals += (decimal)row["VendorDecals"];
-            p2totalParkModelSales += (decimal)row["ParkModelSales"];
-            p2totalSupplementalO += (decimal)row["SupplementalO"];
-            p2totalSupplementalS += (decimal)row["SupplementalS"];
-            @if(accID == "4")
-            {
-                p2totalTotals = p2totalGuestServices + p2totalAtSitePropane + p2totalPropaneStation + p2totalLaundry;
-            }
-            else
-            {
-                p2totalTotals = p2totalCATV + p2totalGuestServices + p2totalLeasedConcessions + p2totalOtherM + p2totalAtSitePropane + p2totalPropaneStation + p2totalLaundry + 
-                            p2totalStoreEvents + p2totalFrontEvents + p2totalVendorDecals + p2totalParkModelSales + p2totalSupplementalO + p2totalSupplementalS;
-            }
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalLeasedConcessions)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalOtherM)</td>
         }
-        <tr>
-            <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
-            @if(accID != "4")
-            {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalCATV)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGuestServices)</td>
-            @if(accID != "4")
-            {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLeasedConcessions)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalOtherM)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalAtSitePropane)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPropaneStation)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLaundry)</td>
-            @if(accID != "4")
-            {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalStoreEvents)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFrontEvents)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalVendorDecals)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalParkModelSales)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSupplementalO)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSupplementalS)</td>
-            }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotals)</td>
-        </tr>
-        @{
-            decimal deltaCATV = 0;
-            decimal deltaGuestServices = 0;
-            decimal deltaLeasedConcessions = 0;
-            decimal deltaOtherM = 0;
-            decimal deltaAtSitePropane = 0;
-            decimal deltaPropaneStation = 0;
-            decimal deltaLaundry = 0;
-            decimal deltaStoreEvents = 0;
-            decimal deltaFrontEvents = 0;
-            decimal deltaVendorDecals = 0;
-            decimal deltaParkModelSales = 0;
-            decimal deltaSupplementalO = 0;
-            decimal deltaSupplementalS = 0;
-            decimal deltaTotals = 0;
-        }
-        @if (startDate.Month == currentDate.Month)
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalAtSitePropane)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalPropaneStation)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalLaundry)</td>
+        @if(accID != "4")
         {
-            deltaCATV = projCATV - ptotalCATV;
-            deltaGuestServices = projGuestServices - ptotalGuestServices;
-            deltaLeasedConcessions = projLeasedConcessions - ptotalLeasedConcessions;
-            deltaOtherM = projOtherM - ptotalOtherM;
-            deltaAtSitePropane = projAtSitePropane - ptotalAtSitePropane;
-            deltaPropaneStation = projPropaneStation - ptotalPropaneStation;
-            deltaLaundry = projLaundry - ptotalLaundry;
-            deltaStoreEvents = projStoreEvents - ptotalStoreEvents;
-            deltaFrontEvents = projFrontEvents - ptotalFrontEvents;
-            deltaVendorDecals = projVendorDecals - ptotalVendorDecals;
-            deltaParkModelSales = projParkModelSales - ptotalParkModelSales;
-            deltaSupplementalO = projSupplementalO - ptotalSupplementalO;
-            deltaSupplementalS = projSupplementalS - ptotalSupplementalS;
-            deltaTotals = projTotals - ptotalTotals;
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalStoreEvents)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalFrontEvents)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalVendorDecals)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalParkModelSales)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalO)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalS)</td>
+        }
+        <td class="breakdownTotals2">@String.Format("{0:F2}", totalTotals)</td>     
+    </tr>
+    @if (startDate.Month == currentDate.Month)
+    {   // some columns are projected only as the sum of what's been found to date since they contain irregular entries
+        int totalFiscalDays = fiscalDays + Model.Tables[0].Rows.Count;
+        int monthDaysRemaining = daysThisMonth - Model.Tables[0].Rows.Count;
+        projCATV = totalCATV;
+        projGuestServices = totalGuestServices + (((decimal)Model.Tables["YTD"].Rows[0]["GuestServices"] / totalFiscalDays) * monthDaysRemaining);
+        projLeasedConcessions = totalLeasedConcessions;
+        projOtherM = totalOtherM;
+        projAtSitePropane = totalAtSitePropane + (((decimal)Model.Tables["YTD"].Rows[0]["AtSitePropane"] / totalFiscalDays) * monthDaysRemaining);
+        projPropaneStation = totalPropaneStation + (((decimal)Model.Tables["YTD"].Rows[0]["PropaneStation"] / totalFiscalDays) * monthDaysRemaining);
+        projLaundry = totalLaundry + (((decimal)Model.Tables["YTD"].Rows[0]["Laundry"] / totalFiscalDays) * monthDaysRemaining);
+        projStoreEvents = totalStoreEvents;
+        projFrontEvents = totalFrontEvents;
+        projVendorDecals = totalVendorDecals;
+        projParkModelSales = totalParkModelSales;
+        projSupplementalO = totalSupplementalO;
+        projSupplementalS = totalSupplementalS;
+        @if(accID == "4")
+        {
+            projTotals = projGuestServices + projAtSitePropane + projPropaneStation + projLaundry;
         }
         else
         {
-            deltaCATV = totalCATV - ptotalCATV;
-            deltaGuestServices = totalGuestServices - ptotalGuestServices;
-            deltaLeasedConcessions = totalLeasedConcessions - ptotalLeasedConcessions;
-            deltaOtherM = totalOtherM - ptotalOtherM;
-            deltaAtSitePropane = totalAtSitePropane - ptotalAtSitePropane;
-            deltaPropaneStation = totalPropaneStation - ptotalPropaneStation;
-            deltaLaundry = totalLaundry - ptotalLaundry;
-            deltaStoreEvents = totalStoreEvents - ptotalStoreEvents;
-            deltaFrontEvents = totalFrontEvents - ptotalFrontEvents;
-            deltaVendorDecals = totalVendorDecals - ptotalVendorDecals;
-            deltaParkModelSales = totalParkModelSales - ptotalParkModelSales;
-            deltaSupplementalO = totalSupplementalO - ptotalSupplementalO;
-            deltaSupplementalS = totalSupplementalS - ptotalSupplementalS;
-            deltaTotals = totalTotals - ptotalTotals;
-        }
-        @{
-            string dateString = startDate.ToString("MMM yyyy");
-            dateString = dateString.Replace(" ", "\u00A0") + "\u00A0" + "Over/Under:";
+            projTotals = projCATV + projGuestServices + projLeasedConcessions + projOtherM + projAtSitePropane + projPropaneStation + projLaundry + 
+                            projStoreEvents + projVendorDecals + projParkModelSales + projSupplementalO + projSupplementalS;
         }
         <tr>
-            @if (startDate.Month == currentDate.Month)
-            {
-                <td class="breakdownTotalsScrollingSmallText">Projected&nbsp;@dateString</td>
-            }
-            else
-            {
-                <td class="breakdownTotalsScrollingSmallText">@dateString</td>
-            }
+            <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
             @if(accID != "4")
             {
-                <td class="@(deltaCATV < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaCATV)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projCATV)</td>
             }
-            <td class="@(deltaGuestServices < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaGuestServices)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projGuestServices)</td>
             @if(accID != "4")
             {
-                <td class="@(deltaLeasedConcessions < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaLeasedConcessions)</td>
-                <td class="@(deltaOtherM < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaOtherM)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projLeasedConcessions)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projOtherM)</td>
             }
-            <td class="@(deltaAtSitePropane < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaAtSitePropane)</td>
-            <td class="@(deltaPropaneStation < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaPropaneStation)</td>
-            <td class="@(deltaLaundry < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaLaundry)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projAtSitePropane)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projPropaneStation)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projLaundry)</td>
             @if(accID != "4")
             {
-                <td class="@(deltaStoreEvents < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaStoreEvents)</td>
-                <td class="@(deltaFrontEvents < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaFrontEvents)</td>
-                <td class="@(deltaVendorDecals < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaVendorDecals)</td>
-                <td class="@(deltaParkModelSales < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaParkModelSales)</td>
-                <td class="@(deltaSupplementalO < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSupplementalO)</td>
-                <td class="@(deltaSupplementalS < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSupplementalS)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projStoreEvents)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projFrontEvents)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projVendorDecals)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projParkModelSales)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projSupplementalO)</td>
+                <td class="breakdownTotals2">@String.Format("{0:F2}", projSupplementalS)</td>
             }
-            <td class="@(deltaTotals < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaTotals)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", projTotals)</td>
         </tr>
+    }
+    @foreach (DataRow row in Model!.Tables["prior"].Rows)
+    {
+        ptotalCATV += (decimal)row["CATV"];
+        ptotalGuestServices += (decimal)row["GuestServices"];
+        ptotalLeasedConcessions += (decimal)row["LeasedConcessions"];
+        ptotalOtherM += (decimal)row["OtherM"];
+        ptotalAtSitePropane += (decimal)row["AtSitePropane"];
+        ptotalPropaneStation += (decimal)row["PropaneStation"];
+        ptotalLaundry += (decimal)row["Laundry"];
+        ptotalStoreEvents += (decimal)row["StoreEvents"];
+        ptotalFrontEvents += (decimal)row["FrontEvents"];
+        ptotalSupplementalO += (decimal)row["SupplementalO"];
+        ptotalVendorDecals += (decimal)row["VendorDecals"];
+        ptotalParkModelSales += (decimal)row["ParkModelSales"];
+        ptotalSupplementalS += (decimal)row["SupplementalS"];
+        @if(accID == "4")
+        {
+            ptotalTotals = ptotalGuestServices + ptotalAtSitePropane + ptotalPropaneStation + ptotalLaundry;
+        }
+        else
+        {
+            ptotalTotals = ptotalCATV + ptotalGuestServices + ptotalLeasedConcessions + ptotalOtherM + ptotalAtSitePropane + ptotalPropaneStation + ptotalLaundry + 
+                            ptotalStoreEvents + ptotalFrontEvents + ptotalVendorDecals + ptotalParkModelSales + ptotalSupplementalO + ptotalSupplementalS;
+        }
+    }
+    <tr>
+        <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
+        @if(accID != "4")
+        {
+            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalCATV)</td>
+        }
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGuestServices)</td>
+        @if(accID != "4")
+        {
+            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLeasedConcessions)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalOtherM)</td>
+        }
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalAtSitePropane)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPropaneStation)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLaundry)</td>
+        @if(accID != "4")
+        {
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalStoreEvents)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFrontEvents)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalVendorDecals)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalParkModelSales)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSupplementalO)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSupplementalS)</td>
+        }
+        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotals)</td>
+    </tr>
+    @foreach (DataRow row in Model!.Tables["prior2"].Rows)
+    {
+        p2totalCATV += (decimal)row["CATV"];
+        p2totalGuestServices += (decimal)row["GuestServices"];
+        p2totalLeasedConcessions += (decimal)row["LeasedConcessions"];
+        p2totalOtherM += (decimal)row["OtherM"];
+        p2totalAtSitePropane += (decimal)row["AtSitePropane"];
+        p2totalPropaneStation += (decimal)row["PropaneStation"];
+        p2totalLaundry += (decimal)row["Laundry"];
+        p2totalStoreEvents += (decimal)row["StoreEvents"];
+        p2totalFrontEvents += (decimal)row["FrontEvents"];
+        p2totalVendorDecals += (decimal)row["VendorDecals"];
+        p2totalParkModelSales += (decimal)row["ParkModelSales"];
+        p2totalSupplementalO += (decimal)row["SupplementalO"];
+        p2totalSupplementalS += (decimal)row["SupplementalS"];
+        @if(accID == "4")
+        {
+            p2totalTotals = p2totalGuestServices + p2totalAtSitePropane + p2totalPropaneStation + p2totalLaundry;
+        }
+        else
+        {
+            p2totalTotals = p2totalCATV + p2totalGuestServices + p2totalLeasedConcessions + p2totalOtherM + p2totalAtSitePropane + p2totalPropaneStation + p2totalLaundry + 
+                        p2totalStoreEvents + p2totalFrontEvents + p2totalVendorDecals + p2totalParkModelSales + p2totalSupplementalO + p2totalSupplementalS;
+        }
+    }
+    <tr>
+        <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
+        @if(accID != "4")
+        {
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalCATV)</td>
+        }
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGuestServices)</td>
+        @if(accID != "4")
+        {
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLeasedConcessions)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalOtherM)</td>
+        }
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalAtSitePropane)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPropaneStation)</td>
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLaundry)</td>
+        @if(accID != "4")
+        {
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalStoreEvents)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFrontEvents)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalVendorDecals)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalParkModelSales)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSupplementalO)</td>
+            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSupplementalS)</td>
+        }
+        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotals)</td>
+    </tr>
+    @{
+        decimal deltaCATV = 0;
+        decimal deltaGuestServices = 0;
+        decimal deltaLeasedConcessions = 0;
+        decimal deltaOtherM = 0;
+        decimal deltaAtSitePropane = 0;
+        decimal deltaPropaneStation = 0;
+        decimal deltaLaundry = 0;
+        decimal deltaStoreEvents = 0;
+        decimal deltaFrontEvents = 0;
+        decimal deltaVendorDecals = 0;
+        decimal deltaParkModelSales = 0;
+        decimal deltaSupplementalO = 0;
+        decimal deltaSupplementalS = 0;
+        decimal deltaTotals = 0;
+    }
+    @if (startDate.Month == currentDate.Month)
+    {
+        deltaCATV = projCATV - ptotalCATV;
+        deltaGuestServices = projGuestServices - ptotalGuestServices;
+        deltaLeasedConcessions = projLeasedConcessions - ptotalLeasedConcessions;
+        deltaOtherM = projOtherM - ptotalOtherM;
+        deltaAtSitePropane = projAtSitePropane - ptotalAtSitePropane;
+        deltaPropaneStation = projPropaneStation - ptotalPropaneStation;
+        deltaLaundry = projLaundry - ptotalLaundry;
+        deltaStoreEvents = projStoreEvents - ptotalStoreEvents;
+        deltaFrontEvents = projFrontEvents - ptotalFrontEvents;
+        deltaVendorDecals = projVendorDecals - ptotalVendorDecals;
+        deltaParkModelSales = projParkModelSales - ptotalParkModelSales;
+        deltaSupplementalO = projSupplementalO - ptotalSupplementalO;
+        deltaSupplementalS = projSupplementalS - ptotalSupplementalS;
+        deltaTotals = projTotals - ptotalTotals;
+    }
+    else
+    {
+        deltaCATV = totalCATV - ptotalCATV;
+        deltaGuestServices = totalGuestServices - ptotalGuestServices;
+        deltaLeasedConcessions = totalLeasedConcessions - ptotalLeasedConcessions;
+        deltaOtherM = totalOtherM - ptotalOtherM;
+        deltaAtSitePropane = totalAtSitePropane - ptotalAtSitePropane;
+        deltaPropaneStation = totalPropaneStation - ptotalPropaneStation;
+        deltaLaundry = totalLaundry - ptotalLaundry;
+        deltaStoreEvents = totalStoreEvents - ptotalStoreEvents;
+        deltaFrontEvents = totalFrontEvents - ptotalFrontEvents;
+        deltaVendorDecals = totalVendorDecals - ptotalVendorDecals;
+        deltaParkModelSales = totalParkModelSales - ptotalParkModelSales;
+        deltaSupplementalO = totalSupplementalO - ptotalSupplementalO;
+        deltaSupplementalS = totalSupplementalS - ptotalSupplementalS;
+        deltaTotals = totalTotals - ptotalTotals;
+    }
+    @{
+        string dateString = startDate.ToString("MMM yyyy");
+        dateString = dateString.Replace(" ", "\u00A0") + "\u00A0" + "Over/Under:";
+    }
+    <tr>
         @if (startDate.Month == currentDate.Month)
         {
-            @if(accID != "4")
-            {
-                <tr>
-                    <td class="breakdownLegendTop" colspan="5" id="breakdownLegendId"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
-                    <td colspan="10" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: none; border-right: 1px solid black;">&nbsp;</td>
-                </tr>
-                <tr>
-                    <td class="breakdownLegendBottom" colspan="5" id="breakdownLegendId2"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
-                    <td colspan="10" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black;">&nbsp;</td>
-                </tr>
-            }
-            else
-            {
-                <tr>
-                    <td class="breakdownLegendTop" colspan="6"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
-                </tr>
-                <tr>
-                    <td class="breakdownLegendBottom" colspan="6"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
-                </tr>
-            }
+            <td class="breakdownTotalsScrollingSmallText">Projected&nbsp;@dateString</td>
         }
-        </table>
-        </div>
+        else
+        {
+            <td class="breakdownTotalsScrollingSmallText">@dateString</td>
+        }
+        @if(accID != "4")
+        {
+            <td class="@(deltaCATV < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaCATV)</td>
+        }
+        <td class="@(deltaGuestServices < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaGuestServices)</td>
+        @if(accID != "4")
+        {
+            <td class="@(deltaLeasedConcessions < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaLeasedConcessions)</td>
+            <td class="@(deltaOtherM < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaOtherM)</td>
+        }
+        <td class="@(deltaAtSitePropane < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaAtSitePropane)</td>
+        <td class="@(deltaPropaneStation < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaPropaneStation)</td>
+        <td class="@(deltaLaundry < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaLaundry)</td>
+        @if(accID != "4")
+        {
+            <td class="@(deltaStoreEvents < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaStoreEvents)</td>
+            <td class="@(deltaFrontEvents < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaFrontEvents)</td>
+            <td class="@(deltaVendorDecals < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaVendorDecals)</td>
+            <td class="@(deltaParkModelSales < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaParkModelSales)</td>
+            <td class="@(deltaSupplementalO < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSupplementalO)</td>
+            <td class="@(deltaSupplementalS < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaSupplementalS)</td>
+        }
+        <td class="@(deltaTotals < 0 ? "breakdownUnder" : "breakdownOver")">@String.Format("{0:c2}", deltaTotals)</td>
+    </tr>
+    @if (startDate.Month == currentDate.Month)
+    {
+        @if(accID != "4")
+        {
+            <tr>
+                <td class="breakdownLegendTop" colspan="6" id="breakdownLegendId" style="border-top: 1px solid black; border-right: none"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+                <td colspan="9" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black; border-top: 1px solid black;">&nbsp;</td>
+            </tr>
+            <tr>
+                <td class="breakdownLegendBottom" colspan="6" id="breakdownLegendId2" style="border-bottom: 1px solid black; border-top: 1px solid black; border-right: none"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
+                <td colspan="9" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black;">&nbsp;</td>
+            </tr>
+        }
+        else
+        {
+            <tr>
+                <td class="breakdownLegendTop" colspan="6" style="border-top: 1px solid black;"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+            </tr>
+            <tr>
+                <td class="breakdownLegendBottom" colspan="6" style="border-bottom: 1px solid black;"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
+            </tr>
+        }
+    }
+        </tbody>
+    </table>
+</div>
     }
 </body>
 
