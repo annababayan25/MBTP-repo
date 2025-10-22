@@ -12,6 +12,87 @@ html {
   position: relative;
   min-height: 100%;
 }
+table#daily-table {
+	width:1600px; /* just to demonstrate horizontal scrolling & stickiness */
+	margin:0;
+	border:none;
+	background-color:#FFF;
+	border-collapse:separate;
+	border-spacing:0;
+	border-left:1px solid #ccc;
+}
+table#daily-table thead {
+	background:#777;
+	border-right:1px solid #999;
+	color:#FFF;
+	padding:3px;
+	position:sticky;
+	top:0;
+  /* ensure header row sits atop everything else when scrolling down */
+	z-index:4;
+}
+table#daily-table td {
+/*	background:#fff; */
+	border-right:1px solid black;
+	border-bottom:1px solid #ccc;
+	padding:4px 5px;
+}
+/* ensure first header cell sits atop everything else when scrolling right */
+table#daily-table th:first-child {
+	position:sticky;
+	left:0;
+}
+/* make first column sticky when scrolling right */
+table#daily-table td:first-child {
+	position:sticky;
+	left:0;
+	border-right-color:black;
+    background-color: #f2f2f2;
+    z-index: 1;
+}
+table#monthly-table {
+	width:1600px; /* just to demonstrate horizontal scrolling & stickiness */
+	margin:0;
+	border:none;
+	background-color:#FFF;
+	border-collapse:separate;
+	border-spacing:0;
+	border-left:1px solid #ccc;
+}
+table#monthly-table thead {
+	background:#777;
+	border-right:1px solid #999;
+	color:#FFF;
+	padding:3px;
+	position:sticky;
+	top:0;
+  /* ensure header row sits atop everything else when scrolling down */
+	z-index:4;
+}
+table#monthly-table tfoot {
+  border-bottom: 1px solid black;
+}
+table#monthly-table td {
+/*	background:#fff; */
+	border-right:1px solid black;
+	border-bottom:1px solid #ccc;
+	padding:4px 5px;
+}
+/* ensure first header cell sits atop everything else when scrolling right */
+table#monthly-table th:first-child {
+	position:sticky;
+	left:0;
+}
+/* make first column sticky when scrolling right */
+/* make first column sticky when scrolling right */
+table#monthly-table td:first-child {
+	position:sticky;
+	left:0;
+	border-right-color:black;
+    background-color: #f2f2f2;
+    z-index: 1;
+}
+
 .monthlyData {
   text-align: right;
   color: blue;
@@ -292,10 +373,27 @@ a{
   padding-left: 30px;
   padding-right: 30px;
 }
+.breakdownHead{
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
 .breakdownTitle{
   text-align: center;
   font-weight: bold;
-  border: 1px black solid;
+  border-bottom: 1px black solid;
+  border-right: 1px black solid;
+  background-color: white;
+  padding-left: 25px;
+  padding-right: 25px;
+  color:blue;
+}
+.breakdownTitleLeftMost{
+  text-align: center;
+  font-weight: bold;
+  border-bottom: 1px black solid;
+  border-right: 1px black solid;
+  background-color: white;
   padding-left: 25px;
   padding-right: 25px;
   color:blue;
@@ -303,16 +401,31 @@ a{
 .breakdownMonth{
   text-align: center;
   font-weight: bold;
-  border-right: none;
+  border: 1px black solid;
+  border-top: 1px black solid;
   padding-left: 10px;
   padding-right: 10px;
   color:rgb(0, 0, 0);
+}
+.breakdownMonthTop{
+  text-align: center;
+  border: 1px black solid;
+  border-top: 1px black solid;
+  border-top: none;
+  font-weight: bold;
+}
+
+.breakdownMonthFixed{
+  text-align: right;
+  border: 1px black solid;
+  padding-left: 60px;
+  padding-right: 7px;
 }
 .breakdownMonthScrolling{
   text-align: center;
   vertical-align: top;
   font-weight: bold;
-  border-right: none;
+  border-right: 1px solid black;
   border-left: 1px black solid;
   padding-left: 25px;
   padding-right: 25px;
@@ -322,6 +435,22 @@ a{
   background-color: #f2f2f2;
   z-index: 1;
 }
+.breakdownMonthScrollingBottom{
+  text-align: center;
+  vertical-align: top;
+  font-weight: bold;
+  border-right: 1px solid black;
+  border-left: 1px black solid;
+  border-bottom: 1px solid black;
+  padding-left: 25px;
+  padding-right: 25px;
+  color:rgb(0, 0, 0);
+  position: sticky;
+  left: 0;
+  background-color: #f2f2f2;
+  z-index: 1;
+}
+
 .breakdownMonthSmallText{
   text-align: center;
   font-weight: bold;
@@ -335,8 +464,23 @@ a{
   text-align: center;
   vertical-align: top;
   font-weight: bold;
-  border-right: none;
+  border-right: 1px solid black;
   border-left: 1px black solid;
+  padding-left: 25px;
+  padding-right: 25px;
+  color:rgb(0, 0, 0);
+  position: sticky;
+  left: 0;
+  background-color: #f2f2f2;
+  z-index: 1;
+}
+.breakdownDayScrollingBottom{
+  text-align: center;
+  vertical-align: top;
+  font-weight: bold;
+  border-right: 1px solid black;
+  border-left: 1px black solid;
+  border-bottom: 1px solid black;
   padding-left: 25px;
   padding-right: 25px;
   color:rgb(0, 0, 0);
@@ -350,6 +494,7 @@ a{
   vertical-align: top;
   font-weight: bold;
   border-right: none;
+  border-top: 1px black solid;
   border-left: 1px black solid;
   border-bottom: 1px solid black;  
   padding-left: 25px;
@@ -363,6 +508,7 @@ a{
   border-right: none;
   border-left: 1px black solid;
   border-bottom: 1px solid black;  
+  border-top: 1px solid black;
   padding-left: 10px;
   padding-right: 10px;
   color:rgb(0, 0, 0);
@@ -370,12 +516,28 @@ a{
 .breakdownData{
   text-align: right;
   border: 1px black solid;
+  border-left: none;
+  border-right: 1px black solid;
+  padding-left: 60px;
+  padding-right: 7px;
+}
+.breakdownDataTop{
+  text-align: right;
+  border: 1px black solid;
+  border-left: none;
+  border-top: none;
   padding-left: 60px;
   padding-right: 7px;
 }
 .breakdownDate{
   text-align: center;
   border: 1px black solid;
+  font-weight: bold;
+}
+.breakdownDateTop{
+  text-align: center;
+  border: 1px black solid;
+  border-top: none;
   font-weight: bold;
 }
 .breakdownBigTitle{
@@ -392,7 +554,8 @@ a{
 .breakdownSubtotalTitle{
   text-align: center;
   font-weight: bold;
-  border: 1px black solid;
+  border-right: 1px black solid;
+  border-bottom: 1px black solid;
   padding-left: 25px;
   padding-right: 25px;
   color: black;
@@ -402,6 +565,16 @@ a{
   background-color:rgb(180, 213, 255);
   text-align: right;
   border: 1px black solid;
+  border-left: none;
+  padding-left: 60px;
+  padding-right: 7px;
+}
+.breakdownSubTotalsTop{
+  background-color:rgb(180, 213, 255);
+  text-align: right;
+  border: 1px black solid;
+  border-left: none;
+  border-top: none;
   padding-left: 60px;
   padding-right: 7px;
 }
@@ -409,6 +582,16 @@ a{
   background-color:rgb(207, 252, 201);
   text-align: right;
   border: 1px black solid;
+  border-left: none;
+  padding-left: 60px;
+  padding-right: 7px;
+}
+.breakdownTotalsTop{
+  background-color:rgb(207, 252, 201);
+  text-align: right;
+  border: 1px black solid;
+  border-left: none;
+  border-top: none;
   padding-left: 60px;
   padding-right: 7px;
 }
@@ -416,6 +599,7 @@ a{
   background-color:rgb(255, 192, 129);
   text-align: right;
   border: 1px black solid;
+  border-left: none;
   padding-left: 60px;
   padding-right: 7px;
 }
@@ -423,6 +607,7 @@ a{
   background-color: rgb(124, 252, 0);
   text-align: right;
   border: 1px black solid;
+  border-left: none;
   padding-left: 60px;
   padding-right: 7px;
 }
@@ -430,21 +615,35 @@ a{
   background-color: rgb(255, 204, 203);
   text-align: right;
   border: 1px black solid;
+  border-left: none;
   padding-left: 60px;
   padding-right: 7px;
+  color: red;
 }
 .breakdownTotalsHead{
   background-color:rgb(150, 191, 144);
   text-align: center;
   font-weight: bold;
-  border: 1px black solid;
+  border-right: 1px black solid;
+  border-bottom: 1px black solid;
   padding-left: 25px;
   padding-right: 25px;
+  color: black
 }
 .breakdownTax{
   background-color:rgb(187, 227, 255);
   text-align: right;
   border: 1px black solid;
+  border-left: none;
+  padding-left: 60px;
+  padding-right: 7px;
+}
+.breakdownTaxTop{
+  background-color:rgb(187, 227, 255);
+  text-align: right;
+  border: 1px black solid;
+  border-top: none;
+  border-left: none;
   padding-left: 60px;
   padding-right: 7px;
 }
@@ -452,15 +651,21 @@ a{
   background-color:rgb(148, 181, 205);
   text-align: center;
   font-weight: bold;
-  border: 1px black solid;
+  border-right: 1px black solid;
+  border-bottom: 1px black solid;
+  border-top: none;
+  border-left: none;
   padding-left: 25px;
   padding-right: 25px;
+  color: black;
 }
 .breakdownTaxBig{
   background-color:#fffd8c;
+  color: black;
   text-align: center;
   font-weight: bold;
-  border: 1px black solid;
+  border-bottom: 1px black solid;
+  border-right: 1px black solid;
   padding-left: 25px;
   padding-right: 25px;
 }
@@ -468,6 +673,16 @@ a{
   background-color:rgb(236, 182, 182);
   text-align: right;
   border: 1px black solid;
+  border-left: none;
+  padding-left: 60px;
+  padding-right: 7px;
+}
+.breakdownRefTop{
+  background-color:rgb(236, 182, 182);
+  text-align: right;
+  border: 1px black solid;
+  border-top: none;
+  border-left: none;
   padding-left: 60px;
   padding-right: 7px;
 }
@@ -475,6 +690,8 @@ a{
   text-align:center;
   font-weight:bold;
   border: 1px solid black;
+  border-top: none;
+  border-left: none;
   background-color:rgb(208, 125, 125);
   color:rgb(0, 0, 0);
 }
@@ -490,6 +707,7 @@ a{
 .breakdownLegendBottom{
   border-left: 1px solid black;
   border-bottom: 1px solid black;
+  border-top: 1px solid black;
   border-right: none;
   position: sticky;
   left: 0;
@@ -547,6 +765,15 @@ a{
 .alertData{
   text-align: center;
   border: 1px black solid;
+  border-left: none;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+.alertDataTop{
+  text-align: center;
+  border: 1px black solid;
+  border-top: none;
+  border-left: none;
   padding-left: 5px;
   padding-right: 5px;
 }
@@ -751,30 +978,12 @@ tr.flag td {
   min-width: 800px; 
 }
 
-.breakdown    td:first-child {
+.breakdown tbody td:first-child {
         position: sticky;
         left: 0;
         background-color: #f2f2f2;
-        z-index: 1; /* Ensures it stays on top of scrolling content */
+        z-index: 2; /* Ensures it stays on top of scrolling content */
     }
-.breakdown th:first-child::before,
-.breakdown td:first-child::before {
-  content: " ";
-  background: black;
-  width: 1px;
-  height: 100%;
-  position: absolute;
-  left: -1px;
-}
-.breakdown th:first-child::after,
-.breakdown td:first-child::after {
-  content: " ";
-  background: black;
-  width: 1px;
-  height: 100%;
-  position: absolute;
-  right: 0;
-}
 
 @media (max-width: 1024px) {
   #daily-table th,

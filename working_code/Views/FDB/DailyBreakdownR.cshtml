@@ -10,6 +10,7 @@
     DateTime fiscalYearStartDate = ViewBag.fiscalYearStartDate;
     var whichMonth = ViewBag.WhichMonth;    
     var yearName = startDate.ToString("yyyy");
+    int dataRecordRow = 0;
     DateTime currentDate = DateTime.Now;
     DateTime monthStart = new DateTime(startDate.Year, startDate.Month, 1);
     DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
@@ -104,8 +105,9 @@
 <body>
 @if (Model is not null && Model!.Tables[0].Rows.Count > 0)
 {
-<div class="table-responsive">
-<table id="daily-table" class="breakdown clickable-tableR"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownR" style="width:240px">
+<div class="table-responsive " style="max-height: 60vh; overflow-y: auto; max-width: 60vw; overflow-x: auto;">
+<table id="daily-table" class="breakdown clickable-tableR"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownR" style="width:auto; border: none;">
+    <thead class="breakdownHead">
     <tr>
         <th class="breakdownBigTitle" colspan="18">Reservations Deposits</th>
     </tr>
@@ -118,7 +120,7 @@
     </tr>
     <tr>
         <th class="breakdownDayScrolling"></th>
-        <th class="breakdownTitle" colspan="3">281</th>
+        <th class="breakdownTitleLeftMost" colspan="3">281</th>
         <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
         <th class="breakdownTitle" colspan="3">283</th>
         <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
@@ -128,8 +130,8 @@
         <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
     </tr>
     <tr>
-        <th class="breakdownDayScrolling">Day</th>
-        <th class="breakdownTitle">Deposits Taken</th>
+        <th class="breakdownDayScrollingBottom">Day</th>
+        <th class="breakdownTitleLeftMost">Deposits Taken</th>
         <th class="breakdownTitle">Deposits Applied</th>
         <th class="breakdownRefTitle">Manual Refunds Generated</th>
         <th class="breakdownTitle">Rentals Taken</th>
@@ -143,8 +145,32 @@
         <th class="breakdownTitle">Redeemed For Rentals</th>
         <th class="breakdownTitle">Redeemed For Storage</th>
     </tr>
+    </thead>
+    <tbody>
     @foreach (DataRow row in Model!.Tables[0].Rows)
     {
+        dataRecordRow++;
+        var alertDataClass = new System.Text.StringBuilder("alertData");
+        var breakdownDateClass = new System.Text.StringBuilder("breakdownDate");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownRefClass = new System.Text.StringBuilder("breakdownRef");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            alertDataClass.Remove(0, "alertData".Length).Append("alertDataTop");
+            breakdownDateClass.Remove(0, "breakdownDate".Length).Append("breakdownDateTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownRefClass.Remove(0, "breakdownRef".Length).Append("breakdownRefTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        alertDataClass.ToString();
+        breakdownDateClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownRefClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
         var transDate = (DateTime)row["TransDate"];
         var SDT = (decimal)row["SiteDepositsTaken"] + (decimal)row["SiteDepositsTakenFuture"];
         var SDA = (decimal)row["SiteDepApplied"];
@@ -182,24 +208,24 @@
         totalRedeemedSto += VRSto;
         totalNetChange4 += netChange4;
         <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
-            <td class="breakdownDate">@transDate.ToString("MM/dd/yyyy")</td>
-            <td class="breakdownData">@SDT</td>
-            <td class="breakdownData">@SDA</td>
-            <td class="breakdownRef">@SDMRG</td>
-            <td class="breakdownTotals">@netChange1</td>
-            <td class="breakdownData">@RDT</td>
-            <td class="breakdownData">@RDA</td>
-            <td class="breakdownRef">@RDMRG</td>
-            <td class="breakdownTotals">@netChange2</td>
-            <td class="breakdownData">@GDT</td>
-            <td class="breakdownData">@GDA</td>
-            <td class="breakdownRef">@GDMRG</td>
-            <td class="breakdownTotals">@netChange3</td>
-            <td class="breakdownData">@VP</td>
-            <td class="breakdownData">@VRS</td>
-            <td class="breakdownData">@VRR</td>
-            <td class="breakdownData">@VRSto</td>
-            <td class="breakdownTotals">@netChange4</td>
+            <td class="@breakdownDateClass">@transDate.ToString("MM/dd/yyyy")</td>
+            <td class="@breakdownDataClass">@(@SDT != 0.00m ? @String.Format("{0:c2}", @SDT) : "")</td>
+            <td class="@breakdownDataClass">@(@SDA != 0.00m ? @String.Format("{0:c2}", @SDA) : "")</td>
+            <td class="@breakdownRefClass">@(@SDMRG != 0.00m ? @String.Format("{0:c2}", @SDMRG) : "")</td>
+            <td class="@breakdownTotalsClass">@(@netChange1 != 0.00m ? @String.Format("{0:c2}", @netChange1) : "")</td>
+            <td class="@breakdownDataClass">@(@RDT != 0.00m ? @String.Format("{0:c2}", @RDT) : "")</td>
+            <td class="@breakdownDataClass">@(@RDA != 0.00m ? @String.Format("{0:c2}", @RDA) : "")</td>
+            <td class="@breakdownRefClass">@(@RDMRG != 0.00m ? @String.Format("{0:c2}", @RDMRG) : "")</td>
+            <td class="@breakdownTotalsClass">@(@netChange2 != 0.00m ? @String.Format("{0:c2}", @netChange2) : "")</td>
+            <td class="@breakdownDataClass">@(@GDT != 0.00m ? @String.Format("{0:c2}", @GDT) : "")</td>
+            <td class="@breakdownDataClass">@(@GDA != 0.00m ? @String.Format("{0:c2}", @GDA) : "")</td>
+            <td class="@breakdownRefClass">@(@GDMRG != 0.00m ? @String.Format("{0:c2}", @GDMRG) : "")</td>
+            <td class="@breakdownTotalsClass">@(@netChange3 != 0.00m ? @String.Format("{0:c2}", @netChange3) : "")</td>
+            <td class="@breakdownDataClass">@(@VP != 0.00m ? @String.Format("{0:c2}", @VP) : "")</td>
+            <td class="@breakdownDataClass">@(@VRS != 0.00m ? @String.Format("{0:c2}", @VRS) : "")</td>
+            <td class="@breakdownDataClass">@(@VRR != 0.00m ? @String.Format("{0:c2}", @VRR) : "")</td>
+            <td class="@breakdownDataClass">@(@VRSto != 0.00m ? @String.Format("{0:c2}", @VRSto) : "")</td>
+            <td class="@breakdownTotalsClass">@(@netChange4 != 0.00m ? @String.Format("{0:c2}", @netChange4) : "")</td>
         </tr>
     }
     <tr>
@@ -437,10 +463,11 @@
     @if (startDate.Month == currentDate.Month)
     {
         <tr>
-            <td class="breakdownLegendBottom" colspan="5" id="breakdownLegendId"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
-            <td colspan="13" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black;">&nbsp;</td>
+            <td class="breakdownLegendBottom" colspan="5" id="breakdownLegendId" style="border-bottom: 1px solid black; border-right: none;"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+            <td colspan="13" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black; border-top: 1px solid black;">&nbsp;</td>
         </tr>
     }
+    </tbody>
 </table>
 </div>
 }
