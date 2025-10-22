@@ -339,14 +339,16 @@ td{
             {
                 var identityid = event.target.id.replace("buttonD","");
                 var rowElement = document.getElementById("row" + identityid);
+                var glSelected = document.getElementById("gl"+identityid).value;
+                var dateSelected = document.getElementById("date"+identityid).value;
                 identityid = identityid * -1;
                 $.ajax(
                 {
                     type: "POST", 
                     url: "/FDB/UpdateAddons",
                     data: { "addIDin" : identityid,
-                            "dateIn": "1900-01-01",
-                            "glIn": "X",
+                            "dateIn": dateSelected,
+                            "glIn": glSelected,
                             "descIn": "X",
                             "amountIn": 0},
                     dataType: "text"

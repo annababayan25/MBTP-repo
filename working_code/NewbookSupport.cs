@@ -8,6 +8,11 @@ using System.Linq;
 using System.Web;
 using GenericSupport;
 using DocumentFormat.OpenXml.Spreadsheet;
+using MBTP.Models;
+using System.Data;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+using MBTP.Interfaces;
 
 namespace NewbookSupport
 {
@@ -58,6 +63,12 @@ namespace NewbookSupport
 #nullable disable
     public class SupportRoutines
     {
+        private readonly IDatabaseConnectionService _dbConnectionService;
+
+        public SupportRoutines(IDatabaseConnectionService dbConnectionService)
+        {
+            _dbConnectionService = dbConnectionService;
+        }
         static double depositsCarts = 0, depositsChairs = 0, returnedChairs = 0, vouchersSold = 0;
         public static List<NewbookSupport.Revenue> revenueArray;
         public static List<NewbookSupport.Deposits> depositsarray;
@@ -107,7 +118,7 @@ namespace NewbookSupport
                 {
                     if (runningTotal != 0 && lastGL != "1003" && lastGL != "1014" && lastGL != "1016" && lastGL != "1017" && lastGL != "1018")
                     {
-                        SpecialRecon tmpRecon = new SpecialRecon() { Gl = lastGL, Client = lastClient, Recon_item = lastItem, Desc = lastDesc, Amount = Math.Round(runningTotal * -1,2) };
+                        SpecialRecon tmpRecon = new SpecialRecon() { Gl = lastGL, Client = lastClient, Recon_item = lastItem, Desc = lastDesc, Amount = Math.Round(runningTotal * -1, 2) };
                         specialReconArray.Add(tmpRecon);
                     }
                     runningTotal = 0;
@@ -119,8 +130,8 @@ namespace NewbookSupport
                 {
                     lastGL = reconSheetIn.Row(i).Cell(tmpGLCol).Value.ToString();
                     if (lastGL == "362")
-                    { 
-                        lastGL = "0362"; 
+                    {
+                        lastGL = "0362";
                     }
                     lastClient = reconSheetIn.Row(i).Cell(tmpClientCol).Value.ToString();
                     lastItem = reconSheetIn.Row(i).Cell(tmpItemCol).Value.ToString();
@@ -246,7 +257,7 @@ namespace NewbookSupport
                 }
                 else if (transIn.IndexOf("Refunds Raised") != -1)
                 {
-                    if(transColIn == 0)
+                    if (transColIn == 0)
                     {
                         tmpSearchStr = "Payments Raised #" + transIn.Substring(transIn.IndexOf("Ref #") + 5).Replace(")", "");
                     }
@@ -329,13 +340,13 @@ namespace NewbookSupport
         public static List<Recon> AddRecon(List<Recon> reconArrayIn, string reconCatIn, string transFlowIn, double flowValIn, string glIn = "")
         {
             string modifiedCatIn;
-            if (reconCatIn.IndexOf("Visitor") != -1) 
-            { 
-                modifiedCatIn = "Visitor"; 
+            if (reconCatIn.IndexOf("Visitor") != -1)
+            {
+                modifiedCatIn = "Visitor";
             }
-            else 
-            { 
-                modifiedCatIn = reconCatIn; 
+            else
+            {
+                modifiedCatIn = reconCatIn;
             }
             foreach (var item in reconArrayIn)
             {
@@ -353,7 +364,7 @@ namespace NewbookSupport
                     return reconArrayIn; //stop processing, work is complete
                 }
             }
-            Recon newItem = new Recon() { ReconItem = reconCatIn, Accum = flowValIn, GL = glIn, MiscTrans = true};
+            Recon newItem = new Recon() { ReconItem = reconCatIn, Accum = flowValIn, GL = glIn, MiscTrans = true };
             reconArrayIn.Add(newItem);
             //AddFlow("ERROR", transFlowIn, flowValIn);
             return reconArrayIn;
@@ -364,6 +375,10 @@ namespace NewbookSupport
         } // EMPTY STUB
         public static List<Revenue> AddRevenue(List<Revenue> revArrayIn, string transCatIn, string transFlowIn, double flowValIn)
         {
+            if (Math.Abs(flowValIn) == 114.24)
+            {
+                System.Diagnostics.Debug.WriteLine("REVENUE");
+            }
             if (transCatIn != "SKIPPED" && transCatIn != "DROPPED")
             {
                 foreach (var item in revArrayIn)
@@ -449,6 +464,11 @@ namespace NewbookSupport
                 {
                     depArrayIn[arrayPosIn].WescAccum += flowValIn;
                     depStr = "Campsite Deposits(FY" + depArrayIn[arrayPosIn].Fy.ToString("yy") + ")";
+                    if (Math.Abs(flowValIn) == 114.24)
+                    {
+                        System.Diagnostics.Debug.WriteLine("DEPOSIT");
+                    }
+
                 }
                 else if (depCatIn.IndexOf("Rentals") != -1)
                 {
@@ -468,13 +488,13 @@ namespace NewbookSupport
             {
                 bookingParam = "GUEST";
             }
-            //if(Math.Abs(amtIn) == 30.24)
+            if (Math.Abs(amtIn) == 4320.00)
             //if(assignedIn.IndexOf("Golf") != -1)
             //if(assignedIn.IndexOf("GolfDepApp") != -1 || assignedIn.IndexOf("GolfCartRentals") != -1)
             //if (actionIn.IndexOf("344287") != -1 || actionIn.IndexOf("352158") != -1)
-            //{
-            //    System.Diagnostics.Debug.WriteLine(assignedParam + actionIn + " " + amtIn.ToString("C") + " " + bookingParam);
-            //}
+            {
+                System.Diagnostics.Debug.WriteLine(assignedParam + actionIn + " " + amtIn.ToString("C") + " " + bookingParam);
+            }
             return;
         }
         public static List<Checks> AddCheck(List<Checks> checkArrayIn, string checkCatIn, string checkFlowIn, double flowValIn)
@@ -490,7 +510,7 @@ namespace NewbookSupport
             }
             AddFlow("ERROR CHECK", checkFlowIn, flowValIn);
             return checkArrayIn;
-        } 
+        }
         public static int CheckForCancel(string idToCheck)
         {
             string path__1 = GenericRoutines.DoesFileExist("", @"Booking_Adjustments_", ".xlsx", true);
@@ -589,6 +609,75 @@ namespace NewbookSupport
                 tmpRowIdx += 1;
             }
             return "#999999";
+        }
+        public DataSet RetrieveCheckedInData()
+        {
+            DataSet checkedInData = new DataSet();
+            try
+            {
+                // Open database connection
+                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                {
+                    sqlConn.Open();
+
+                    // Fetch current fiscal year data
+                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveCheckedInReport", sqlConn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Add("@StartDate", SqlDbType.Date).Value = DateTime.Parse(GenericRoutines.repDateStr);
+                        cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = DateTime.Parse(GenericRoutines.repDateStr).AddDays(1);
+                        SqlDataAdapter myDA = new SqlDataAdapter(cmd);
+                        myDA.Fill(checkedInData);
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                System.Diagnostics.Debug.WriteLine("SQL error: " + sqlEx.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("General error: " + ex.Message);
+                System.Diagnostics.Debug.WriteLine("Stack Trace: " + ex.StackTrace);
+                throw;
+            }
+            return checkedInData;
+        }
+        public DateTime ActualCheckInDate(DataSet checkedInData, string clientIn)
+        {
+            string bookingIn = "1";
+            if (clientIn.IndexOf("Booking") != -1)
+            {
+                bookingIn = clientIn.Substring(clientIn.IndexOf("Booking") + 9, 6); // extract the booking number
+            }
+            DateTime actualCheckIn = DateTime.Now.AddYears(3);  // default to a date far in the future
+            try
+            {
+                var query = from row in checkedInData.Tables[0].AsEnumerable()
+                            where row.Field<int>("BookingId") == int.Parse(bookingIn)
+                            select new { bookingCheckedIn = row.Field<DateTime>("BookingCheckedIn") };
+                foreach (var row2 in query)
+                {
+                    Console.WriteLine($"DateIn: {row2.bookingCheckedIn}");
+                }
+
+                var result = query.FirstOrDefault();
+                if (result != null)
+                {
+                    actualCheckIn = result.bookingCheckedIn;
+                }
+                if(actualCheckIn == DateTime.Parse("0001-1-1")) // If no check-in date found, set to a date far in the future
+                {
+                    actualCheckIn = DateTime.Now.AddYears(3);
+                }
+                return actualCheckIn;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error retrieving ActualCheckIn date: " + ex.Message);
+                return actualCheckIn;
+            }
         }
     }
 }
