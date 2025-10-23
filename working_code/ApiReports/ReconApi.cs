@@ -30,7 +30,7 @@ namespace MBTP.Services
         public async Task PopulateRecons(DateTime startDate, DateTime endDate)
         {
 
-            var body = new
+            var requestBody = new
             {
                 region = region,
                 api_key = apiKey,
@@ -38,7 +38,7 @@ namespace MBTP.Services
                 period_to = endDate.ToString("yyyy-MM-dd HH:mm:ss"),
             };
 
-            var json = await PostAsync("reports_reconciliation", body);
+            var json = await PostAsync("reports_reconciliation", requestBody);
 
             var result = JsonConvert.DeserializeObject<dynamic>(json.ToString());
             var reconReport = new List<Recon>();

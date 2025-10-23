@@ -52,6 +52,10 @@ namespace MBTP.Controllers
         private readonly DailyReport _dailyReport;
         private readonly OccupancyApi _occupancyApi;
         private readonly PaymentsApi _paymentsApi;
+        private readonly ChargesApi _chargesApi;
+        private readonly DepositsHeldService _depositsHeldService;
+        private readonly TransactionFlowRepo _transactionFlowRepo;
+        private readonly DepositsHeldRepo _depositsHeldRepo;
 
 
         public AdminController(
@@ -70,8 +74,11 @@ namespace MBTP.Controllers
             ReconApi reconApi,
             TransactionFlowApi transactionFlowApi,
             OccupancyApi occupancyApi,
-            PaymentsApi paymentsApi
-
+            PaymentsApi paymentsApi,
+            ChargesApi chargesApi,
+            TransactionFlowRepo transactionFlowRepo,
+            DepositsHeldService depositsHeldService,
+            DepositsHeldRepo depositsHeldRepo
         )
 
         {
@@ -90,6 +97,10 @@ namespace MBTP.Controllers
             _transactionFlowApi = transactionFlowApi;
             _occupancyApi = occupancyApi;
             _paymentsApi = paymentsApi;
+            _chargesApi = chargesApi;
+            _transactionFlowRepo = transactionFlowRepo;
+            _depositsHeldService = depositsHeldService;
+            _depositsHeldRepo = depositsHeldRepo;
         }
 
         [Authorize]
@@ -257,7 +268,8 @@ namespace MBTP.Controllers
 
             var selectedDay = day ?? DateTime.Today;
             ViewBag.SelectedDay = selectedDay;
-            await _transactionFlowApi.PopulateTransactions(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            var transactions = await _transactionFlowApi.PopulateTransactions(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            await _transactionFlowRepo.SaveTransactionFlowsAsync(transactions);
 
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
 
@@ -282,7 +294,44 @@ namespace MBTP.Controllers
 
         }
 
+        [Authorize]
+        public async Task<IActionResult> PopulateCharges(DateTime? day)
+        {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
 
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+            await _chargesApi.PopulateCharges(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+
+            return View();
+        }
+
+        [Authorize]
+        public async Task<IActionResult> PopulateDepositsHeld(DateTime? day)
+        {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
+
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+            var depositsHeld = await _depositsHeldService.ProcessDepositsHeldAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            await _depositsHeldRepo.SaveDepositsHeldAsync(depositsHeld);
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+
+            return View();
+        }
+           
+    
         [HttpPost]
         public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
         {
@@ -331,6 +380,7 @@ namespace MBTP.Controllers
 
             return View(data);
         }
+        
 
         [HttpPost]
         [Route("Admin/AddBlackout")]

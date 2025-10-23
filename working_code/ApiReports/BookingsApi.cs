@@ -33,7 +33,7 @@ namespace MBTP.Services
 
             while (dataOffset < dataTotal)
             {
-                var body = new
+                var requestBody = new
                 {
                     region = region,
                     api_key = apiKey,
@@ -42,12 +42,12 @@ namespace MBTP.Services
                     list_type = "all",
                     data_offset = dataOffset,
                     data_count = dataCount,
-                    client_account_booking_details = "true",
-                    client_account_item_breakdown = "true",
-                    account_breakdown = "true"
+                    // client_account_booking_details = "true",
+                    // client_account_item_breakdown = "true",
+                    // account_breakdown = "true"
                 };
 
-                var json = await PostAsync("bookings_list", body);
+                var json = await PostAsync("bookings_list", requestBody);
                 var result = JsonConvert.DeserializeObject<dynamic>(json.ToString());
 
                 Console.WriteLine($"Sending request at offset {dataOffset} of {dataTotal} (batch size {dataCount})");
@@ -150,12 +150,9 @@ namespace MBTP.Services
                         Console.WriteLine("Booking ID " + booking.BookingID + " not added");
                     }
 
-                    if (booking.BookingID == 375791)
-                    {
-                        string filePath = "booking.txt";
-                        string contentFile = item.ToString();
-                        File.WriteAllText(filePath, contentFile + Environment.NewLine);
-                    }
+                    string filePath = "booking.txt";
+                    string contentFile = item.ToString();
+                    File.AppendAllText(filePath, contentFile + Environment.NewLine);
 
                 }
 

@@ -5,10 +5,10 @@ namespace MBTP.Models
 
     public class CheckedIn
     {
-        public int BookingID { get; set; }
+        public int BookingId { get; set; }
         public string? SiteName { get; set; }
-        public string? BookingArrival { get; set; }
-        public string? BookingDeparture { get; set; }
+        public DateTime? BookingArrival { get; set; }
+        public DateTime? BookingDeparture { get; set; }
         public string? BookingStatus { get; set; }
         public int BookingAdults { get; set; }
         public int? BookingChildren { get; set; }
@@ -67,6 +67,7 @@ namespace MBTP.Models
         public decimal? CancellationFee { get; set; }
         public decimal PaymentsAfterCheckIn { get; set; }
         public string? PaymentsAfterCheckInDesc { get; set; }
+        public string? Extras { get; set; }
 
     }
 
@@ -184,18 +185,6 @@ namespace MBTP.Models
         [JsonProperty("account_id")]
         public string? AccountId { get; set; }
 
-        [JsonProperty("account_for")]
-        public string? AccountFor { get; set; }
-
-        [JsonProperty("account_for_id")]
-        public int? AccountForId { get; set; }
-
-        [JsonProperty("account_for_name")]
-        public string? AccountForName { get; set; }
-
-        [JsonProperty("account_currency_code")]
-        public string? CurrencyCode { get; set; }
-
         [JsonProperty("type")]
         public string? Type { get; set; }
 
@@ -255,6 +244,9 @@ namespace MBTP.Models
 
         [JsonProperty("amount")]
         public decimal? Amount { get; set; }
+
+        [JsonProperty("generated_when")]
+        public DateTime? GeneratedWhen { get; set; }
 
     }
 
