@@ -29,7 +29,7 @@ namespace MBTP.Services
         public async Task PopulateOccupancy(DateTime startDate, DateTime endDate)
         {
 
-            var body = new
+            var requestBody = new
             {
                 region = region,
                 api_key = apiKey,
@@ -37,7 +37,7 @@ namespace MBTP.Services
                 period_to = endDate.ToString("yyyy-MM-dd")
             };
 
-            var json = await PostAsync("reports_occupancy", body);
+            var json = await PostAsync("reports_occupancy", requestBody);
             var result = JsonConvert.DeserializeObject<dynamic>(json.ToString());
             var occupancyList = new List<OccReport>();
 

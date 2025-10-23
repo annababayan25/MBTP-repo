@@ -20,6 +20,7 @@ namespace MBTP.Services
     {
         private readonly IDatabaseConnectionService _dbConnectionService;
 
+
         public CheckedInApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
         {
             _dbConnectionService = dbConnectionService;
@@ -62,7 +63,7 @@ namespace MBTP.Services
                 {
                     var checkedIn = new CheckedIn
                     {
-                        BookingID = item.booking_id,
+                        BookingId = item.booking_id,
                         Firstname = item.firstname,
                         Lastname = item.lastname,
                         Site = item.site_name,
@@ -73,6 +74,7 @@ namespace MBTP.Services
                         BookingTotal = (decimal)item.booking_total,
                         AccountBalance = (decimal)item.account_balance,
                         DepositsHeld = 0,
+                        PaymentsAfterCheckIn = 0.0m,
                         BookingCheckedIn = item.booking_checkedin,
                         InventoryItems = JsonConvert.DeserializeObject<List<InventoryItem>>(item.inventory_items?.ToString() ?? "[]"),
                         TariffsQuoted = JsonConvert.DeserializeObject<List<TariffQuoted>>(item.tariffs_quoted?.ToString() ?? "[]"),
@@ -100,7 +102,7 @@ namespace MBTP.Services
 
                     // cancellation fee column - included in CSC and DH
                     decimal cancellationFee = checkedIn.InventoryItems?
-                    .Where(c => (c.Description?.Contains("cancellation", StringComparison.OrdinalIgnoreCase) ?? false))
+                    .Where(c => c.Description != null && (c.Description?.Contains("cancellation", StringComparison.OrdinalIgnoreCase) ?? false))
                     .Sum(c => decimal.TryParse(c.Amount, out var amt) ? amt : 0) ?? 0;
 
                     checkedIn.CancellationFee = cancellationFee;
@@ -132,7 +134,15 @@ namespace MBTP.Services
                     .Sum(c => c.Amount ?? 0) ?? 0;
                     checkedIn.OnlineBookingFee = onlineBookingFee;
 
-                    decimal totalRefundAmount = checkedIn.Refunds?.Sum(r => r.Amount ?? 0) ?? 0;
+                   decimal totalRefundAmount = 0m;
+
+                    if (checkedIn.Refunds != null && checkedIn.BookingCheckedIn.HasValue)
+                    {
+                        totalRefundAmount = checkedIn.Refunds
+                            .Where(r => r.GeneratedWhen.HasValue &&
+                                        r.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date)
+                            .Sum(r => r.Amount ?? 0m);
+                    }
                     checkedIn.RefundedAmount = totalRefundAmount;
 
                     decimal mergedDeposits = checkedIn.Payments?
@@ -154,7 +164,7 @@ namespace MBTP.Services
                             ? p.GeneratedWhen < checkedIn.BookingCheckedIn.Value
                             : true))
                     .Sum(p => p.Amount ?? 0) ?? 0;
-                    
+
                     // security deposit column
                     decimal totalPaymentsSecDep = checkedIn.Payments?
                     .Where(p => !string.IsNullOrEmpty(p.Description) &&
@@ -178,7 +188,7 @@ namespace MBTP.Services
                     : null;
 
                     // Calculate the Deposits Held
-                    checkedIn.DepositsHeld = mergedDeposits + cancellationFee - lockFeePaid - onlineBookingFee - totalRefundAmount;
+                    checkedIn.DepositsHeld = mergedDeposits + cancellationFee - lockFeePaid - onlineBookingFee - totalRefundAmount;                  
 
                     // Calculate the Stay Cost 
                     decimal baseStayCost = checkedIn.TariffsQuoted?.Sum(t => t.CalculatedAmount) ?? 0;
@@ -266,14 +276,36 @@ namespace MBTP.Services
                     }*/
 
                     // debug to see the full json for a booking
-                    if (checkedIn.BookingID == 375791)
+                    if (checkedIn.BookingId == 375595)
                     {
                         string filePath = "checkedinOut.txt";
                         string contentFile = item.ToString();
                         File.WriteAllText(filePath, contentFile + Environment.NewLine);
                     }
 
+
+                    // Only proceed if refund should apply the same day as check-in
+                
+                    // Only run if  refunds (if any) were created the same day as check-in
+                    bool sameDayRefunds = checkedIn.Refunds == null ||
+                        checkedIn.Refunds.All(r => 
+                            r.GeneratedWhen.HasValue && 
+                            r.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date && r.GeneratedWhen.Value >= checkedIn.BookingCheckedIn.Value);
+
+                    if (sameDayRefunds && checkedIn.DepositsHeld < 0)
+                    {
+                        checkedIn.RefundedAmount = (checkedIn.RefundedAmount ?? 0) + checkedIn.DepositsHeld;
+                        checkedIn.Extras = checkedIn.DepositsHeld.ToString();
+                        checkedIn.DepositsHeld = 0.0m;
+
+                        if (!string.IsNullOrEmpty(checkedIn.Extras) && (checkedIn.Extras.Contains("-43") || checkedIn.Extras.Contains("-40") || checkedIn.Extras.Contains("-46") || checkedIn.Extras.Contains("-3")))
+                        {
+                            checkedIn.Extras = $"{checkedIn.Extras} (Possible balance transfer?)";
+                        }
+                    }
+            
                     checkedInList.Add(checkedIn);
+
                 }
 
                 using var sqlConn = _dbConnectionService.CreateConnection();
@@ -284,7 +316,7 @@ namespace MBTP.Services
                     using (SqlCommand command = new SqlCommand("dbo.UpdateCheckedInTable", sqlConn))
                     {
                         command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.AddWithValue("@BookingId", checkedIn.BookingID);
+                        command.Parameters.AddWithValue("@BookingId", checkedIn.BookingId);
                         command.Parameters.AddWithValue("@BookingName", (object?)checkedIn.BookingName ?? DBNull.Value);
                         command.Parameters.AddWithValue("@Site", $"{checkedIn.CategoryName} {checkedIn.Site}" ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("@BookingStatus", checkedIn.BookingStatus ?? (object)DBNull.Value);
@@ -296,6 +328,7 @@ namespace MBTP.Services
                         command.Parameters.AddWithValue("@PaymentsAfterCheckIn", checkedIn.PaymentsAfterCheckInDesc);
                         command.Parameters.AddWithValue("@Refunds", checkedIn.RefundedAmount);
                         command.Parameters.AddWithValue("@CancellationFee", checkedIn.CancellationFee);
+                        command.Parameters.AddWithValue("@Extras", (object?)checkedIn.Extras ?? DBNull.Value);
                         command.Parameters.AddWithValue("@AccountBalance", checkedIn.AccountBalance == null ? (object)DBNull.Value : checkedIn.AccountBalance);
                         command.Parameters.AddWithValue("@BookingArrival", checkedIn.BookingArrival);
                         command.Parameters.AddWithValue("@BookingCheckedIn", checkedIn.BookingCheckedIn);
@@ -307,8 +340,8 @@ namespace MBTP.Services
                     }
                 }
             }
-             Console.WriteLine("Total Checked-In: " + checkedInList.Count);
-             Console.WriteLine("Run method finished.");
+            Console.WriteLine("Total Checked-In: " + checkedInList.Count);
+            Console.WriteLine("Run method finished.");
         }
     }
 }

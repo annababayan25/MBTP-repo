@@ -11,21 +11,20 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using MBTP.Interfaces;
 using System.Globalization;
+using MBTP.Retrieval;
+using System.Text.Json;
+using System.Linq;
 
 namespace MBTP.Services
 {
     public class TransactionFlowApi : NewbookBaseApi
     {
-        private readonly IDatabaseConnectionService _dbConnectionService;
-        public TransactionFlowApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
-        {
-            _dbConnectionService = dbConnectionService;
-        }
 
+        public TransactionFlowApi(HttpClient client) : base(client) { }
 
-        public async Task PopulateTransactions(DateTime startDate, DateTime endDate)
+        public async Task<List<TransactionFlow>> PopulateTransactions(DateTime startDate, DateTime endDate)
         {
-            var body = new
+            var requestBody = new
             {
                 region = region,
                 api_key = apiKey,
@@ -34,7 +33,7 @@ namespace MBTP.Services
                 return_all_data = "true"
             };
 
-            var json = await PostAsync("reports_transaction_flow", body);
+            var json = await PostAsync("reports_transaction_flow", requestBody);
 
             var result = JsonConvert.DeserializeObject<dynamic>(json.ToString());
             var transactionFlow = new List<TransactionFlow>();
@@ -45,6 +44,7 @@ namespace MBTP.Services
                 {
                     ItemId = item.item_id,
                     AccountFor = item.account_for,
+                    AccountForId = item.account_for_id,
                     PaymentMethod = item.payment_transaction_method,
                     PaymentDescription = item.item_description,
                     PaymentTypeReference = item.payment_type_reference,
@@ -77,6 +77,11 @@ namespace MBTP.Services
                     transactions.TransType = "Voided Payments Voided";
                     transactions.PaymentTypeAction = "Payments";
                 }
+                if (item.item_type == "refunds_voided")
+                {
+                    transactions.TransType = "Voided Refunds Voided";
+                    transactions.PaymentTypeAction = "Refunds";
+                }
 
                 if (item.payment_transaction_method == "cc_gateway")
                 {
@@ -87,153 +92,13 @@ namespace MBTP.Services
                     transactions.PaymentMethod = "Manual Entry";
                 }
 
-
                 transactionFlow.Add(transactions);
-                var outputFile = "output.txt";
-                File.AppendAllText(outputFile, item.ToString() + Environment.NewLine);
+                var jsonOutput = JsonConvert.SerializeObject(transactionFlow, Formatting.Indented);
+                 File.WriteAllText("transFlow.json", jsonOutput);
+                // File.AppendAllText("transFlow.txt", item.ToString() + Environment.NewLine);
             }
-
-            var depositsHeldSites = transactionFlow
-            .Where(p =>
-                p.Category != null &&
-                (
-                    p.Category.Contains("WESC", StringComparison.OrdinalIgnoreCase) ||
-                    p.Category.Contains("Security Deposit", StringComparison.OrdinalIgnoreCase)
-                ) &&
-                p.Deposit != null &&
-                p.Deposit.Contains("1", StringComparison.OrdinalIgnoreCase) &&
-                (
-                    p.Description == null ||
-                    !p.Description.Contains("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase)
-                ) 
-            )
-            .Sum(p => Math.Abs(p.Amount ?? 0));
-
-            var depositsHeldRentals = transactionFlow
-            .Where(p =>
-                p.Category != null &&
-                (p.Category.Contains("Ocean Villa", StringComparison.OrdinalIgnoreCase) ||
-                 p.Category.Contains("Cottage", StringComparison.OrdinalIgnoreCase) ||
-                 p.Category.Contains("Cabin", StringComparison.OrdinalIgnoreCase) ||
-                 p.Category.Contains("Travel Trailer - Mid Beach", StringComparison.OrdinalIgnoreCase) ||
-                 p.Category.Contains("Security Deposit", StringComparison.OrdinalIgnoreCase)) &&
-                p.Deposit != null &&
-                p.Deposit.Contains("1", StringComparison.OrdinalIgnoreCase) &&
-                (
-                    p.Description == null ||
-                    !p.Description.Equals("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase)
-                )
-            )
-            .Sum(p => Math.Abs(p.Amount ?? 0));
-
-            var depositsHeldSitesCount = transactionFlow
-            .Where(p =>
-                p.Category != null &&
-                (p.Category.Contains("WESC", StringComparison.OrdinalIgnoreCase) ||
-                p.Category.Contains("Security Deposit", StringComparison.OrdinalIgnoreCase)) &&
-                p.Deposit != null &&
-                p.Deposit.Contains("1", StringComparison.OrdinalIgnoreCase) &&
-                (
-                    p.Description == null ||
-                    !p.Description.Contains("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase)
-                )
-            )
-            .Count();
-
-            var depositsHeldRentalsCount = transactionFlow
-            .Where(p =>
-                p.Category != null &&
-                (p.Category.Contains("Ocean Villa", StringComparison.OrdinalIgnoreCase) ||
-                 p.Category.Contains("Cottage", StringComparison.OrdinalIgnoreCase) ||
-                 p.Category.Contains("Cabin", StringComparison.OrdinalIgnoreCase) ||
-                 p.Category.Contains("Travel Trailer - Mid Beach", StringComparison.OrdinalIgnoreCase) ||
-                 p.Category.Contains("Security Deposit", StringComparison.OrdinalIgnoreCase)) &&
-                p.Deposit != null &&
-                p.Deposit.Contains("1", StringComparison.OrdinalIgnoreCase) &&
-                (
-                    p.Description == null ||
-                    !p.Description.Contains("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase)
-                )
-            ).Count();
-
-            bool hasMatchingDate = transactionFlow.Any(p =>
-            {
-                if (p.TransDate == null) return false;
-                var dateValue = Convert.ToDateTime(p.TransDate);
-                return dateValue.Date == DateTime.Today.AddDays(-7).Date;
-            });
-
-            if (hasMatchingDate)
-            {
-                var outputFile = "outputTF.txt";
-                var sites = $"Deposits Held Sites ({depositsHeldSitesCount}) (for {DateTime.Today.AddDays(-7):MMM dd yyyy}): {depositsHeldSites:C}{Environment.NewLine}";
-                var rentals = $"Deposits Held Rentals ({depositsHeldRentalsCount}) (for {DateTime.Today.AddDays(-7):MMM dd yyyy}): {depositsHeldRentals:C}{Environment.NewLine}";
-                File.AppendAllText(outputFile, sites + rentals);
-                Console.WriteLine(" Deposits held total written to outputTF.txt");
-            }
-            else
-            {
-                Console.WriteLine("No transactions found for target date, no output written.");
-            }
-            // Filter the list for deposits held transactions (same conditions as above)
-            var depositsHeldList = transactionFlow
-                .Where(p =>
-                    p.Category != null &&
-                    (
-                        p.Category.Contains("WESC", StringComparison.OrdinalIgnoreCase) ||
-                        p.Category.Contains("Security Deposit", StringComparison.OrdinalIgnoreCase) ||
-                        p.Category.Contains("Ocean Villa", StringComparison.OrdinalIgnoreCase) ||
-                        p.Category.Contains("Cottage", StringComparison.OrdinalIgnoreCase) ||
-                        p.Category.Contains("Cabin", StringComparison.OrdinalIgnoreCase) ||
-                        p.Category.Contains("Travel Trailer - Mid Beach", StringComparison.OrdinalIgnoreCase)
-                    ) &&
-                    p.Deposit != null &&
-                    p.Deposit.Contains("1", StringComparison.OrdinalIgnoreCase) &&
-                    (
-                        p.Description == null ||
-                        !p.Description.Contains("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase)
-                    ) 
-                )
-                .ToList();
-
-            // Convert to JSON 
-            var jsonOutput = JsonConvert.SerializeObject(depositsHeldList, Formatting.Indented);
-
-            // Write to file
-            var jsonFile = "depositsHeld.json";
-            File.WriteAllText(jsonFile, jsonOutput);
-            Console.WriteLine($"Deposits held JSON written to {jsonFile}");
-
             
-            using var sqlConn = _dbConnectionService.CreateConnection();
-            await sqlConn.OpenAsync();
-
-            foreach (var transactions in transactionFlow)
-            {
-                var dateValue = Convert.ToDateTime(transactions.TransDate);
-                var stringValue = dateValue.ToString("MMM dd yyyy hh:mm tt");
-
-                using (SqlCommand cmd = new SqlCommand(@"dbo.UpdateTransactionFlowTable", sqlConn))
-                {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@PaymentMethod", $"{transactions.PaymentMethod} {transactions.TranslatedPaymentType} {transactions.PaymentTypeAction} - For {Convert.ToDateTime(transactions.TransDate).ToString("MMM dd yyyy")}");
-                    cmd.Parameters.AddWithValue("@Category", transactions.Category ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@TransNumber", transactions.PaymentTypeReference != null ? $"{transactions.TransType} #{transactions.ItemId} (Ref #{transactions.PaymentTypeReference})" : $"{transactions.TransType} #{transactions.ItemId}");
-                    cmd.Parameters.AddWithValue("@TransDate", stringValue);
-                    cmd.Parameters.AddWithValue("@ClientAccount", transactions.ClientAccount);
-                    cmd.Parameters.AddWithValue("@GeneratedBy", transactions.GeneratedBy);
-                    cmd.Parameters.AddWithValue("@Description", transactions.Description);
-                    cmd.Parameters.AddWithValue("@Amount", transactions.Amount ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@ArrivalDate", transactions.ArrivalDate ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@DepartureDate", transactions.DepartureDate ?? (object)DBNull.Value);
-                    cmd.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
-                    await cmd.ExecuteNonQueryAsync();
-                }
-            }
-            Console.WriteLine("Run method finished.");
-            Console.WriteLine("Total Transactions: " + transactionFlow.Count);
-            transactionFlow.Clear();
-
+            return transactionFlow;
         }
         
     }
