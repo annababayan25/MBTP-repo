@@ -6,5 +6,5 @@ Golf Cart Deposits (3) (for Oct 03 2025): 353.52
 Golf Cart Deposits Applied (for Oct 03 2025): $353.52
 Refund Sites (17): $2,289.52
 Refund Rentals (3): $1,322.16
-Manual Refund Sites (11): $1,090.00
+Manual Refund Sites (7): $735.00
 Manual Refund Rentals (1): $175.00
