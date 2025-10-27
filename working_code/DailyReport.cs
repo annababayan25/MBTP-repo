@@ -197,41 +197,42 @@ namespace MBTP.Retrieval
                 return snapshotDs;
             });
         }
-    
+
         public async Task<DataSet> RetrieveReservationsDepositsReport(DateTime startDate)
         {
-             return await Task.Run(() =>
-            {
-                DataSet myDS = new DataSet();
+            return await Task.Run(() =>
+           {
+               DataSet myDS = new DataSet();
 
-                try
-                {
-                    using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveReservationsDepositsTable", sqlConn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add("@TransDate", SqlDbType.Date);
-                        SqlDataAdapter myDA = new SqlDataAdapter(cmd);
+               try
+               {
+                   using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                   using (SqlCommand cmd = new SqlCommand("dbo.RetrieveReservationsDepositsTable", sqlConn))
+                   {
+                       cmd.CommandType = CommandType.StoredProcedure;
+                       cmd.Parameters.Add("@TransDate", SqlDbType.Date);
+                       SqlDataAdapter myDA = new SqlDataAdapter(cmd);
 
-                        sqlConn.Open();
+                       sqlConn.Open();
 
-                        cmd.Parameters["@TransDate"].Value = startDate;
-                        myDS.Clear();
-                        myDA.Fill(myDS);
+                       cmd.Parameters["@TransDate"].Value = startDate;
+                       myDS.Clear();
+                       myDA.Fill(myDS);
 
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error retrieving occupancy report: " + ex.Message);
-                    throw;
-                }
+                   }
+               }
+               catch (Exception ex)
+               {
+                   Console.WriteLine("Error retrieving occupancy report: " + ex.Message);
+                   throw;
+               }
 
-                DataSet snapshotDs = myDS.Copy();
+               DataSet snapshotDs = myDS.Copy();
 
-                return snapshotDs;
-            });
+               return snapshotDs;
+           });
         }
+        
 
     }
 }
