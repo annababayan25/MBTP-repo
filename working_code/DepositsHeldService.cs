@@ -4,6 +4,8 @@ using Newtonsoft.Json;
 using MBTP.Retrieval;
 using System.Linq;
 using System.Reflection.Metadata;
+using System.Text.Json;
+
 
 
 namespace MBTP.Services
@@ -12,7 +14,7 @@ namespace MBTP.Services
     {
         private readonly TransactionFlowApi _transactionFlowApi;
         private readonly DailyReport _dailyReport;
-        private readonly ChargesApi _chargesApi;
+        // private readonly ChargesApi _chargesApi;
 
         public DepositsHeldService(HttpClient client, ChargesApi chargesApi, DailyReport dailyReport, TransactionFlowApi transactionFlowApi) 
             : base(client)
@@ -41,7 +43,15 @@ namespace MBTP.Services
                             .ToDictionary(col => col.ColumnName, col => row[col]))
                         .ToList();
                 }
+
+                string json = System.Text.Json.JsonSerializer.Serialize(checkedInList, 
+                new System.Text.Json.JsonSerializerOptions 
+                { 
+                    WriteIndented = true 
+                });
+                await File.AppendAllTextAsync("report.json", json);
             }
+            
             var depositsList = new List<ReservationsDeposits>();
 
             var deposits = new ReservationsDeposits
@@ -276,13 +286,43 @@ namespace MBTP.Services
             var arrivedRentalsList = FilterTransactions(arrivedList, rentalCategories).ToList();
             var confirmedSitesList = FilterTransactions(confirmedList, siteCategories).ToList();
             var confirmedRentalsList = FilterTransactions(confirmedList, rentalCategories).ToList();
-
+            
             var refundTransactions = transactions
-                .Where(t => t.TransType != null && t.TranslatedPaymentType != null &&
-                            t.TransType.Equals("Refunds Raised", StringComparison.OrdinalIgnoreCase) &&
-                            !t.TranslatedPaymentType.Equals("Balance Transfer", StringComparison.OrdinalIgnoreCase) &&
-                            t.Amount.HasValue && t.Amount > 0)
-                .ToList();
+            .Where(t =>
+                t.TransType != null &&
+                t.TranslatedPaymentType != null &&
+                t.TransType.Contains("Refunds Raised", StringComparison.OrdinalIgnoreCase) &&
+                !t.TranslatedPaymentType.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase) &&
+                t.Amount.HasValue && t.Amount > 0 &&
+                t.ArrivalDate.HasValue &&
+                t.DepartureDate.HasValue &&
+                t.TransDate != null &&
+                DateTime.TryParse(Convert.ToString(t.TransDate), out DateTime transDate) &&
+
+                // (t.DepartureDate.Value - t.ArrivalDate.Value).TotalDays <= 90 &&
+
+                checkedInList.FirstOrDefault(c =>
+                    c.TryGetValue("BookingId", out var bookingIdVal) &&
+                    bookingIdVal != DBNull.Value &&
+                    Convert.ToString(bookingIdVal) == Convert.ToString(t.AccountForId)
+                ) is var match &&
+
+                // Refund only counts if before check-in/arrival 
+                (
+                    // Case 1: Guest not checked in at all (not in list)  refund before arrival
+                    (match == null) ||
+
+                    // Case 2: Guest is in checked-in list  refund only if before check-in and before arrival
+                    (match != null &&
+                    match.TryGetValue("BookingCheckedIn", out var checkedInVal) &&
+                    checkedInVal != DBNull.Value &&
+                    DateTime.TryParse(Convert.ToString(checkedInVal), out DateTime checkedInDate) &&
+                    transDate < checkedInDate &&
+                    transDate < t.ArrivalDate)
+                )
+            )
+            .ToList();
+
 
             var noVoidedrefunds = refundTransactions.Where(p =>
             {
@@ -321,6 +361,7 @@ namespace MBTP.Services
                 .ToList();
 
             var refundSitesTotal = refundSitesList.Sum(r => Math.Abs(r.Amount ?? 0));
+
             var refundRentalsTotal = refundRentalsList.Sum(r => Math.Abs(r.Amount ?? 0));
 
             bool hasMatchingDate = transactions.Any(p =>

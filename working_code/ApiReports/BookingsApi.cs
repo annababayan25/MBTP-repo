@@ -150,10 +150,12 @@ namespace MBTP.Services
                         Console.WriteLine("Booking ID " + booking.BookingID + " not added");
                     }
 
-                    string filePath = "booking.txt";
-                    string contentFile = item.ToString();
-                    File.AppendAllText(filePath, contentFile + Environment.NewLine);
-
+                    if (booking.BookingID == 352730)
+                    {
+                        string filePath = "booking.txt";
+                        string contentFile = item.ToString();
+                        File.AppendAllText(filePath, contentFile + Environment.NewLine);
+                    }
                 }
 
                 using var sqlConn = _dbConnectionService.CreateConnection();

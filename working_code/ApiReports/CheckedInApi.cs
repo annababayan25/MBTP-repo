@@ -111,7 +111,8 @@ namespace MBTP.Services
                     var lockFeeChargeIds = checkedIn.Charges?
                         .Where(c => !string.IsNullOrEmpty(c.Description) &&
                             (c.Description.Contains("lock fee", StringComparison.OrdinalIgnoreCase) ||
-                            c.Description.Contains("site selection", StringComparison.OrdinalIgnoreCase)))
+                            c.Description.Contains("site selection", StringComparison.OrdinalIgnoreCase))
+                            && c.VoidedWhen == null)
                         .Select(c => c.Id)
                         .ToHashSet() ?? new HashSet<string>();
 
@@ -134,7 +135,7 @@ namespace MBTP.Services
                     .Sum(c => c.Amount ?? 0) ?? 0;
                     checkedIn.OnlineBookingFee = onlineBookingFee;
 
-                   decimal totalRefundAmount = 0m;
+                    decimal totalRefundAmount = 0m;
 
                     if (checkedIn.Refunds != null && checkedIn.BookingCheckedIn.HasValue)
                     {
@@ -188,7 +189,7 @@ namespace MBTP.Services
                     : null;
 
                     // Calculate the Deposits Held
-                    checkedIn.DepositsHeld = mergedDeposits + cancellationFee - lockFeePaid - onlineBookingFee - totalRefundAmount;                  
+                    checkedIn.DepositsHeld = mergedDeposits + cancellationFee - lockFeePaid - onlineBookingFee - totalRefundAmount;
 
                     // Calculate the Stay Cost 
                     decimal baseStayCost = checkedIn.TariffsQuoted?.Sum(t => t.CalculatedAmount) ?? 0;
@@ -276,7 +277,7 @@ namespace MBTP.Services
                     }*/
 
                     // debug to see the full json for a booking
-                    if (checkedIn.BookingId == 375595)
+                    if (checkedIn.BookingId == 352730)
                     {
                         string filePath = "checkedinOut.txt";
                         string contentFile = item.ToString();
@@ -285,11 +286,11 @@ namespace MBTP.Services
 
 
                     // Only proceed if refund should apply the same day as check-in
-                
+
                     // Only run if  refunds (if any) were created the same day as check-in
                     bool sameDayRefunds = checkedIn.Refunds == null ||
-                        checkedIn.Refunds.All(r => 
-                            r.GeneratedWhen.HasValue && 
+                        checkedIn.Refunds.All(r =>
+                            r.GeneratedWhen.HasValue &&
                             r.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date && r.GeneratedWhen.Value >= checkedIn.BookingCheckedIn.Value);
 
                     if (sameDayRefunds && checkedIn.DepositsHeld < 0)
@@ -303,7 +304,7 @@ namespace MBTP.Services
                             checkedIn.Extras = $"{checkedIn.Extras} (Possible balance transfer?)";
                         }
                     }
-            
+
                     checkedInList.Add(checkedIn);
 
                 }
@@ -342,6 +343,11 @@ namespace MBTP.Services
             }
             Console.WriteLine("Total Checked-In: " + checkedInList.Count);
             Console.WriteLine("Run method finished.");
+            decimal depositsHeldSumRentals = checkedInList.Where(p => p.CategoryName.Contains("Ocean Villa") || p.CategoryName.Contains("Cottage")
+            || p.CategoryName.Contains("Cabin") || p.CategoryName.Contains("Travel Trailer")).Sum(p => (decimal)p.DepositsHeld);
+            decimal depositsHeldSumSites = checkedInList.Where(p => p.CategoryName.Contains("WESC")).Sum(p => (decimal)p.DepositsHeld);
+            Console.WriteLine($"Deposits Held Total for Rentals for {startDate.ToString("MMM dd yyyy")}: " + depositsHeldSumRentals);
+            Console.WriteLine($"Deposits Held Total for Sites for {startDate.ToString("MMM dd yyyy")}: " + depositsHeldSumSites);
         }
     }
 }

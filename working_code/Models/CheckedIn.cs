@@ -153,6 +153,9 @@ namespace MBTP.Models
 
         [JsonProperty("generated_when")]
         public DateTime? GeneratedWhen { get; set; }
+
+        [JsonProperty("voided_when")]
+        public DateTime? VoidedWhen { get; set; }
     }
 
     public class Credit
