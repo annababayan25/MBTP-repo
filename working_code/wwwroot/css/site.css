@@ -102,9 +102,23 @@ table#monthly-table td:first-child {
 body {
   margin-bottom: 60px;
   font-family:"Geramond",serif;
+  height: 100%;
+}
+.display-flex{
+  display: flex;
 }
 .homePage{
   background-image: url('image4.jpg');
+  font-family:"Geramond",serif;
+}
+.fdbPage{
+  background-image: url('image2.jpg');
+  background-size: cover;
+  font-family:"Geramond",serif;
+}
+.newbookPage{
+  background-image: url('image1.jpg');
+  background-size: cover;
   font-family:"Geramond",serif;
 }
 .constructionPage{
@@ -366,7 +380,7 @@ a{
   font-family:  "Geramond",serif;
   background-color: #fffd8c;
 }
-.container-fluid{
+.container-fluid-top{
   background-color: #fffd8c;
 }
 .breakdown{
@@ -986,6 +1000,18 @@ tr.flag td {
         z-index: 2; /* Ensures it stays on top of scrolling content */
     }
 
+.blackText{
+  color: black !important;
+}  
+.navdropdownColor{
+  background-color: #fffd8c !important;
+  border-color: blue !important;
+}
+.dropdown-item:hover {
+  background-color: #fffd8c;
+  color: blue !important;
+  font-weight: bold !important;
+}   
 @media (max-width: 1024px) {
   #daily-table th,
   #daily-table td {
