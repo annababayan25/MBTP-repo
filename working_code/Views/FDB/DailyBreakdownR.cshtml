@@ -230,23 +230,23 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange1)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange2)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange3)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalPurchased)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSite)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedRent)</td>      
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSto)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange4)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalSDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalSDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalSDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalNetChange1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalRDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalRDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalRDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalNetChange2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalGDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalGDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalGDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalNetChange3)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalPurchased)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalRedeemedSite)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalRedeemedRent)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalRedeemedSto)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalNetChange4)</td>
     </tr>
     @if (startDate.Month == currentDate.Month)
     {
@@ -271,23 +271,23 @@
         projNetChange4 = projPurchased - projRedeemedSite - projRedeemedRent - projRedeemedSto;
         <tr>
             <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projSDTaken)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projSDApplied)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projSDMR)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange1)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projRDTaken)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projRDApplied)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projRDMR)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange2)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGDTaken)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGDApplied)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGDMR)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange3)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projPurchased)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projRedeemedSite)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projRedeemedRent)</td>      
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projRedeemedSto)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetChange4)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projSDTaken)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projSDApplied)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projSDMR)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetChange1)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projRDTaken)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projRDApplied)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projRDMR)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetChange2)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGDTaken)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGDApplied)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGDMR)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetChange3)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projPurchased)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projRedeemedSite)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projRedeemedRent)</td>      
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projRedeemedSto)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetChange4)</td>
         </tr>
     }
     @foreach (DataRow row in Model.Tables["prior"].Rows)
@@ -312,23 +312,23 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange1)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange2)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange3)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPurchased)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRedeemedSite)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRedeemedRent)</td>      
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRedeemedSto)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetChange4)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalSDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalSDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalSDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetChange1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalRDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalRDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalRDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetChange2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetChange3)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalPurchased)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalRedeemedSite)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalRedeemedRent)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalRedeemedSto)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetChange4)</td>
     </tr>
     @foreach (DataRow row in Model.Tables["prior2"].Rows)
     {
@@ -352,23 +352,23 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange1)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange2)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGDTaken)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGDApplied)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGDMR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange3)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPurchased)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRedeemedSite)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRedeemedRent)</td>      
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRedeemedSto)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetChange4)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalSDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalSDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalSDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetChange1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalRDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalRDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalRDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetChange2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGDTaken)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGDApplied)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGDMR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetChange3)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalPurchased)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalRedeemedSite)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalRedeemedRent)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalRedeemedSto)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetChange4)</td>
     </tr>
     @{
     decimal deltaSDTaken = 0;
@@ -475,22 +475,6 @@
 
 @section Scripts { 
 <script> 
-var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-    if (!isNaN(amount)) { 
-        if (amount == 0){
-            cell.textContent = ' ';
-        } else {
-            if (amount < 0){
-                cell.classList.add('negative-value');
-                cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-            } else{
-            cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-            }
-        }
-    } 
-});
     $(document).ready(function () { 
             $(".clickable-tableR").on("click", function () { 
                 var url = $(this).data("monthlybreakdown");
@@ -503,8 +487,5 @@ cells.forEach(function (cell) {
                 } 
         }); 
 });
-function formatNumberWithCommas(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
 </script> 
 }
