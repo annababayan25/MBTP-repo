@@ -56,7 +56,7 @@ namespace MBTP.Models
 
         [JsonProperty("deposit")]
         public string Deposit { get; set; }
-
+        public int BookingId { get; internal set; }
     }
     
 }

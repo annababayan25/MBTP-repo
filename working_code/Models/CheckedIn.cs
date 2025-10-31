@@ -75,7 +75,7 @@ namespace MBTP.Models
     public class TariffQuoted
     {
         [JsonProperty("id")]
-        public string? Id { get; set; }
+        public int? Id { get; set; }
 
         [JsonProperty("stay_date")]
         public string? StayDate { get; set; }
@@ -99,7 +99,7 @@ namespace MBTP.Models
         public string? Id { get; set; }
 
         [JsonProperty("inventory_item_id")]
-        public string? InventoryItemId { get; set; }
+        public int? InventoryItemId { get; set; }
 
         [JsonProperty("description")]
         public string? Description { get; set; }
@@ -128,13 +128,13 @@ namespace MBTP.Models
     {
 
         [JsonProperty("id")]
-        public string? Id { get; set; }
+        public int? Id { get; set; }
 
         [JsonProperty("account_id")]
         public string? AccountId { get; set; }
 
         [JsonProperty("inventory_item_id")]
-        public string? InventoryItemId { get; set; }
+        public int? InventoryItemId { get; set; }
 
         [JsonProperty("link_period_from")]
         public string? PeriodFrom { get; set; }
@@ -207,7 +207,7 @@ namespace MBTP.Models
         public decimal? PeriodTo { get; set; }
 
         [JsonProperty("generated_when")]
-        public DateTime GeneratedWhen { get; set; }
+        public DateTime? GeneratedWhen { get; set; }
 
         [JsonProperty("voided_when")]
         public DateTime? VoidedWhen { get; set; }
