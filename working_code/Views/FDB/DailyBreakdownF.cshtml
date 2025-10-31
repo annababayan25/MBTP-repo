@@ -319,32 +319,32 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalSites)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalRentals)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalLockFees)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalExVeh)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalDamageFees)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalLate)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalVisit)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGolf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRefGolf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGross)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxLi)</td>      
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevSub)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalAnnual)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalEmployee)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalLTS)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalLTR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalMHP)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef2)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTaxSub)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalStorage)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalTransf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalMisc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef3)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTax)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevenue1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalSites)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalRentals)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalLockFees)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalExVeh)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalDamageFees)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalLate)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalManRef)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalVisit)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalGolf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalManRefGolf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalGross)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalTaxLi)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalNetRevSub)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalAnnual)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalEmployee)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalLTS)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalLTR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalMHP)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalManRef2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalNonTaxSub)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalStorage)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalTransf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalMisc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalManRef3)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalNonTax)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalNetRevenue1)</td>
     </tr>
     @if (startDate.Month == currentDate.Month)
     {
@@ -378,32 +378,32 @@
         projNetRevenue1 = totalNetRevenue1 + projNetRevSub + projNonTaxSub + projNonTax;
         <tr>
             <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projSites)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projRentals)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projLockFees)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projExVeh)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projDamageFees)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projLate)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projManRef)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projVisit)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGolf)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projManRefGolf)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGross)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTaxLi)</td>      
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetRevSub)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projAnnual)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projEmployee)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projLTS)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projLTR)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projMHP)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projManRef2)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNonTaxSub)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projStorage)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTransf)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projMisc)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projManRef3)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNonTax)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetRevenue1)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projSites)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projRentals)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projLockFees)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projExVeh)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projDamageFees)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projLate)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projManRef)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projVisit)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGolf)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projManRefGolf)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGross)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTaxLi)</td>      
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetRevSub)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projAnnual)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projEmployee)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projLTS)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projLTR)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projMHP)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projManRef2)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNonTaxSub)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projStorage)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTransf)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projMisc)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projManRef3)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNonTax)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetRevenue1)</td>
         </tr>
     }
     @foreach (DataRow row in Model.Tables["prior"].Rows)
@@ -438,32 +438,32 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSites)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRentals)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLockFees)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalExVeh)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalDamageFees)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLate)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalManRef)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalVisit)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGolf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalManRefGolf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGross)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTaxLi)</td>      
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetRevSub)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalAnnual)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalEmployee)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLTS)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLTR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalMHP)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalManRef2)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNonTaxSub)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalStorage)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTransf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalMisc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalManRef3)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNonTax)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetRevenue1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalSites)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalRentals)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalLockFees)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalExVeh)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalDamageFees)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalLate)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalManRef)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalVisit)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGolf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalManRefGolf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGross)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTaxLi)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetRevSub)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalAnnual)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalEmployee)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalLTS)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalLTR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalMHP)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalManRef2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNonTaxSub)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalStorage)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTransf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalMisc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalManRef3)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNonTax)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetRevenue1)</td>
     </tr>
     @foreach (DataRow row in Model.Tables["prior2"].Rows)
     {
@@ -497,32 +497,32 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSites)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRentals)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLockFees)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalExVeh)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalDamageFees)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLate)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalManRef)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalVisit)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGolf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalManRefGolf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGross)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTaxLi)</td>      
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetRevSub)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalAnnual)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalEmployee)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLTS)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLTR)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalMHP)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalManRef2)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNonTaxSub)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalStorage)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTransf)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalMisc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalManRef3)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNonTax)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetRevenue1)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalSites)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalRentals)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalLockFees)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalExVeh)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalDamageFees)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalLate)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalManRef)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalVisit)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGolf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalManRefGolf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGross)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTaxLi)</td>      
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetRevSub)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalAnnual)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalEmployee)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalLTS)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalLTR)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalMHP)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalManRef2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNonTaxSub)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalStorage)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTransf)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalMisc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalManRef3)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNonTax)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetRevenue1)</td>
     </tr>
    @{
         decimal deltaSites = 0;
@@ -660,22 +660,6 @@
 
 @section Scripts { 
 <script> 
-var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-   var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-   if (!isNaN(amount)) { 
-       if (amount == 0){
-           cell.textContent = ' ';
-       } else {
-           if (amount < 0){
-               cell.classList.add('negative-value');
-               cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-           } else{
-           cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-           }
-       }
-   } 
-});
    $(document).ready(function () { 
        $(".clickable-tableF").on("click", function () { 
            var url = $(this).data("monthlybreakdown");
@@ -688,10 +672,6 @@ cells.forEach(function (cell) {
            } 
        }); 
    });
-
-   function formatNumberWithCommas(number) {
-       return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-   }
 </script> 
 }
 </html>
