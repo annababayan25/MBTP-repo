@@ -329,27 +329,27 @@
         <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
         @if(accID != "4")
         {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalCATV)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalCATV)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalGuestServices)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalGuestServices)</td>
         @if(accID != "4")
         {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalLeasedConcessions)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalOtherM)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalLeasedConcessions)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalOtherM)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalAtSitePropane)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalPropaneStation)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalLaundry)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalAtSitePropane)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalPropaneStation)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalLaundry)</td>
         @if(accID != "4")
         {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalStoreEvents)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalFrontEvents)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalVendorDecals)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalParkModelSales)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalO)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", totalSupplementalS)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalStoreEvents)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalFrontEvents)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalVendorDecals)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalParkModelSales)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalSupplementalO)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", totalSupplementalS)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", totalTotals)</td>     
+        <td class="breakdownTotals2">@String.Format("{0:c2}", totalTotals)</td>     
     </tr>
     @if (startDate.Month == currentDate.Month)
     {   // some columns are projected only as the sum of what's been found to date since they contain irregular entries
@@ -381,27 +381,27 @@
             <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
             @if(accID != "4")
             {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projCATV)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projCATV)</td>
             }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGuestServices)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGuestServices)</td>
             @if(accID != "4")
             {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projLeasedConcessions)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projOtherM)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projLeasedConcessions)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projOtherM)</td>
             }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projAtSitePropane)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projPropaneStation)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projLaundry)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projAtSitePropane)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projPropaneStation)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projLaundry)</td>
             @if(accID != "4")
             {
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projStoreEvents)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projFrontEvents)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projVendorDecals)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projParkModelSales)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projSupplementalO)</td>
-                <td class="breakdownTotals2">@String.Format("{0:F2}", projSupplementalS)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projStoreEvents)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projFrontEvents)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projVendorDecals)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projParkModelSales)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projSupplementalO)</td>
+                <td class="breakdownTotals2">@String.Format("{0:c2}", projSupplementalS)</td>
             }
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTotals)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTotals)</td>
         </tr>
     }
     @foreach (DataRow row in Model!.Tables["prior"].Rows)
@@ -433,27 +433,27 @@
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
         @if(accID != "4")
         {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalCATV)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalCATV)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGuestServices)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGuestServices)</td>
         @if(accID != "4")
         {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLeasedConcessions)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalOtherM)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalLeasedConcessions)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalOtherM)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalAtSitePropane)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPropaneStation)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalLaundry)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalAtSitePropane)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalPropaneStation)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalLaundry)</td>
         @if(accID != "4")
         {
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalStoreEvents)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFrontEvents)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalVendorDecals)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalParkModelSales)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSupplementalO)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSupplementalS)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalStoreEvents)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalFrontEvents)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalVendorDecals)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalParkModelSales)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalSupplementalO)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalSupplementalS)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotals)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTotals)</td>
     </tr>
     @foreach (DataRow row in Model!.Tables["prior2"].Rows)
     {
@@ -484,27 +484,27 @@
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
         @if(accID != "4")
         {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalCATV)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalCATV)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGuestServices)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGuestServices)</td>
         @if(accID != "4")
         {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLeasedConcessions)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalOtherM)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalLeasedConcessions)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalOtherM)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalAtSitePropane)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPropaneStation)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalLaundry)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalAtSitePropane)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalPropaneStation)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalLaundry)</td>
         @if(accID != "4")
         {
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalStoreEvents)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFrontEvents)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalVendorDecals)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalParkModelSales)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSupplementalO)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSupplementalS)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalStoreEvents)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalFrontEvents)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalVendorDecals)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalParkModelSales)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalSupplementalO)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalSupplementalS)</td>
         }
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotals)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTotals)</td>
     </tr>
     @{
         decimal deltaCATV = 0;
@@ -624,22 +624,6 @@
 
 @section Scripts { 
 <script> 
-var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-    if (!isNaN(amount)) { 
-        if (amount == 0){
-            cell.textContent = ' ';
-        } else {
-            if (amount < 0){
-                cell.classList.add('negative-value');
-                cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-            } else{
-            cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-            }
-        }
-    } 
-});
     $(document).ready(function () { 
             $(".clickable-tableM").on("click", function () { 
                 var url = $(this).data("monthlybreakdown");
@@ -652,9 +636,6 @@ cells.forEach(function (cell) {
                 } 
         }); 
 });
-function formatNumberWithCommas(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
 </script> 
 }
 

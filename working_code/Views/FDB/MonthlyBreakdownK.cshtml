@@ -145,24 +145,5 @@ $(document).ready(function () {
             console.error('URL is undefined');
         }
     });
-    var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-    if (!isNaN(amount)) { 
-        if (amount == 0){
-            cell.textContent = ' ';
-        } else {
-            if (amount < 0){
-                cell.classList.add('negative-value');
-                cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-            } else{
-            cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-            }
-        }
-    } 
-});
-    function formatNumberWithCommas(number) {
-        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
 });
 </script>

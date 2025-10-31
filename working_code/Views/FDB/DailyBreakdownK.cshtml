@@ -232,14 +232,14 @@
         combinedFood = projNoTaxFood + projPreparedFood;
         <tr>
             <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projKayBo)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projPedBo)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projMisc)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGrossRevenue)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTaxCollected)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetRevenue)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTaxExpected)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", combinedFood)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projKayBo)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projPedBo)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projMisc)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGrossRevenue)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTaxCollected)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetRevenue)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTaxExpected)</td>
         </tr>
     }
     @foreach (DataRow row in Model.Tables["prior"].Rows)
@@ -257,14 +257,14 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalKayBo)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPedBo)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalMisc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGrossRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTaxCollected)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTaxExpected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", combinedFood)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalKayBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalPedBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalMisc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGrossRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTaxCollected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTaxExpected)</td>
     </tr>
     @foreach (DataRow row in Model.Tables["prior2"].Rows)
     {
@@ -281,14 +281,14 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalKayBo)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPedBo)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalMisc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGrossRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTaxCollected)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTaxExpected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", combinedFood)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalKayBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalPedBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalMisc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGrossRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTaxCollected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTaxExpected)</td>
     </tr>
     @{
         decimal deltaNoTaxFood = 0;
@@ -364,22 +364,6 @@
 </body>
 @section Scripts { 
 <script> 
-var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-    if (!isNaN(amount)) { 
-        if (amount == 0){
-            cell.textContent = ' ';
-        } else {
-            if (amount < 0){
-                cell.classList.add('negative-value');
-                cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-            } else{
-            cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-            }
-        }
-    } 
-});
     $(document).ready(function () { 
             $(".clickable-tableK").on("click", function () { 
                 var url = $(this).data("monthlybreakdown");
@@ -392,9 +376,6 @@ cells.forEach(function (cell) {
                 } 
         }); 
 });
-function formatNumberWithCommas(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
 </script> 
 }
 
