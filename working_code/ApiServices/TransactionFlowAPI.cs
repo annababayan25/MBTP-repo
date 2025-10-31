@@ -19,8 +19,10 @@ namespace MBTP.Services
 {
     public class TransactionFlowApi : NewbookBaseApi
     {
-
-        public TransactionFlowApi(HttpClient client) : base(client) { }
+    
+        public TransactionFlowApi(HttpClient client) : base(client)
+        {
+        }
 
         public async Task<List<TransactionFlow>> PopulateTransactions(DateTime startDate, DateTime endDate)
         {
@@ -100,6 +102,5 @@ namespace MBTP.Services
             
             return transactionFlow;
         }
-        
     }
 }

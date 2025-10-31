@@ -1,0 +1,157 @@
+1 | 1 | gift certificate | gift certificate | 0.00
+1 | 1 | Tree Replanting/Removal $200 |  | 200.00
+1 | 1 | Stamp Money |  | 0.00
+1 | 1 | Miscellaneous |  | 0.00
+1 | 1 | Fax - Sending $2.00/page |  | 2.00
+1 | 1 | Fax - Receiving $1.00/page |  | 1.00
+1 | 1 | Copies - .10 each |  | 0.10
+5 | 1 | 2026 o/front or l/front Monthly Rent - March/April Split | 2026 o/front or l/front  Monthly Rent - March/April Split | 1380.00
+5 | 1 | 2026 Monthly Rent - March/April Split - Site - not o/front or l/front | 2026 Monthly Rent - March/April Split - Site - not o/front or l/front | 1305.00
+5 | 1 | Monthly Rate - Apr-May 2027 - WESC O/FRONT L/FRONT | Monthly Rate - Apr-May 2027 - WESC O/FRONT L/FRONT | 1740.00
+5 | 1 | Monthly Rate - Apr-May 2027 - WESC & WE | Monthly Rate - Apr-May 2027 - WESC & WE | 1640.00
+5 | 1 | Monthly Rate - Nov 2026-Mar 2027 - WESC & WE | Monthly Rate - Nov 2026-Mar 2027 - WESC & WE | 1095.00
+5 | 1 | Monthly Rate - Nov 2026-Mar 2027 - WESC O/FRONT  L/FRONT | Monthly Rate - Nov 2026-Mar 2027 - WESC O/FRONT  L/FRONT | 1195.00
+5 | 1 | Monthly Rate - Apr-May 2026 - WESC O/FRONT L/FRONT | Monthly Rate - Apr-May 2026 - WESC O/FRONT L/FRONT | 1640.00
+5 | 1 | Monthly Rate - Nov 2025-Mar 2026 - WESC O/FRONT  L/FRONT | Monthly Rate - Nov 2025-Mar 2026 - WESC O/FRONT  L/FRONT | 1120.00
+5 | 1 | Monthly Rate - Nov 2025-Mar 2026 - WESC & WE | Monthly Rate - Nov 2025-Mar 2026 - WESC & WE | 1045.00
+5 | 1 | Monthly Rate - Apr-May 2026 - WESC & WE | Monthly Rate - Apr-May 2026 - WESC & WE | 1565.00
+5 | 1 | authorize.net reversal - site | authorize.net reversal - site | 0.00
+5 | 1 | E/O No Refund-site | E/O No Refund-site | 1.00
+5 | 1 | Daily Rate | Daily Rate | 1.00
+5 | 1 | Extra Person on Site (year round) 2025 | Extra Person on Site 2025 | 5.00
+5 | 1 | Extra Vehicle - Site (April 1st through Labor Day weekend) | Extra Vehicle - Site (April 1st through Labor Day weekend) | 5.00
+5 | 1 | Cancellation Fee - Sites | Cancellation Fee - Sites | 25.00
+16 | 1 | authorize.net reversal - rental | authorize.net reversal - rental | 0.00
+16 | 1 | E/O No Refund-rental | E/O No Refund-rental | 1.00
+16 | 1 | Extra Vehicle - Rental  (April 1st through Labor Day weekend) | Extra Vehicle - Rental  (April 1st through Labor Day weekend) | 5.00
+17 | 1 | Ocean Villa Daily Rate | Daily Rate | 1.00
+17 | 1 | Monthly Rate NO TAX - Winter 2025-2026 - Villa | Monthly Rate NO TAX - Winter 2025 / 2026 - Villa | 2350.00
+17 | 1 | Monthly Rate - Winter 2025-2026 - Villa | Monthly Rate - Winter 2025 / 2026 - Villa | 2350.00
+17 | 1 | Ocean Villa Weekly Rate | Weekly Rate | 1.00
+18 | 1 | 6 Month Rate - Oct 2026 - Concrete Pad - credit card | 6 Month Rate - Oct 2026 - Concrete Pad - credit card | 5258.00
+18 | 1 | 6 Month Rate - Oct 2026 - Concrete Pad - cash or check | 6 Month Rate - Oct 2026 - Concrete Pad - cash or check | 5105.10
+18 | 1 | 6 Month Rate - Oct 2025 - Concrete Pad - credit card | 6 Month Rate - Oct 2025 - Concrete Pad - credit card | 5005.00
+18 | 1 | 6 Month Rate - Oct 2025 - Concrete Pad - cash or check | 6 Month Rate - Oct 2025 - Concrete Pad - cash or check | 4862.00
+18 | 1 | 5 Month Rate - Nov 2026 - Concrete Pad - credit card | 5 Month Rate - Nov 2026 - Concrete Pad - credit card | 4480.30
+18 | 1 | 5 Month Rate - Nov 2026 - Concrete Pad - cash or check | 5 Month Rate - Nov 2026 - Concrete Pad - cash or check | 4350.50
+18 | 1 | 5 Month Rate - Nov 2025 - Concrete Pad - cash or check | 5 Month Rate - Nov 2025 - Concrete Pad - cash or check | 4143.70
+18 | 1 | 5 Month Rate - Nov 2025 - Concrete Pad - credit card | 5 Month Rate - Nov 2025 - Concrete Pad - credit card | 4268.00
+18 | 1 | 4 Month Rate - Nov 2026 - Concrete Pad - credit card | 4 Month Rate - Nov 2026 - Concrete Pad - credit card | 4480.30
+18 | 1 | 4 Month Rate - Nov 2026 - Concrete Pad - cash or check | 4 Month Rate - Nov 2026 - Concrete Pad - cash or check | 4350.50
+18 | 1 | 4 Month Rate - Nov 2025 - Concrete Pad - credit card | 4 Month Rate - Nov 2025 - Concrete Pad - credit card | 3487.00
+18 | 1 | 4 Month Rate - Nov 2025 - Concrete Pad - cash or check | 4 Month Rate - Nov 2025 - Concrete Pad - cash or check | 3388.00
+18 | 1 | 3 Month Rate - Nov 2026 - Concrete Pad - credit card | 3 Month Rate - Nov 2026 - Concrete Pad - credit card | 2807.20
+18 | 1 | 3 Month Rate - Nov 2026 - Concrete Pad - cash or check | 3 Month Rate - Nov 2026 - Concrete Pad - cash or check | 2725.80
+18 | 1 | 3 Month Rate - Nov 2025 - Concrete Pad - credit card | 3 Month Rate - Nov 2025 - Concrete Pad - credit card | 2673.00
+18 | 1 | 3 Month Rate - Nov 2025 - Concrete Pad- cash or check | 3 Month Rate - Nov 2025 - Concrete Pad - cash or check | 2596.00
+18 | 4 | Late Fees - A/L 2025-26 | Late Fees - A/L 2025-26 | 2.50
+18 | 4 | 2025-2026 Annual Lease - Premium - Yearly - Daily Rate | 2025-2026 Annual Lease - Premium - Yearly - Daily | 21.37
+18 | 4 | 2025-2026 Annual Lease - Premium - Yearly | 2025-2026 Annual Lease - Premium - Yearly | 7800.00
+18 | 4 | 2025-2026 Annual Lease - Premium - Monthly - Daily Rate | 2025-2026 Annual Lease - Premium - Monthly - Daily Rate | 23.83
+18 | 4 | 2025-2026 Annual Lease - Premium - Monthly | 2025-2026 Annual Lease - Premium - Monthly | 715.00
+18 | 4 | 2025-2026 Annual Lease - Original Area - Yearly - Daily Rate | 2025-2026 Annual Lease - Original Area - Yearly - Daily Rate | 19.52
+18 | 4 | 2025-2026 Annual Lease - Original Area - Yearly | 2025-2026 Annual Lease - Original Area - Yearly | 7124.00
+18 | 4 | 2025-2026 Annual Lease - Original Area - Monthly - Daily Rate | 2025-2026 Annual Lease - Original Area - Monthly - Daily Rate | 21.77
+18 | 4 | 2025-2026 Annual Lease - Original Area - Monthly | 2025-2026 Annual Lease - Original Area - Monthly | 653.00
+18 | 4 | 2025-2026 Annual Lease - On Lake - Yearly - Daily Rate | 2025-2026 Annual Lease - On Lake - Yearly - Daily | 21.37
+18 | 4 | 2025-2026 Annual Lease - On Lake - Yearly | 2025-2026 Annual Lease - On Lake - Yearly | 7800.00
+18 | 4 | 2025-2026 Annual Lease - On Lake - Monthly - Daily Rate | 2025-2026 Annual Lease - On Lake - Monthly - Daily Rate | 23.83
+18 | 4 | 2025-2026 Annual Lease - On Lake - Monthly | 2025-2026 Annual Lease - On Lake - Monthly | 715.00
+18 | 4 | 2025-2026 Annual Lease - Off Lake - Yearly - Daily Rate | 2025-2026 Annual Lease - Off Lake - Yearly - Daily Rate | 20.52
+18 | 4 | 2025-2026 Annual Lease - Off Lake - Yearly | 2025-2026 Annual Lease - Off Lake - Yearly | 7488.00
+18 | 4 | 2025-2026 Annual Lease - Off Lake - Monthly - Daily Rate | 2025-2026 Annual Lease - Off Lake - Monthly - Daily Rate | 22.87
+18 | 4 | 2025-2026 Annual Lease - Off Lake - Monthly | 2025-2026 Annual Lease - Off Lake - Monthly | 686.00
+18 | 4 | 2025-2026 Annual Lease - Ocean Park - Yearly - Daily Rate | 2025-2026 Annual Lease - Ocean Park - Yearly - Daily Rate | 22.66
+18 | 4 | 2025-2026 Annual Lease - Ocean Park - Yearly | 2025-2026 Annual Lease - Ocean Park - Yearly | 8270.00
+18 | 4 | 2025-2026 Annual Lease - Ocean Park - Monthly - Daily Rate | 2025-2026 Annual Lease - Ocean Park - Monthly - Daily Rate | 25.27
+18 | 4 | 2025-2026 Annual Lease - Ocean Park - Monthly | 2026-2026 Annual Lease - Ocean Park - Monthly | 758.00
+18 | 1 | 2026 o/front or l/front Monthly Rent (tax free) - March/April Split | 2026 o/front or l/front  Monthly Rent (tax free) - March/April Split | 1380.00
+18 | 1 | 2026 Monthly Rent - March/April Split - Site - not o/front or l/front-tax free | 2026 Monthly Rent - March/April Split - Site - not o/front or l/front-tax free | 1305.00
+18 | 1 | Monthly Rate - Apr-May 2027 NO TAX - WESC & WE | Monthly Rate - Apr-May 2027 NO TAX - WESC & WE | 1640.00
+18 | 1 | Monthly Rate - Apr-May 2027 - WESC O/FRONT L/FRONT NO TAX | Monthly Rate - Apr-May 2027 - WESC O/FRONT L/FRONT NO TAX | 1740.00
+18 | 1 | Monthly Rate - Nov 2026-Mar 2027 - NO TAX-WESC O/FRONT  L/FRONT  NO TAX | Monthly Rate - Nov 2026-Mar 2027 - WESC O/FRONT  L/FRONT  NO TAX | 1195.00
+18 | 1 | Monthly Rate - Nov 2026-Mar 2027 NO TAX - WESC & WE | Monthly Rate - Nov 2026-Mar 2027 NO TAX - WESC & WE | 1095.00
+18 | 1 | 3 Month Rate - Nov 2026 - credit card | 3 Month Rate - Nov 2026 - credit card | 2552.00
+18 | 1 | 3 Month Rate - Nov 2026 - cash or check | 3 Month Rate - Nov 2026 - cash or check | 2478.00
+18 | 1 | 5 Month Rate - Nov 2026 - credit card | 5 Month Rate - Nov 2026 - credit card | 4073.00
+18 | 1 | 5 Month Rate - Nov 2026 - cash or check | 5 Month Rate - Nov 2026 - cash or check | 3955.00
+18 | 1 | 6 Month Rate - Oct 2026 - credit card | 6 Month Rate - Oct 2026 - credit card | 4780.00
+18 | 1 | 6 Month Rate - Oct 2026 - cash or check | 6 Month Rate - Oct 2026 - cash or check | 4641.00
+18 | 1 | 4 Month Rate - Nov 2026 - credit card | 4 Month Rate - Nov 2026 - credit card | 4073.00
+18 | 1 | 4 Month Rate - Nov 2026 - cash or check | 4 Month Rate - Nov 2026 - cash or check | 3955.00
+18 | 1 | Monthly Rate - Nov 2025-Mar 2026 NO TAX - WESC & WE | Monthly Rate - Nov 2025-Mar 2026 NO TAX - WESC & WE | 1045.00
+18 | 1 | Monthly Rate - Nov 2025-Mar 2026 - NO TAX-WESC O/FRONT  L/FRONT  NO TAX | Monthly Rate - Nov 2025-Mar 2026 - WESC O/FRONT  L/FRONT  NO TAX | 1120.00
+18 | 1 | Monthly Rate - Apr-May 2026 NO TAX - WESC & WE | Monthly Rate - Apr-May 2026 NO TAX - WESC & WE | 1565.00
+18 | 1 | Monthly Rate - Apr-May 2026 - WESC O/FRONT L/FRONT NO TAX | Monthly Rate - Apr-May 2026 - WESC O/FRONT L/FRONT NO TAX | 1640.00
+18 | 1 | 4 Month Rate - Nov 2025 - credit card | 4 Month Rate - Nov 2025 - credit card | 3170.00
+18 | 1 | 4 Month Rate - Nov 2025 - cash or check | 4 Month Rate - Nov 2025 - cash or check | 3080.00
+18 | 1 | 3 Month Rate - Nov 2025 - credit card | 3 Month Rate - Nov 2025 - credit card | 2430.00
+18 | 1 | 3 Month Rate - Nov 2025 - cash or check | 3 Month Rate - Nov 2025 - cash or check | 2360.00
+18 | 1 | Employee Site - Annual Lease - Manager on Call | Employee Site - Annual Lease - Manager on Call | 416.67
+18 | 1 | 5 Month Rate - Nov 2025 - credit card | 5 Month Rate - Nov 2025 - credit card | 3880.00
+18 | 1 | 5 Month Rate - Nov 2025 - cash or check | 5 Month Rate - Nov 2025 - cash or check | 3767.00
+18 | 1 | 6 Month Rate - Oct 2025 - credit card | 6 Month Rate - Oct 2025 - credit card | 4550.00
+18 | 1 | 6 Month Rate - Oct 2025 - cash or check | 6 Month Rate - Oct 2025 - cash or check | 4420.00
+18 | 1 | Employee Site - effective November 1, 2023 | Employee Site - effective November 1, 2023 | 400.00
+18 | 1 | Employee Site - Annual Lease $300 | Employee Site - Annual Lease $300 | 300.00
+18 | 1 | Employee Site - effective October 1, 2021 | Employee Site - effective October 1, 2021 | 300.00
+18 | 1 | Daily Rate - NO TAX | Daily Rate - NO TAX | 1.00
+18 | 1 | Employee Site - Annual Lease $150 | Employee Site - Annual Lease $150 | 150.00
+19 | 5 | Late Fees - MHP 2025-26 | Late Fees -MHP 2025-26 | 2.50
+19 | 5 | 2025-2026 Mobile Home Park - Yearly - Daily Rate | 2025-2026 Mobile Home Park - Yearly - Daily Rate | 24.16
+19 | 5 | 2025-2026 Mobile Home Park - Yearly | 2025-2026 Mobile Home Park - Yearly | 8820.00
+19 | 5 | 2025-2026 Mobile Home Park - Monthly - Daily Rate | 2025-2026 Mobile Home Park - Monthly - Daily Rate | 26.93
+19 | 5 | 2025-2026 Mobile Home Park - Monthly | 2025-2026 Mobile Home Park - Monthly | 808.00
+20 | 1 | authorize.net reversal - storage | authorize.net reversal - storage | 0.00
+20 | 3 | Storage - Travel Trailer - Monthly |  | 85.00
+20 | 3 | Storage - Travel Trailer - Yearly |  | 850.00
+21 | 3 | Storage - Motor Home - Monthly |  | 85.00
+21 | 3 | Storage - Motor Home - Yearly |  | 850.00
+22 | 3 | Storage - 5th W - Monthly |  | 100.00
+22 | 3 | Storage - 5th W - Yearly |  | 1000.00
+24 | 3 | Storage - Misc(boats/utility trailers etc) - Weekly |  | 15.00
+24 | 3 | Storage - Misc(Boats/Utility/Trailers Etc) - Yearly |  | 500.00
+24 | 3 | Storage - Misc(Boats/Utility/Trailers Etc) - Monthly |  | 50.00
+29 | 1 | Lease - Transfer Fee |  | 0.00
+30 | 1 | Employee Discount - lot rent | Employee Discount - lot rent | 1.00
+31 | 1 | Activity - Oyster Roast (not eating oysters) Feb 28 2026 | Activity - Oyster Roast (not eating oysters) Feb 28 2026 | 17.00
+31 | 1 | Activity - Oyster Roast (eating oysters) Feb 28 2026 | Activity - Oyster Roast (eating oysters) Feb 28 2026 | 0.00
+31 | 1 | Activity - Employee - Oyster Roast (not eating oysters) Feb 28 2026 | Activity - Employee - Oyster Roast (not eating oysters) Feb 28 2026 | 10.00
+31 | 1 | Activity - Employee - Oyster Roast (eating oysters) Feb 28 2026 | Activity - Employee - Oyster Roast  (eating oysters) Feb 28 2026 | 20.00
+32 | 1 | Commissions - ATM |  | 0.00
+33 | 1 | Commissions - Cable TV |  | 0.00
+34 | 1 | Insurance - Group |  | 0.00
+36 | 1 | LP gas . | lp gas | 0.00
+37 | 1 | Trash Pickup |  | 0.00
+38 |  | Pool Wristbands - 2026 | Pool Wristbands - 2026 | 5.00
+38 | 1 | Extra Charges - 2025 day visitors / vehicle | Visitor Money | 4.00
+39 | 3 | Credit Card Returned Fee | Credit Card Returned Fee | 25.00
+39 | 3 | Late Fees - Storage | Late Fees - Storage | 10.00
+39 | 1 | Trailer Move Fee $10 - $25 enter $ | Trailer Move Fee $10-$25 | 0.00
+40 | 1 | Extra Vehicle Pass / daily stay - Leased Lots 2025-26 | Extra Vehicle Pass / daily stay - Leased Lots 2025-26
+April 1- Labor Day | 5.00
+40 | 1 | Extra Vehicle Pass-Leased Lots 2025-2026 | Extra Vehicle Pass- Lease Lots 2025-2026 | 40.00
+41 |  | Site Selection - lock fee- Rentals | Site Selection - lock fee | 40.00
+41 |  | Site Selection - lock fee- sites | Site Selection - lock fee | 40.00
+42 | 1 | Security Deposit |  | 200.00
+44 |  | trailer sales | trailer sales | 1.00
+46 | 1 | E/O No Refund-Golf Cart | E/O No Refund-Golf Cart | 1.00
+46 |  | Golf Cart Rentals - Monthly & Spring-Fall | Golf Cart Rentals - Monthly/Spring & Fall | 763.89
+46 |  | Golf Cart Rentals - monthly/winter (Nov-Mar) | Golf Cart Rentals - monthly/winter (Nov-Mar) | 625.00
+46 |  | Golf Cart Rentals - weekly/spring and fall | Golf Cart Rentals - weekly/spring and fall | 254.63
+46 |  | Golf Cart Rentals - daily/spring and fall | Golf Cart Rentals - daily/spring and faill | 46.30
+46 |  | Golf Cart Rentals - weekly/summer | Golf Cart Rentals - weekly/summer | 369.44
+46 |  | Golf Cart Rentals - daily/summer | Golf Cart Rentals - daily/summer | 66.67
+47 | 1 | Repairs/Damages/Missing Items by guests | Repairs/Damages/Missing Items by guests | 1.00
+49 |  | Express Check In | Express Check In | 0.00
+ |  | Camper Washing Fee | Camper Washing Fee | 25.00
+ |  | Returned Check Fee | Check returned from bank for non-payment | 30.00
+ |  | Concrete Pad |  | 10.00
+ |  | Yard Maintenance | Fees for yard work done by MBTP staff | 1.00
+ |  | Online Booking Fee |  | 3.00
+ | 1 | Cancellation Fee - Rentals | Cancellation Fee - Rentals | 25.00
+ | 1 | Weekly Credit |  | 0.00
+ | 1 | Cleaning Fee |  | 50.00
+ | 1 | Winter Hall Rental |  | 0.00
+ | 1 | Leased Concessions - BBTS |  | 0.00
+ | 1 | Commissions - Other |  | 0.00

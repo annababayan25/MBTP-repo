@@ -32,6 +32,12 @@ namespace MBTP
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             services.AddHttpContextAccessor();
+            services.AddSingleton<InventoryApi>();
+            services.AddScoped<BookingsRepo>();
+            services.AddScoped<OccupancyRepo>();
+            services.AddScoped<ReconRepo>();
+            services.AddScoped<TransactionFlowRepo>();
+            services.AddScoped<CheckedInListRepo>();
             services.AddScoped<DepositsHeldRepo>();
             services.AddScoped<TransactionFlowRepo>();
             services.AddScoped<TransactionFlowApi>();

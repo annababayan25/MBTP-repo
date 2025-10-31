@@ -84,12 +84,12 @@ namespace MBTP.Services
                             items.Add(parsedItem);
                     }
                     sortedItems = items
-                        .OrderBy(i => int.TryParse(i.Id, out var id) ? id : int.MaxValue)
+                        .OrderBy(i => int.TryParse(i.GlAccountId, out var id) ? id : int.MaxValue)
                         .ToList();
 
                     foreach (var item in sortedItems)
                     {
-                        lines.Add($"{item.Id} | {item.Name} | {item.Description} | {item.Amount}");
+                        lines.Add($"{item.GlAccountId} | {item.GlCategoryId} | {item.Name} | {item.Description} | {item.Amount}");
                     }
 
                     string filePath = "inventory.txt";

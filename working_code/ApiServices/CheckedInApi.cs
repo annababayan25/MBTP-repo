@@ -19,15 +19,16 @@ namespace MBTP.Services
     public class CheckedInApi : NewbookBaseApi
     {
         private readonly IDatabaseConnectionService _dbConnectionService;
+        
 
-
-        public CheckedInApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
+        public CheckedInApi(HttpClient client, IDatabaseConnectionService dbConnectionService, CheckedInListRepo checkedInListRepo) : base(client)
         {
             _dbConnectionService = dbConnectionService;
+            
         }
 
         // For CheckedIn table in DB 
-        public async Task PopulateCheckIns(DateTime startDate, DateTime endDate)
+        public async Task<List<CheckedIn>> PopulateCheckIns(DateTime startDate, DateTime endDate)
         {
             var dataOffset = 0;
             var dataCount = 100;
@@ -114,11 +115,11 @@ namespace MBTP.Services
                             c.Description.Contains("site selection", StringComparison.OrdinalIgnoreCase))
                             && c.VoidedWhen == null)
                         .Select(c => c.Id)
-                        .ToHashSet() ?? new HashSet<string>();
+                        .ToHashSet();
 
                     decimal lockFeePaid = checkedIn.Payments?
                         .SelectMany(p => p.PaymentCharges ?? new List<PaymentChargeLink>())
-                        .Where(pc => lockFeeChargeIds.Contains(pc.ChargeId.ToString()))
+                        .Where(pc => lockFeeChargeIds.Contains(pc.ChargeId))
                         .Sum(pc => pc.ReconciledAmount) ?? 0;
 
                     if (lockFeePaid == 0)
@@ -135,16 +136,6 @@ namespace MBTP.Services
                     .Sum(c => c.Amount ?? 0) ?? 0;
                     checkedIn.OnlineBookingFee = onlineBookingFee;
 
-                    decimal totalRefundAmount = 0m;
-
-                    if (checkedIn.Refunds != null && checkedIn.BookingCheckedIn.HasValue)
-                    {
-                        totalRefundAmount = checkedIn.Refunds
-                            .Where(r => r.GeneratedWhen.HasValue &&
-                                        r.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date)
-                            .Sum(r => r.Amount ?? 0m);
-                    }
-                    checkedIn.RefundedAmount = totalRefundAmount;
 
                     decimal mergedDeposits = checkedIn.Payments?
                     .Where(p =>
@@ -157,8 +148,9 @@ namespace MBTP.Services
                             p.Description.Contains("mobile home", StringComparison.OrdinalIgnoreCase) ||
                             p.Description.Contains("lease", StringComparison.OrdinalIgnoreCase) ||
                             p.Description.Contains("booking #", StringComparison.OrdinalIgnoreCase) ||
-                            (p.Description.Contains("deposit", StringComparison.OrdinalIgnoreCase) &&
-                            !p.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase))
+                            p.Description.Contains("golf", StringComparison.OrdinalIgnoreCase) ||
+                            p.Description.Contains("deposit", StringComparison.OrdinalIgnoreCase) ||
+                            !p.Description.Contains("security", StringComparison.OrdinalIgnoreCase)
                         ) &&
                         (p.Deposit == "1") &&
                         (checkedIn.BookingCheckedIn.HasValue
@@ -180,16 +172,38 @@ namespace MBTP.Services
                     checkedIn.SecurityDeposits = totalChargesSecDep + totalPaymentsSecDep;
 
                     var afterCheckInPayments = checkedIn.Payments?
-                    .Where(p => p.GeneratedWhen > checkedIn.BookingCheckedIn.Value)
+                    .Where(p => p.GeneratedWhen.HasValue && p.GeneratedWhen.Value > checkedIn.BookingCheckedIn.Value)
                     .ToList();
 
                     checkedIn.PaymentsAfterCheckIn = afterCheckInPayments?.Sum(p => p.Amount ?? 0) ?? 0;
                     checkedIn.PaymentsAfterCheckInDesc = afterCheckInPayments != null
-                    ? string.Join("; ", afterCheckInPayments.Select(p => $"{p.Amount:C} ({p.Description})"))
+                    ? string.Join("; ", afterCheckInPayments.Select(p => $"({p.Description})"))
                     : null;
+
+                    decimal totalRefundAmount = 0m;
+
+                    if (checkedIn.Refunds != null && checkedIn.BookingCheckedIn.HasValue)
+                    {
+                        totalRefundAmount = checkedIn.Refunds
+                            .Where(r => r.GeneratedWhen.HasValue &&
+                                        r.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date)
+                            .Sum(r => r.Amount ?? 0m);
+                    }
+                    checkedIn.RefundedAmount = totalRefundAmount;
 
                     // Calculate the Deposits Held
                     checkedIn.DepositsHeld = mergedDeposits + cancellationFee - lockFeePaid - onlineBookingFee - totalRefundAmount;
+
+                    decimal clientDebit = 0m;
+                    if (checkedIn.Refunds != null && checkedIn.BookingCheckedIn.HasValue)
+                    {
+                        clientDebit = checkedIn.Refunds
+                            .Where(r => r.GeneratedWhen.HasValue &&
+                                        r.GeneratedWhen.Value > checkedIn.BookingCheckedIn.Value.Date)
+                            .Sum(r => r.Amount ?? 0m);
+
+                        checkedIn.DepositsHeld = checkedIn.DepositsHeld - clientDebit;
+                    }
 
                     // Calculate the Stay Cost 
                     decimal baseStayCost = checkedIn.TariffsQuoted?.Sum(t => t.CalculatedAmount) ?? 0;
@@ -209,34 +223,34 @@ namespace MBTP.Services
                         checkedIn.CalculatedStayCost = baseTotalAfterDiscount + effectiveTaxRate + cleaningFee;
                     }
 
-
-                    // Handle inventory items not present in charges or tariffs
+                    // Handle inventory items and avoid double counting
                     if (checkedIn.InventoryItems != null && checkedIn.InventoryItems.Count > 0)
                     {
+                        // get charges Inventory Ids if exists
                         var chargeInventoryIds = checkedIn.Charges?
-                            .Where(c => !string.IsNullOrEmpty(c.InventoryItemId))
+                            .Where(c => c.InventoryItemId != null)
                             .Select(c => c.InventoryItemId)
-                            .ToHashSet() ?? new HashSet<string>();
+                            .ToHashSet();
 
-                        var tariffIds = checkedIn.TariffsQuoted?
-                            .Where(t => t != null && t.Id != null)
-                            .Select(t => t.Id.ToString())
-                            .ToHashSet() ?? new HashSet<string>();
+                        // get all inventory items except the following descriptions
+                        var inventoryItems = checkedIn.InventoryItems
+                        .Where(inv => (
+                                inv.Description.Contains("Concrete Pad", StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
 
-                        var extraInventoryItems = checkedIn.InventoryItems
-                            .Where(inv =>
-                                !chargeInventoryIds.Contains(inv.InventoryItemId) &&
-                                !tariffIds.Contains(inv.InventoryItemId))
-                                .ToList();
+                        // Get tax amounts for inventory items from  Charges if exist  bc inventory doesnt have a tax field
+                        var inventoryTaxInChargesTotal = checkedIn.Charges
+                            .Where(inv => chargeInventoryIds.Contains(inv.InventoryItemId))
+                            .SelectMany(charge => charge.Taxes).Sum(tax => tax.TaxAmount);
 
-                        if (extraInventoryItems.Count > 0)
+                        // Add linked inventory item amounts to stay cost
+                        if (inventoryItems.Count > 0)
                         {
-                            decimal extraAmount = extraInventoryItems
-                            .Sum(inv => decimal.TryParse(inv.Amount, out var amt) ? amt : 0);
-
-                            checkedIn.CalculatedStayCost = (checkedIn.CalculatedStayCost ?? 0) + extraAmount;
+                            decimal linkedAmount = inventoryItems.Sum(inv => decimal.TryParse(inv.Amount, out var amt) ? amt : 0);
+                            checkedIn.CalculatedStayCost = (checkedIn.CalculatedStayCost ?? 0) + linkedAmount + inventoryTaxInChargesTotal;
                         }
                     }
+
 
                     if ((checkedIn.CalculatedStayCost ?? 0) == 0 && (checkedIn.DepositsHeld ?? 0) > 0)
                     {
@@ -257,8 +271,7 @@ namespace MBTP.Services
 
                     // debug block to see what payments were made after check in
                     /*
-                    if (checkedIn.BookingID == // add booking id here)
-                    {
+                    
                     if (checkedIn.BookingCheckedIn.HasValue && checkedIn.Payments != null)
                         {
                             var aftercheckin = checkedIn.Payments
@@ -273,11 +286,12 @@ namespace MBTP.Services
                                     Console.WriteLine($"  PaymentId: {p.Id} | Desc: {p.Description} | Amount: {p.Amount} | GeneratedWhen: {p.GeneratedWhen}");
                                 }
                             }
-                        }
-                    }*/
+
+                        }*/
 
                     // debug to see the full json for a booking
-                    if (checkedIn.BookingId == 352730)
+
+                    if (checkedIn.BookingId == 373593)
                     {
                         string filePath = "checkedinOut.txt";
                         string contentFile = item.ToString();
@@ -306,48 +320,10 @@ namespace MBTP.Services
                     }
 
                     checkedInList.Add(checkedIn);
-
-                }
-
-                using var sqlConn = _dbConnectionService.CreateConnection();
-                await sqlConn.OpenAsync();
-
-                foreach (var checkedIn in checkedInList)
-                {
-                    using (SqlCommand command = new SqlCommand("dbo.UpdateCheckedInTable", sqlConn))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.AddWithValue("@BookingId", checkedIn.BookingId);
-                        command.Parameters.AddWithValue("@BookingName", (object?)checkedIn.BookingName ?? DBNull.Value);
-                        command.Parameters.AddWithValue("@Site", $"{checkedIn.CategoryName} {checkedIn.Site}" ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@BookingStatus", checkedIn.BookingStatus ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@CalculatedStayCost", checkedIn.CalculatedStayCost);
-                        command.Parameters.AddWithValue("@DepositsHeld", checkedIn.DepositsHeld);
-                        command.Parameters.AddWithValue("@LockFee", checkedIn.LockFee);
-                        command.Parameters.AddWithValue("@SecurityDeposits", checkedIn.SecurityDeposits);
-                        command.Parameters.AddWithValue("@OnlineBookingFee", checkedIn.OnlineBookingFee);
-                        command.Parameters.AddWithValue("@PaymentsAfterCheckIn", checkedIn.PaymentsAfterCheckInDesc);
-                        command.Parameters.AddWithValue("@Refunds", checkedIn.RefundedAmount);
-                        command.Parameters.AddWithValue("@CancellationFee", checkedIn.CancellationFee);
-                        command.Parameters.AddWithValue("@Extras", (object?)checkedIn.Extras ?? DBNull.Value);
-                        command.Parameters.AddWithValue("@AccountBalance", checkedIn.AccountBalance == null ? (object)DBNull.Value : checkedIn.AccountBalance);
-                        command.Parameters.AddWithValue("@BookingArrival", checkedIn.BookingArrival);
-                        command.Parameters.AddWithValue("@BookingCheckedIn", checkedIn.BookingCheckedIn);
-                        command.Parameters.AddWithValue("@BookingDeparture", checkedIn.BookingDeparture ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@CarLicensePlate", checkedIn.CarLicensePlate ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@CarLicensePlateExtra", checkedIn.CarLicensePlateExtra ?? (object)DBNull.Value);
-                        command.Parameters.Add("@ProcStatus", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
-                        await command.ExecuteNonQueryAsync();
-                    }
                 }
             }
-            Console.WriteLine("Total Checked-In: " + checkedInList.Count);
-            Console.WriteLine("Run method finished.");
-            decimal depositsHeldSumRentals = checkedInList.Where(p => p.CategoryName.Contains("Ocean Villa") || p.CategoryName.Contains("Cottage")
-            || p.CategoryName.Contains("Cabin") || p.CategoryName.Contains("Travel Trailer")).Sum(p => (decimal)p.DepositsHeld);
-            decimal depositsHeldSumSites = checkedInList.Where(p => p.CategoryName.Contains("WESC")).Sum(p => (decimal)p.DepositsHeld);
-            Console.WriteLine($"Deposits Held Total for Rentals for {startDate.ToString("MMM dd yyyy")}: " + depositsHeldSumRentals);
-            Console.WriteLine($"Deposits Held Total for Sites for {startDate.ToString("MMM dd yyyy")}: " + depositsHeldSumSites);
+            return checkedInList;
         }
+        
     }
 }

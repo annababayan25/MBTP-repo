@@ -27,6 +27,12 @@ namespace MBTP.Services
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@TransDate", d.DepositDate);
+                    cmd.Parameters.AddWithValue("@Sites", d.Sites);
+                    cmd.Parameters.AddWithValue("@Rentals", d.Rentals);
+                    cmd.Parameters.AddWithValue("@Locks_Total", d.Locks_Total);
+                    cmd.Parameters.AddWithValue("@Extra_Vehicles", d.Extra_Vehicles);
+                    cmd.Parameters.AddWithValue("@Visitor_Fees", d.Visitor_Fees);
+                    cmd.Parameters.AddWithValue("@Manual_Refunds", d.Manual_Refunds);
                     cmd.Parameters.AddWithValue("@SiteDepTaken", d.Sites_Deposits_Taken ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SiteDepApp", d.Sites_Deposits_Applied ?? (object)DBNull.Value);
                     cmd.Parameters.AddWithValue("@SiteDepMRG", d.Sites_Manual_Refunds ?? (object)DBNull.Value);
