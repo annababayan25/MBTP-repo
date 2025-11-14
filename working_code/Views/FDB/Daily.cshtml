@@ -827,10 +827,32 @@
                                 }
                             </tr>
                             <tr class="daily">
-                                <td>19. Miscellaneous Income</td>
+                                <td>19. Vendor Decals</td>
                                 <td>&nbsp;</td>
-                                <td class="center">925</td>
+                                <td class="center">370</td>
+                                @if((decimal)row["VendorDecals"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["VendorDecals"])</td>
+                                }
+                                else
+                                {
                                     <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                            <tr class="daily">
+                                <td>20. Park Model Sales</td>
+                                <td>&nbsp;</td>
+                                <td class="center">319/380</td>
+                                @if((decimal)row["ParkModelSales"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["ParkModelSales"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
                             </tr>
                         }
                     }
@@ -918,7 +940,7 @@
                             <tr class="daily">
                                 <td class="tableHead">3c. Special Additions</td>
                                     <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["SpecialCash"]))</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["SpecialCash"])+(decimal)Convert.ToDecimal(row["VendorDecalsCash"])+(decimal)Convert.ToDecimal(row["ParkModelSalesCash"]))</td>
                                     <td>&nbsp;</td>
                                 </tr>
                             <tr class="daily">
@@ -944,7 +966,7 @@
                                     <td>&nbsp;</td>
                                     <td class="center">103</td>
                                     <td colspan="2">&nbsp;</td>
-                                <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["ArcadeCash"]) + (decimal)Convert.ToDecimal(row["StoreCash"]) + (decimal)Convert.ToDecimal(row["SpecialCash"]) + (decimal)Convert.ToDecimal(row["KayakCash"]) + (decimal)Convert.ToDecimal(row["CoffeeCash"]) + (decimal)Convert.ToDecimal(row["GuestCash"]))</td>
+                                <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["ArcadeCash"]) + (decimal)Convert.ToDecimal(row["StoreCash"]) + (decimal)Convert.ToDecimal(row["SpecialCash"]) + (decimal)Convert.ToDecimal(row["VendorDecalsCash"]) + (decimal)Convert.ToDecimal(row["ParkModelSalesCash"]) + (decimal)Convert.ToDecimal(row["KayakCash"]) + (decimal)Convert.ToDecimal(row["CoffeeCash"]) + (decimal)Convert.ToDecimal(row["GuestCash"]))</td>
                             </tr>
                         }
                     </tbody>
