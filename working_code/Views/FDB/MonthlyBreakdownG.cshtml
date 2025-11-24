@@ -9,6 +9,7 @@
     string? isCurrentFiscalYear = Context.Session.GetString("IsCurrentFiscalYear");
    DateTime currentDate = DateTime.Now;
    int monthIndex = 0;
+    int dataRecordRow = 0;
 
    decimal totalApparel = 0;
    decimal totalSeasonalNov = 0;
@@ -43,8 +44,9 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {  
-    <div class="table-responsive"> 
-        <table id="monthly-table" class="breakdown clickable-tableG" style="width:240px">
+<div class="table-responsive " style="max-height: 75vh; overflow-y: auto;"> 
+    <table id="monthly-table" class="breakdown clickable-tableG" style="width: 240px; border: none;">
+        <thead>
             <tr>
                 <th class="breakdownBigTitle" colspan="22">General Store</th>
             </tr>
@@ -70,7 +72,7 @@
                 <th class="breakdownTotalsHead" rowspan="2">Total</th>
             </tr>
             <tr>
-                <th class="breakdownMonthScrolling">Month</th>
+                <th class="breakdownMonthScrollingBottom">Month</th>
                 <th class="breakdownTitle">Apparel</th>
                 <th class="breakdownTitle">Seasonal Novelty</th>
                 <th class="breakdownTitle">Other Novelty</th>
@@ -87,108 +89,133 @@
                 <th class="breakdownTitle">Vending</th>
                 <th class="breakdownTitle">Stamps</th>
             </tr>
-            @foreach (DataRow row in Model!.Tables[0].Rows)
-            {
-                var monthDate = startDate.AddMonths(monthIndex);
-                var month = startDate.AddMonths(monthIndex).ToString("MMMM");
-                var TenP = 1.105m;
-                var EightP = 1.08m;
+        </thead>
+        <tbody>
+        @foreach (DataRow row in Model!.Tables[0].Rows)
+        {
+        dataRecordRow++;
+        var alertDataClass = new System.Text.StringBuilder("alertData");
+        var breakdownMonthClass = new System.Text.StringBuilder("breakdownMonth");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownSubTotalsClass = new System.Text.StringBuilder("breakdownSubTotals");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            alertDataClass.Remove(0, "alertData".Length).Append("alertDataTop");
+            breakdownMonthClass.Remove(0, "breakdownMonth".Length).Append("breakdownMonthTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownSubTotalsClass.Remove(0, "breakdownSubTotals".Length).Append("breakdownSubTotalsTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        alertDataClass.ToString();
+        breakdownMonthClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownSubTotalsClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
+            var monthDate = startDate.AddMonths(monthIndex);
+            var month = startDate.AddMonths(monthIndex).ToString("MMMM");
+            var TenP = 1.105m;
+            var EightP = 1.08m;
 
-                var apparel = (decimal)row["Apparel"];
-                var seasonalNov = (decimal)row["SeasonalNovelty"];
-                var otherNovelty = (decimal)row["OtherNovelty"];
-                var totalNovelty = apparel + seasonalNov + otherNovelty;
-                var alc = (decimal)row["Alcohol"];
-                var hardGoods = (decimal)row["HardGoods"];
-                var rvParts = (decimal)row["RVParts"];
-                var seasonalMerch = (decimal)row["SeasonalMerch"];
-                var totalMerch = alc + hardGoods + rvParts + seasonalMerch;
-                var foodCounter = (decimal)row["FoodCounter"];
-                var food = (decimal)row["Food"];
-                var ice = (decimal)row["Ice"];
-                var totalFoodAndIce = food + ice;
-                var vending = (decimal)row["Vending"];
-                var stamps = (decimal)row["Stamps"];
-                var total = apparel + seasonalNov + otherNovelty + alc + hardGoods + rvParts + seasonalMerch;
-                var total2 = food + ice + vending + stamps;
-                var grossRevenue = total + total2 + foodCounter;
-                var taxCollected = (decimal)row["TaxS"];
-                var netRevenue = grossRevenue - taxCollected;
-                var taxExpected = (foodCounter - (foodCounter / TenP)) + (total - (total / EightP));
+            var apparel = (decimal)row["Apparel"];
+            var seasonalNov = (decimal)row["SeasonalNovelty"];
+            var otherNovelty = (decimal)row["OtherNovelty"];
+            var totalNovelty = apparel + seasonalNov + otherNovelty;
+            var alc = (decimal)row["Alcohol"];
+            var hardGoods = (decimal)row["HardGoods"];
+            var rvParts = (decimal)row["RVParts"];
+            var seasonalMerch = (decimal)row["SeasonalMerch"];
+            var totalMerch = alc + hardGoods + rvParts + seasonalMerch;
+            var foodCounter = (decimal)row["FoodCounter"];
+            var food = (decimal)row["Food"];
+            var ice = (decimal)row["Ice"];
+            var totalFoodAndIce = food + ice;
+            var vending = (decimal)row["Vending"];
+            var stamps = (decimal)row["Stamps"];
+            var total = apparel + seasonalNov + otherNovelty + alc + hardGoods + rvParts + seasonalMerch;
+            var total2 = food + ice + vending + stamps;
+            var grossRevenue = total + total2 + foodCounter;
+            var taxCollected = (decimal)row["TaxS"];
+            var netRevenue = grossRevenue - taxCollected;
+            var taxExpected = (foodCounter - (foodCounter / TenP)) + (total - (total / EightP));
 
-                totalApparel += apparel;
-                totalSeasonalNov += seasonalNov;
-                totalOtherNovelty += otherNovelty;
-                totalTotalNovelty += totalNovelty;
-                totalAlc += alc;
-                totalHardGoods += hardGoods;
-                totalRvParts += rvParts;
-                totalSeasonalMerch += seasonalMerch;
-                totalTotalMerch += totalMerch;
-                totalFoodCounter += foodCounter;
-                totalFood += food;
-                totalIce += ice;
-                totalTotalFoodAndIce += totalFoodAndIce;
-                totalVending += vending;
-                totalStamps += stamps;
-                tTotal += total;
-                tTotal2 += total2;
-                totalGrossRevenue += grossRevenue;
-                totalTaxCollected += taxCollected;
-                totalNetRevenue += netRevenue;
-                totalTaxExpected += taxExpected;
-                <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
-                    <td class="breakdownData">@month</td>
-                    <td class="breakdownData">@apparel</td>
-                    <td class="breakdownData">@seasonalNov</td>
-                    <td class="breakdownData">@otherNovelty</td>
-                    <td class="breakdownSubTotals">@totalNovelty</td>
-                    <td class="breakdownData">@alc</td>
-                    <td class="breakdownData">@hardGoods</td>
-                    <td class="breakdownData">@rvParts</td>
-                    <td class="breakdownData">@seasonalMerch</td>
-                    <td class="breakdownSubTotals">@totalMerch</td>
-                    <td class="breakdownTotals">@total</td>
-                    <td class="breakdownData">@foodCounter</td>
-                    <td class="breakdownData">@food</td>
-                    <td class="breakdownData">@ice</td>
-                    <td class="breakdownSubTotals">@totalFoodAndIce</td>
-                    <td class="breakdownData">@vending</td>
-                    <td class="breakdownData">@stamps</td>
-                    <td class="breakdownTotals">@total2</td>
-                    <td class="breakdownTotals">@grossRevenue</td>
-                    <td class="breakdownTotals">@taxCollected</td>
-                    <td class="breakdownTotals">@netRevenue</td>
-                    <td class="breakdownTax">@taxExpected</td>
-                </tr>
-                monthIndex++;
-            }
-            <tr>
-                <td class="breakdownTotalsScrolling">Totals:</td>
-                <td class="breakdownTotals2">@totalApparel</td>
-                <td class="breakdownTotals2">@totalSeasonalNov</td>
-                <td class="breakdownTotals2">@totalOtherNovelty</td>
-                <td class="breakdownTotals2">@totalTotalNovelty</td>
-                <td class="breakdownTotals2">@totalAlc</td>
-                <td class="breakdownTotals2">@totalHardGoods</td>
-                <td class="breakdownTotals2">@totalRvParts</td>
-                <td class="breakdownTotals2">@totalSeasonalMerch</td>
-                <td class="breakdownTotals2">@totalTotalMerch</td>
-                <td class="breakdownTotals2">@tTotal</td>
-                <td class="breakdownTotals2">@totalFoodCounter</td>
-                <td class="breakdownTotals2">@totalFood</td>
-                <td class="breakdownTotals2">@totalIce</td>
-                <td class="breakdownTotals2">@totalTotalFoodAndIce</td>
-                <td class="breakdownTotals2">@totalVending</td>
-                <td class="breakdownTotals2">@totalStamps</td>
-                <td class="breakdownTotals2">@tTotal2</td>
-                <td class="breakdownTotals2">@totalGrossRevenue</td>
-                <td class="breakdownTotals2">@totalTaxCollected</td>
-                <td class="breakdownTotals2">@totalNetRevenue</td>
-                <td class="breakdownTotals2">@totalTaxExpected</td>
+            totalApparel += apparel;
+            totalSeasonalNov += seasonalNov;
+            totalOtherNovelty += otherNovelty;
+            totalTotalNovelty += totalNovelty;
+            totalAlc += alc;
+            totalHardGoods += hardGoods;
+            totalRvParts += rvParts;
+            totalSeasonalMerch += seasonalMerch;
+            totalTotalMerch += totalMerch;
+            totalFoodCounter += foodCounter;
+            totalFood += food;
+            totalIce += ice;
+            totalTotalFoodAndIce += totalFoodAndIce;
+            totalVending += vending;
+            totalStamps += stamps;
+            tTotal += total;
+            tTotal2 += total2;
+            totalGrossRevenue += grossRevenue;
+            totalTaxCollected += taxCollected;
+            totalNetRevenue += netRevenue;
+            totalTaxExpected += taxExpected;
+            <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
+                <td class="@breakdownMonthClass">@month</td>
+                <td class="@breakdownDataClass">@(@apparel != 0.00m ? @String.Format("{0:c2}", @apparel) : "")</td>
+                <td class="@breakdownDataClass">@(@seasonalNov != 0.00m ? @String.Format("{0:c2}", @seasonalNov) : "")</td>
+                <td class="@breakdownDataClass">@(@otherNovelty != 0.00m ? @String.Format("{0:c2}", @otherNovelty) : "")</td>
+                <td class="@breakdownSubTotalsClass">@(@totalNovelty != 0.00m ? @String.Format("{0:c2}", @totalNovelty) : "")</td>
+                <td class="@breakdownDataClass">@(@alc != 0.00m ? @String.Format("{0:c2}", @alc) : "")</td>
+                <td class="@breakdownDataClass">@(@hardGoods != 0.00m ? @String.Format("{0:c2}", @hardGoods) : "")</td>
+                <td class="@breakdownDataClass">@(@rvParts != 0.00m ? @String.Format("{0:c2}", @rvParts) : "")</td>
+                <td class="@breakdownDataClass">@(@seasonalMerch != 0.00m ? @String.Format("{0:c2}", @seasonalMerch) : "")</td>
+                <td class="@breakdownSubTotalsClass">@(@totalMerch != 0.00m ? @String.Format("{0:c2}", @totalMerch) : "")</td>
+                <td class="@breakdownTotalsClass">@(@total != 0.00m ? @String.Format("{0:c2}", @total) : "")</td>
+                <td class="@breakdownDataClass">@(@foodCounter != 0.00m ? @String.Format("{0:c2}", @foodCounter) : "")</td>
+                <td class="@breakdownDataClass">@(@food != 0.00m ? @String.Format("{0:c2}", @food) : "")</td>
+                <td class="@breakdownDataClass">@(@ice != 0.00m ? @String.Format("{0:c2}", @ice) : "")</td>
+                <td class="@breakdownSubTotalsClass" style="background-color: rgb(180, 213, 255);">@(@totalFoodAndIce != 0.00m ? @String.Format("{0:c2}", @totalFoodAndIce) : "")</td>
+                <td class="@breakdownDataClass">@(@vending != 0.00m ? @String.Format("{0:c2}", @vending) : "")</td>
+                <td class="@breakdownDataClass">@(@stamps != 0.00m ? @String.Format("{0:c2}", @stamps) : "")</td>
+                <td class="@breakdownTotalsClass">@(@total2 != 0.00m ? @String.Format("{0:c2}", @total2) : "")</td>
+                <td class="@breakdownTotalsClass">@(@grossRevenue != 0.00m ? @String.Format("{0:c2}", @grossRevenue) : "")</td>
+                <td class="@breakdownTotalsClass">@(@taxCollected != 0.00m ? @String.Format("{0:c2}", @taxCollected) : "")</td>
+                <td class="@breakdownTotalsClass">@(@netRevenue != 0.00m ? @String.Format("{0:c2}", @netRevenue) : "")</td>
+                <td class="@breakdownTaxClass">@(@taxExpected != 0.00m ? @String.Format("{0:c2}", @taxExpected) : "")</td>
             </tr>
-        </table>
-    </div>
+            monthIndex++;
+        }
+        <tr>
+            <td class="breakdownTotalsScrolling" style="border-bottom: 1px solid black;">Totals:</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalApparel != 0.00m ? @String.Format("{0:c2}", @totalApparel) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalSeasonalNov != 0.00m ? @String.Format("{0:c2}", @totalSeasonalNov) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalOtherNovelty != 0.00m ? @String.Format("{0:c2}", @totalOtherNovelty) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTotalNovelty != 0.00m ? @String.Format("{0:c2}", @totalTotalNovelty) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalAlc != 0.00m ? @String.Format("{0:c2}", @totalAlc) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalHardGoods != 0.00m ? @String.Format("{0:c2}", @totalHardGoods) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRvParts != 0.00m ? @String.Format("{0:c2}", @totalRvParts) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalSeasonalMerch != 0.00m ? @String.Format("{0:c2}", @totalSeasonalMerch) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTotalMerch != 0.00m ? @String.Format("{0:c2}", @totalTotalMerch) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@tTotal != 0.00m ? @String.Format("{0:c2}", @tTotal) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalFoodCounter != 0.00m ? @String.Format("{0:c2}", @totalFoodCounter) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalFood != 0.00m ? @String.Format("{0:c2}", @totalFood) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalIce != 0.00m ? @String.Format("{0:c2}", @totalIce) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTotalFoodAndIce != 0.00m ? @String.Format("{0:c2}", @totalTotalFoodAndIce) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalVending != 0.00m ? @String.Format("{0:c2}", @totalVending) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalStamps != 0.00m ? @String.Format("{0:c2}", @totalStamps) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@tTotal2 != 0.00m ? @String.Format("{0:c2}", @tTotal2) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalGrossRevenue != 0.00m ? @String.Format("{0:c2}", @totalGrossRevenue) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTaxCollected != 0.00m ? @String.Format("{0:c2}", @totalTaxCollected) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNetRevenue != 0.00m ? @String.Format("{0:c2}", @totalNetRevenue) : "")</td>
+            <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTaxExpected != 0.00m ? @String.Format("{0:c2}", @totalTaxExpected) : "")</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 }
 </body>
 <script>
@@ -206,24 +233,5 @@ $(document).ready(function () {
            console.error('URL is undefined');
        }
    });
-   var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownSubTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-   var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-   if (!isNaN(amount)) { 
-       if (amount == 0){
-           cell.textContent = ' ';
-       } else {
-           if (amount < 0){
-               cell.classList.add('negative-value');
-               cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-           } else{
-           cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-           }
-       }
-   } 
-});
-function formatNumberWithCommas(number) {
-        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
 });
 </script>

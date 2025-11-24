@@ -142,16 +142,48 @@
     }
     <table class="widget tots">
         <tbody>
+        @{
+            var noTaxFood  = 0.0m;
+            var kayaks     = 0.0m;
+            var pedalBoats = 0.0m;
+            var miscSales  = 0.0m;
+            var totalKayak = 0.0m;
+            var dolphinSales = 0.0m;
+            var preparedFoodC = 0.0m;
+            var merch = 0.0m;
+            var nonTaxFood = 0.0m;
+            var totalBeanSales = 0.0m;
+            var apparel = 0.0m;
+            var seasonalNovelty = 0.0m;
+            var otherNovelty = 0.0m;
+            var foodCounter = 0.0m;
+            var alcohol = 0.0m;
+            var hardGoods = 0.0m;
+            var rvParts = 0.0m;
+            var seasonalMerch = 0.0m;
+            var food = 0.0m;
+            var ice = 0.0m;
+            var stamps = 0.0m;
+            var totalStoreSales = 0.0m;
+        }
             @foreach (DataRow row in Model!.Tables[0].Rows)
             {
                 <tr>
                     <td class="white" style="border-radius:10px">&nbsp;</td>
                     @if(accID != "4")
                     {
+                        if(row["PreparedFoodA"] != DBNull.Value)
+                        {
+                            dolphinSales = (decimal)row["PreparedFoodA"];
+                        }
                         <td class="white" style="font-weight:bold; border-radius:10px">Arcade:&nbsp;&nbsp;</td>
-                        if(arcadeClosed)
+                        if(dolphinSales == 0 && arcadeClosed)
                         {
                             <td class="yellow2" style="border-radius:10px">CLOSED</td>
+                        }
+                        else if(dolphinSales == 0 && !arcadeClosed) // no sales + NOT closed → FLAG
+                        {
+                            <td class="yellow2" style="border-radius:10px; text-align:center">MISSING DATA</td>
                         }
                         else
                         {
@@ -162,39 +194,128 @@
                     @if(accID != "5")
                     {
                         <td class="white" style="font-weight:bold; border-radius:10px">General Store:&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                        if(storeClosed)
+                        if(row["Apparel"] != DBNull.Value)
                         {
-                            <td class="byellow" style="border-radius:10px">CLOSED</td>
+                            apparel = (decimal)row["Apparel"];
+                        }
+                        if(row["Seasonal Novelty"] != DBNull.Value)
+                        {
+                            seasonalNovelty = (decimal)row["Seasonal Novelty"];
+                        }
+                        if(row["Other Novelty"] != DBNull.Value)
+                        {
+                            otherNovelty = (decimal)row["Other Novelty"];
+                        }
+                        if(row["Food Counter"] != DBNull.Value)
+                        {
+                            foodCounter = (decimal)row["Food Counter"];
+                        }
+                        if(row["Alcohol"] != DBNull.Value)
+                        {
+                            alcohol = (decimal)row["Alcohol"];
+                        }
+                        if(row["Hard Goods"] != DBNull.Value)
+                        {
+                            hardGoods = (decimal)row["Hard Goods"];
+                        }
+                        if(row["RV Parts"] != DBNull.Value)
+                        {
+                            rvParts = (decimal)row["RV Parts"];
+                        }
+                        if(row["Seasonal Merch"] != DBNull.Value)
+                        {
+                            seasonalMerch = (decimal)row["Seasonal Merch"];
+                        }
+                        if(row["Food"] != DBNull.Value)
+                        {
+                            food = (decimal)row["Food"];
+                        }
+                        if(row["Ice"] != DBNull.Value)
+                        {
+                            ice = (decimal)row["Ice"];
+                        }
+                        if(row["Stamps"] != DBNull.Value)
+                        {
+                            stamps = (decimal)row["Stamps"];
+                        }
+                        totalStoreSales = apparel + seasonalNovelty + otherNovelty + foodCounter +
+                                         alcohol + hardGoods + rvParts + seasonalMerch +
+                                         food + ice + stamps;
+                        if(totalStoreSales == 0 && storeClosed)
+                        {
+                            <td class="bYellow" style="border-radius:10px">CLOSED</td>
+                        }
+                        else if(totalStoreSales == 0 && !storeClosed) // no sales + NOT closed → FLAG
+                        {
+                            <td class="bYellow" style="border-radius:10px; text-align:center">MISSING DATA</td>
                         }
                         else
                         {
-                            <td class="bYellow" style="border-radius:10px">@String.Format(numformat, (decimal)row["Other Novelty"] + (decimal)row["Seasonal Novelty"] + (decimal)row["Apparel"] + (decimal)row["Food Counter"] + (decimal)row["Alcohol"] + (decimal)row["Hard Goods"] + (decimal)row["RV Parts"] + (decimal)row["Seasonal Merch"] + (decimal)row["Food"] + (decimal)row["Ice"] + (decimal)row["Stamps"])</td>
-            }
+                            <td class="bYellow" style="border-radius:10px">@String.Format(numformat, totalStoreSales)</td>
+                        }
                         <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
                     }
                     @if(accID != "4")
                     {
+                        if(row["PreparedFoodC"] != DBNull.Value)
+                        {
+                            preparedFoodC = (decimal)row["PreparedFoodC"];
+                        }
+                        if(row["Merchandise"] != DBNull.Value)
+                        {
+                            merch = (decimal)row["Merchandise"];
+                        }
+                        if(row["Non-Taxable Food"] != DBNull.Value)
+                        {
+                            nonTaxFood = (decimal)row["Non-Taxable Food"];
+                        }
+                        totalBeanSales = preparedFoodC + merch + nonTaxFood;
                         <td class="white" style="font-weight:bold; border-radius:10px">Beachy Bean:&nbsp;&nbsp;</td>
-                        if(coffeeClosed) 
+                        if(totalBeanSales == 0 && coffeeClosed) 
                         {
                             <td class="blue" style="border-radius:10px">CLOSED</td>
                         }
+                        else if(totalBeanSales == 0 && !coffeeClosed) // no sales + NOT closed → FLAG
+                        {
+                            <td class="blue" style="border-radius:10px; text-align:center">MISSING DATA</td>
+                        }
                         else
                         {
-                            <td class="blue" style="border-radius:10px">@String.Format(numformat, (decimal)row["PreparedFoodC"] + (decimal)row["Merchandise"] + (decimal)row["Non-Taxable Food"])</td>
+                            <td class="blue" style="border-radius:10px">@String.Format(numformat, totalBeanSales)</td>
                         }
                         <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
                     }
                     @if(accID != "4" && accID != "5")
                     {
+                        if(row["No Tax Food"] != DBNull.Value)
+                        {
+                            noTaxFood = (decimal)row["No Tax Food"];
+                        }
+                        if(row["Kayaks and Boards"] != DBNull.Value)
+                        {
+                            kayaks = (decimal)row["Kayaks and Boards"];
+                        }
+                        if(row["Pedal Boats"] != DBNull.Value)
+                        {
+                            pedalBoats = (decimal)row["Pedal Boats"];
+                        }
+                        if(row["Misc Sales"] != DBNull.Value)
+                        {
+                            miscSales = (decimal)row["Misc Sales"];
+                        }
+                        totalKayak = noTaxFood + kayaks + pedalBoats + miscSales;
                         <td class="white" style="font-weight:bold; border-radius:10px">Kayak Shack:&nbsp;&nbsp;</td>
-                        if(kayakClosed)
+                        if(totalKayak == 0 && kayakClosed)
                         {
                             <td class="lGreen" style="border-radius:10px">CLOSED</td>
                         }
+                        else if(totalKayak == 0 && !kayakClosed) // no sales + NOT closed → FLAG
+                        {
+                            <td class="lGreen" style="border-radius:10px; text-align:center">MISSING DATA</td>
+                        }
                         else
                         {
-                            <td class="lGreen" style="border-radius:10px">@String.Format(numformat, (decimal)row["No Tax Food"] + (decimal)row["Kayaks and Boards"] + (decimal)row["Pedal Boats"] + (decimal)row["Misc Sales"])</td>
+                            <td class="lGreen" style="border-radius:10px">@String.Format(numformat, totalKayak)</td>
                         }
                         <td class="white" style="border-radius:10px">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
                     }
@@ -240,11 +361,6 @@
                     </tr>
                     @if (accID != "4")
                     {
-                        var dolphinSales = 0.0m;
-                        if(row["PreparedFoodA"] != DBNull.Value)
-                        {
-                            dolphinSales = (decimal)row["PreparedFoodA"];
-                        }
                         if (dolphinSales != 0) // always show sales, regardless of blackout
                         {
                             <tr class="daily">
@@ -264,7 +380,7 @@
                         else // no sales + no blackout
                         {
                             <tr class="daily flag">
-                                <td style="text-align: center;" colspan="6"> ⚑ Hungry Dolphin: MISSING DATA </td>
+                                <td style="text-align: center;" colspan="6"> ⚑ Hungry Dolphin: MISSING DATA ⚑</td>
                             </tr>
                         }
                     }
@@ -301,27 +417,8 @@
                         }
                     @if (accID != "4")
                     {
-                        var preparedFoodC = 0.0m;
-                        var merch = 0.0m;
-                        var nonTaxFood = 0.0m;
-                        if(!coffeeClosed) // if coffee closed, skip reading values to avoid DBNull errors
-                        {
-                            if(row["PreparedFoodC"] != DBNull.Value)
-                            {
-                                preparedFoodC = (decimal)row["PreparedFoodC"];
-                            }
-                            if(row["Merchandise"] != DBNull.Value)
-                            {
-                                merch = (decimal)row["Merchandise"];
-                            }
-                            if(row["Non-Taxable Food"] != DBNull.Value)
-                            {
-                                nonTaxFood = (decimal)row["Non-Taxable Food"];
-                            }
-                        }
-                        var totalSales = preparedFoodC + merch + nonTaxFood;
 
-                        if (totalSales != 0) // always show sales, even if blackout/closed
+                        if (totalBeanSales != 0) // always show sales, even if blackout/closed
                         {
                             <tr class="daily">
                                 <td colspan="6">4. Beachy Bean Cafe</td>
@@ -372,7 +469,7 @@
                                 <td class="@(!isPdf ? "tableHead2" : "tableHead2pdf")">Total Beachy Bean Cafe Sales: </td>
                                 <td>&nbsp;</td>
                                 <td colspan="3">&nbsp;</td>
-                                <td class="blue">@String.Format(numformatdashed, totalSales)</td>
+                                <td class="blue">@String.Format(numformatdashed, totalBeanSales)</td>
                             </tr>
                         }
                         else if (coffeeClosed) // no sales + blackout/closed
@@ -384,76 +481,13 @@
                         else // no sales + NOT closed → FLAG
                         {
                             <tr class="daily flag">
-                                <td style="text-align: center;" colspan="6"> ⚑ Beachy Bean Cafe: MISSING DATA </td>
+                                <td style="text-align: center;" colspan="6"> ⚑ Beachy Bean Cafe: MISSING DATA ⚑</td>
                             </tr>
                         }
                     }   
                     @if (accID != "5")
                     {
-                        
-                        var apparel = 0.0m;
-                        var seasonalNovelty = 0.0m;
-                        var otherNovelty = 0.0m;
-                        var foodCounter = 0.0m;
-                        var alcohol = 0.0m;
-                        var hardGoods = 0.0m;
-                        var rvParts = 0.0m;
-                        var seasonalMerch = 0.0m;
-                        var food = 0.0m;
-                        var ice = 0.0m;
-                        var stamps = 0.0m;
-                        if(!storeClosed)
-                        {
-                            if(row["Apparel"] != DBNull.Value)
-                            {
-                                apparel = (decimal)row["Apparel"];
-                            }
-                            if(row["Seasonal Novelty"] != DBNull.Value)
-                            {
-                                seasonalNovelty = (decimal)row["Seasonal Novelty"];
-                            }
-                            if(row["Other Novelty"] != DBNull.Value)
-                            {
-                                otherNovelty = (decimal)row["Other Novelty"];
-                            }
-                            if(row["Food Counter"] != DBNull.Value)
-                            {
-                                foodCounter = (decimal)row["Food Counter"];
-                            }
-                            if(row["Alcohol"] != DBNull.Value)
-                            {
-                                alcohol = (decimal)row["Alcohol"];
-                            }
-                            if(row["Hard Goods"] != DBNull.Value)
-                            {
-                                hardGoods = (decimal)row["Hard Goods"];
-                            }
-                            if(row["RV Parts"] != DBNull.Value)
-                            {
-                                rvParts = (decimal)row["RV Parts"];
-                            }
-                            if(row["Seasonal Merch"] != DBNull.Value)
-                            {
-                                seasonalMerch = (decimal)row["Seasonal Merch"];
-                            }
-                            if(row["Food"] != DBNull.Value)
-                            {
-                                food = (decimal)row["Food"];
-                            }
-                            if(row["Ice"] != DBNull.Value)
-                            {
-                                ice = (decimal)row["Ice"];
-                            }
-                            if(row["Stamps"] != DBNull.Value)
-                            {
-                                stamps = (decimal)row["Stamps"];
-                            }
-                        }
-                        var totalSales = apparel + seasonalNovelty + otherNovelty + foodCounter +
-                                        alcohol + hardGoods + rvParts + seasonalMerch +
-                                        food + ice + stamps;
-
-                        if (totalSales != 0) // always show breakdown if revenue exists
+                        if (totalStoreSales != 0) // always show breakdown if revenue exists
                         {
                             <tr class="daily">
                                 <td colspan="6">5. Store Novelty Sales</td>
@@ -561,16 +595,16 @@
                                 }
                             </tr>
                         }
-                        else if (storeClosed) // 0 sales + closed
+                        else if (totalStoreSales == 0 && storeClosed) // 0 sales + closed
                         {
                             <tr class="daily">
-                                <td style="text-align: center;" colspan="6" class="blz"> 5 thru 9: General Store - CLOSED</td>
+                                <td style="text-align: center;" colspan="6" class="blz"> General Store - CLOSED</td>
                             </tr>
                         }
                         else // 0 sales + not closed → FLAG
                         {
                             <tr class="daily flag">
-                                <td style="text-align: center;" colspan="6"> ⚑ 5 thru 9: General Store: MISSING DATA </td>
+                                <td style="text-align: center;" colspan="6"> ⚑ General Store: MISSING DATA ⚑</td>
                             </tr>
                         }
                     }
@@ -636,30 +670,6 @@
                                     <td colspan="3">&nbsp;</td>
                                 }
                             </tr>
-                            var noTaxFood  = 0.0m;
-                            var kayaks     = 0.0m;
-                            var pedalBoats = 0.0m;
-                            var miscSales  = 0.0m;
-                            if(!kayakClosed) // if kayak closed, skip reading values to avoid DBNull errors
-                            {
-                                if(row["No Tax Food"] != DBNull.Value)
-                                {
-                                    noTaxFood = (decimal)row["No Tax Food"];
-                                }
-                                if(row["Kayaks and Boards"] != DBNull.Value)
-                                {
-                                    kayaks = (decimal)row["Kayaks and Boards"];
-                                }
-                                if(row["Pedal Boats"] != DBNull.Value)
-                                {
-                                    pedalBoats = (decimal)row["Pedal Boats"];
-                                }
-                                if(row["Misc Sales"] != DBNull.Value)
-                                {
-                                    miscSales = (decimal)row["Misc Sales"];
-                                }
-                            }
-                            var totalKayak = noTaxFood + kayaks + pedalBoats + miscSales;
 
                             @if (totalKayak != 0) // revenue exists → show breakdown
                             {
@@ -735,7 +745,7 @@
                             else // 0 sales + not closed → flag
                             {
                                 <tr class="daily flag">
-                                    <td style="text-align: center;" colspan="6">⚑ Kayak Shack: MISSING DATA </td>
+                                    <td style="text-align: center;" colspan="6">⚑ Kayak Shack: MISSING DATA ⚑</td>
                                 </tr>
                             }
                         }
@@ -817,13 +827,27 @@
                                 }
                             </tr>
                             <tr class="daily">
-                                <td>19. Miscellaneous Income</td>
+                                <td>19. Vendor Decals</td>
                                 <td>&nbsp;</td>
-                                <td class="center">925</td>
-                                @if((decimal)row["Activities"] != 0)
+                                <td class="center">370</td>
+                                @if((decimal)row["VendorDecals"] != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="green">@String.Format(numformatdashed, (decimal)row["Activities"])</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["VendorDecals"])</td>
+                                }
+                                else
+                                {
+                                    <td colspan="3">&nbsp;</td>
+                                }
+                            </tr>
+                            <tr class="daily">
+                                <td>20. Park Model Sales</td>
+                                <td>&nbsp;</td>
+                                <td class="center">319/380</td>
+                                @if((decimal)row["ParkModelSales"] != 0)
+                                {
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["ParkModelSales"])</td>
                                 }
                                 else
                                 {
@@ -916,7 +940,7 @@
                             <tr class="daily">
                                 <td class="tableHead">3c. Special Additions</td>
                                     <td colspan="3">&nbsp;</td>
-                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["SpecialCash"]))</td>
+                                    <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["SpecialCash"])+(decimal)Convert.ToDecimal(row["VendorDecalsCash"])+(decimal)Convert.ToDecimal(row["ParkModelSalesCash"]))</td>
                                     <td>&nbsp;</td>
                                 </tr>
                             <tr class="daily">
@@ -942,7 +966,7 @@
                                     <td>&nbsp;</td>
                                     <td class="center">103</td>
                                     <td colspan="2">&nbsp;</td>
-                                <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["ArcadeCash"]) + (decimal)Convert.ToDecimal(row["StoreCash"]) + (decimal)Convert.ToDecimal(row["SpecialCash"]) + (decimal)Convert.ToDecimal(row["KayakCash"]) + (decimal)Convert.ToDecimal(row["CoffeeCash"]) + (decimal)Convert.ToDecimal(row["GuestCash"]))</td>
+                                <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["ArcadeCash"]) + (decimal)Convert.ToDecimal(row["StoreCash"]) + (decimal)Convert.ToDecimal(row["SpecialCash"]) + (decimal)Convert.ToDecimal(row["VendorDecalsCash"]) + (decimal)Convert.ToDecimal(row["ParkModelSalesCash"]) + (decimal)Convert.ToDecimal(row["KayakCash"]) + (decimal)Convert.ToDecimal(row["CoffeeCash"]) + (decimal)Convert.ToDecimal(row["GuestCash"]))</td>
                             </tr>
                         }
                     </tbody>

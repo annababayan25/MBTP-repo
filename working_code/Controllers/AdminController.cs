@@ -53,14 +53,15 @@ namespace MBTP.Controllers
         private readonly OccupancyApi _occupancyApi;
         private readonly PaymentsApi _paymentsApi;
         private readonly ChargesApi _chargesApi;
-        private readonly DepositsHeldService _depositsHeldService;
-        private readonly DepositsHeldRepo _depositsHeldRepo;
+        private readonly ReservationsDepositsService _reservationsDepositsService;
+        private readonly ReservationsDepositsRepo _reservationsDepositsRepo;
         private readonly OccupancyRepo _occupancyRepo;
         private readonly ReconRepo _reconRepo;
         private readonly TransactionFlowRepo _transactionFlowRepo;
         private readonly CheckedInListRepo _checkedInListRepo;
         private readonly BookingsRepo _bookingsRepo;
         private readonly InventoryApi _inventory;
+        private readonly GLAccounts _glAccounts;
         
         public AdminController(
             ILogger<HomeController> logger,
@@ -80,14 +81,15 @@ namespace MBTP.Controllers
             OccupancyApi occupancyApi,
             PaymentsApi paymentsApi,
             ChargesApi chargesApi,
-            DepositsHeldService depositsHeldService,
-            DepositsHeldRepo depositsHeldRepo,
+            ReservationsDepositsService reservationsDepositsService,
+            ReservationsDepositsRepo reservationsDepositsRepo,
             OccupancyRepo occupancyRepo,
             ReconRepo reconRepo,
             TransactionFlowRepo transactionFlowRepo,
             CheckedInListRepo checkedInListRepo,
             BookingsRepo bookingsRepo,
-            InventoryApi inventory
+            InventoryApi inventory,
+            GLAccounts glAccounts
         )
 
         {
@@ -107,15 +109,17 @@ namespace MBTP.Controllers
             _occupancyApi = occupancyApi;
             _paymentsApi = paymentsApi;
             _chargesApi = chargesApi;
-            _depositsHeldService = depositsHeldService;
-            _depositsHeldRepo = depositsHeldRepo;
+            _reservationsDepositsService = reservationsDepositsService;
+            _reservationsDepositsRepo = reservationsDepositsRepo;
             _occupancyRepo = occupancyRepo;
             _reconRepo = reconRepo;
             _transactionFlowRepo = transactionFlowRepo;
             _checkedInListRepo = checkedInListRepo;
             _bookingsRepo = bookingsRepo;
             _inventory = inventory;
+            _glAccounts = glAccounts;
         }
+        
 
         [Authorize]
         public IActionResult Reports()
@@ -233,6 +237,43 @@ namespace MBTP.Controllers
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
         }
+        /*
+         [Authorize]
+        public async Task<IActionResult> PopulateCheckIns(DateTime? day)
+        {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
+
+            var startDay = day.Value.Date;
+            var today = DateTime.Today;
+
+            // Store daily results
+            var allReports = new List<(DateTime Date, DataSet Report)>();
+
+            for (var currentDay = startDay; currentDay <= today; currentDay = currentDay.AddDays(1))
+            {
+                var from = currentDay;
+                var to = currentDay.AddDays(1).AddTicks(-1);
+
+                // Your existing populate/save
+                var checkedInList = await _checkedInApi.PopulateCheckIns(from, to);
+                await _checkedInListRepo.SaveCheckedInListAsync(checkedInList);
+
+                // Get daily report
+                DataSet ds = await _dailyReport.RetrieveCheckInsReport(from, currentDay.AddDays(1));
+
+                // Store a tuple of (Date, DataSet)
+                allReports.Add((currentDay, ds));
+            }
+
+            ViewBag.TitleDate = $"{startDay:MMMM dd, yyyy} - {today:MMMM dd, yyyy}";
+
+            return View(allReports);
+        }
+*/
 
         [Authorize]
         public async Task<IActionResult> PopulateRecons(DateTime? day)
@@ -330,7 +371,7 @@ namespace MBTP.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> PopulateDepositsHeld(DateTime? day)
+        public async Task<IActionResult> PopulateReservationsDeposits(DateTime? day)
         {
             if (day == null)
             {
@@ -340,8 +381,8 @@ namespace MBTP.Controllers
 
             var selectedDay = day ?? DateTime.Today;
             ViewBag.SelectedDay = selectedDay;
-            var depositsHeld = await _depositsHeldService.ProcessDepositsHeldAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
-            await _depositsHeldRepo.SaveDepositsHeldAsync(depositsHeld);
+            var reservationsHeld = await _reservationsDepositsService.ProcessReservationsDepositsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            await _reservationsDepositsRepo.SaveReservationsDepositsAsync(reservationsHeld);
 
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
 

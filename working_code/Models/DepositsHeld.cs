@@ -2,44 +2,60 @@ namespace MBTP.Models
 {
     public class ReservationsDeposits
     {
-        public DateTime DepositDate { get; set; }
-        public decimal? Sites { get; set; } // F and R: Sites_Deposits_Applied + Payments After Check in 
-        public decimal? Mobile_Home_Rentals { get; set; }
-        public decimal? Rentals { get; set; } // F and R: Rentals_Deposits_Applied + Payments After Check in 
-        public decimal? Locks_Total { get; set; } // Total Lock Fee Payments
-        public decimal? Damage_Fees { get; set; }
-        public decimal? Extra_Fees { get; set; }
-        public decimal? Extra_Vehicles { get; set; }
-        public decimal? Late_Fees { get; set; }
-        public decimal? Manual_Refunds { get; set; }
-        public decimal? Visitor_Fees { get; set; }
-        public decimal? Annual_Total { get; set; }
-        public decimal? Employee { get; set; }
-        public decimal? LT_Sites { get; set; } // Lease Transfer Sites
-        public decimal? LT_Rentals { get; set; } // Lease Transfer Rentals
-        public decimal? MH_Park { get; set; } // Mobile Home Parks
-        public decimal? Manual_Refunds_NT { get; set; } // Manual Refunds in DailyBreakdownF
-        public decimal? Storage { get; set; }
-        public decimal? Transfer_Fees { get; set; }
-        public decimal? Misc { get; set; }
-        public decimal? Propane { get; set; }
-        public decimal? Manual_Refunds_NT2 { get; set; } 
-        public decimal? Sites_Deposits_Taken { get; set; }
-        public decimal? Sites_Deposits_Applied { get; set; }
-        public decimal? Sites_Manual_Refunds { get; set; }
-        public decimal? Sites_Net_Change { get; set; }
-        public decimal? Rentals_Deposits_Taken { get; set; }
-        public decimal? Rentals_Deposits_Applied { get; set; }
-        public decimal? Rentals_Manual_Refunds { get; set; }
-        public decimal? Rentals_Net_Change { get; set; }
-        public decimal? Golf_Cart_Deposits_Taken { get; set; }
-        public decimal? Golf_Cart_Deposits_Applied { get; set; }
-        public decimal? Golf_Cart_Manual_Refunds { get; set; }
-        public decimal? Golf_Cart_Net_Change { get; set; }
-        public decimal? Gift_Vouchers_Purchased { get; set; }
-        public decimal? Gift_Vouchers_Redeemed_For_Sites { get; set; }
-        public decimal? Gift_Vouchers_Redeemed_For_Rentals { get; set; }
-        public decimal? Gift_Vouchers_Redeemed_For_Storage { get; set; }
-        public decimal? Gift_Vouchers_Redeemed_Net_Change { get; set; }
+        public DateTime TransDate { get; set; }
+
+        public decimal? Sites { get; set; } = 0.0m;
+        public decimal? Rentals { get; set; } = 0.0m;
+
+        public decimal? Lock_Fees { get; set; } = 0.0m;
+        public decimal? Extra_Vehicle_Fees { get; set; } = 0.0m;
+        public decimal? Damage_Fees { get; set; } = 0.0m;
+        public decimal? Late_Fees { get; set; } = 0.0m;
+
+        public decimal? MRG1 { get; set; } = 0.0m;
+
+        public decimal? Visitor_Fees { get; set; } = 0.0m;
+        public decimal? Golf_Cart_Rentals { get; set; } = 0.0m;
+        public decimal? MRGGolf { get; set; } = 0.0m;
+
+        public decimal? Annual_Leases { get; set; } = 0.0m;
+        public decimal? Employee { get; set; } = 0.0m;
+
+        public decimal? LT_Sites { get; set; } = 0.0m;
+        public decimal? LT_Rentals { get; set; } = 0.0m;
+        public decimal? MH_Park { get; set; } = 0.0m;
+
+        public decimal? MRG2 { get; set; } = 0.0m;
+
+        public decimal? Storage { get; set; } = 0.0m;
+        public decimal? Transfer_Fees { get; set; } = 0.0m;
+        public decimal? Misc { get; set; } = 0.0m;
+        public decimal? MRG3 { get; set; } = 0.0m;
+
+        public decimal? Propane { get; set; } = 0.0m;
+        public decimal? Events { get; set; } = 0.0m;
+        public decimal? Supplemental { get; set; } = 0.0m;
+
+        public decimal? SiteDepTaken { get; set; } = 0.0m;
+        public decimal? SiteDepTakenFuture { get; set; } = 0.0m;
+        public decimal? SiteDepApp { get; set; } = 0.0m;
+        public decimal? SiteDepMRG { get; set; } = 0.0m;
+
+        public decimal? RentalDepTaken { get; set; } = 0.0m;
+        public decimal? RentalDepTakenFuture { get; set; } = 0.0m;
+        public decimal? RentalDepApp { get; set; } = 0.0m;
+        public decimal? RentalDepMRG { get; set; } = 0.0m;
+
+        public decimal? GolfDepTaken { get; set; } = 0.0m;
+        public decimal? GolfDepTakenFuture { get; set; } = 0.0m;
+        public decimal? GolfDepApp { get; set; } = 0.0m;
+        public decimal? GolfDepMRG { get; set; } = 0.0m;
+
+        public decimal? VouchersPurch { get; set; } = 0.0m;
+        public decimal? VouchersRedSite { get; set; } = 0.0m;
+        public decimal? VouchersRedRental { get; set; } = 0.0m;
+        public decimal? VouchersRedStorage { get; set; } = 0.0m;
+        public decimal? VouchersRedSiteDep { get; set; } = 0.0m;
+        public decimal? VouchersRedRentalDep { get; set; } = 0.0m;
     }
 }

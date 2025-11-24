@@ -21,7 +21,7 @@ namespace FinancialC_
         {
             string tmpAction, tmpDesc, tmpCat, tmpTrans, tmpID, tmpClient, tmpGen, flowStr;
             double tmpVal, totAmex = 0, totOtherCC = 0, totCash = 0, lockFee, siteDeposit = 100, rentalDeposit = 200, vehicleRateDayTax = 5.6;
-            System.DateTime arrDate, departDate;
+            System.DateTime arrDate, departDate, tmpTransDate;
             int startRow;
             bool refundChecksActive = false;
             const double visitorRateBase = 4;
@@ -32,6 +32,7 @@ namespace FinancialC_
             const double wristbandRate = 5;
             const int catCol = 2;
             const int transCol = 3;
+            const int dateCol = 4;
             const int clientCol = 5;
             const int genCol = 6;
             const int descCol = 7;
@@ -44,6 +45,9 @@ namespace FinancialC_
             {
                 return; 
             }
+            // Retrieve the CheckedIn dataset
+            SupportRoutines supportRoutines = new SupportRoutines(_dbConnectionService);
+            DataSet checkedInData = supportRoutines.RetrieveCheckedInData();
 
             // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
             SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
@@ -160,6 +164,8 @@ namespace FinancialC_
                 tmpAction = transSheet.Row(i).Cell(1).Value.ToString();
                 tmpCat = transSheet.Row(i).Cell(catCol).Value.ToString();
                 tmpTrans = transSheet.Row(i).Cell(transCol).Value.ToString();
+                string tmpDateInStr = transSheet.Row(i).Cell(dateCol).Value.ToString();
+                //tmpDate = transSheet.Row(i).Cell(dateCol).Value.ToString();
                 tmpClient = transSheet.Row(i).Cell(clientCol).Value.ToString();
                 tmpGen = transSheet.Row(i).Cell(genCol).Value.ToString();
                 tmpDesc = transSheet.Row(i).Cell(descCol).Value.ToString();
@@ -771,10 +777,16 @@ namespace FinancialC_
                                 //                                         (arrDate < System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") != -1) &&
                                 //                                          tmpDesc.IndexOf("DEPOSIT") == -1)  // Same day checkin, or late checkin that isn't a deposit refund, not a deposit
                                 else if ((arrDate == System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") == -1) ||
-                                         (arrDate < System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") != -1) &&
-                                          tmpDesc.IndexOf("DEPOSIT") == -1)  // Same day checkin, or late checkin that isn't a deposit refund, not a deposit
+                                         (arrDate < System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") != -1))  // Same day checkin, or late checkin that isn't a deposit refund, not a deposit
                                 {
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsite" : "Rental", flowStr, tmpVal);
+                                    if (supportRoutines.ActualCheckInDate(checkedInData, tmpClient) < System.DateTime.Parse(GenericRoutines.repDateStr)) // If actual checkin is before report date then the refund is from income, otherwise deposits
+                                    {
+                                        revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsite" : "Rental", flowStr, tmpVal);
+                                    }
+                                    else
+                                    {
+                                        depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal); 
+                                    } 
                                 }
 // else if block added 2/5/25 to handle refunds of security deposits
                                 else if (departDate <= System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") != -1 &&
@@ -1092,7 +1104,7 @@ namespace FinancialC_
                     // Retrieve the deposit held if the checkin is valid and the value is non-zero
                     if (validCheckin && tmpVal != 0 )
                     {
-                        if ((tmpDesc.IndexOf("Travel Trailer") != -1 || tmpDesc.IndexOf("Villa") != -1 || tmpDesc.IndexOf("Cabin") != -1) && tmpDesc.IndexOf("Storage") == -1)
+                        if ((tmpDesc.IndexOf("Cottage") != -1 || (tmpDesc.IndexOf("Travel Trailer") != -1 || tmpDesc.IndexOf("Villa") != -1 || tmpDesc.IndexOf("Cabin") != -1) && tmpDesc.IndexOf("Storage") == -1))
                         {
                             if ((departDate - arrDate).Days >= 90) //Check for long term unit rental
                             {

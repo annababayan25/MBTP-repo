@@ -7,16 +7,18 @@ using System.Reflection.Metadata;
 using System.Text.Json;
 using MBTP.Interfaces;
 using Microsoft.Data.SqlClient;
+using System.Text.RegularExpressions;
 
+// ReservationsDepositsService is a class dedicated to Reservations Deposits Table (Daily Breakdown R)
 namespace MBTP.Services
 {
-    public class DepositsHeldService : NewbookBaseApi
+    public class ReservationsDepositsService : NewbookBaseApi
     {
         private readonly TransactionFlowApi _transactionFlowApi;
         private readonly DailyReport _dailyReport;
         private readonly IDatabaseConnectionService _dbConnectionService;
 
-        public DepositsHeldService(IDatabaseConnectionService dbConnectionService, HttpClient client, ChargesApi chargesApi, DailyReport dailyReport, TransactionFlowApi transactionFlowApi)
+        public ReservationsDepositsService(IDatabaseConnectionService dbConnectionService, HttpClient client, DailyReport dailyReport, TransactionFlowApi transactionFlowApi)
             : base(client)
         {
             _dbConnectionService = dbConnectionService;
@@ -24,12 +26,10 @@ namespace MBTP.Services
             _dailyReport = dailyReport;
         }
 
-        public async Task<List<ReservationsDeposits>> ProcessDepositsHeldAsync(DateTime startDate, DateTime endDate)
+        public async Task<List<ReservationsDeposits>> ProcessReservationsDepositsAsync(DateTime startDate, DateTime endDate)
         {
-
             // Call the Transaction Flow Api and retrieve the list
             var transactions = await _transactionFlowApi.PopulateTransactions(startDate, endDate);
-
             //START: Retrieve the Checked In List DataSet and convert it to a list
             DataSet ds = await _dailyReport.RetrieveCheckInsReport(startDate, endDate);
             List<Dictionary<string, object>> checkedInList = new();
@@ -42,40 +42,25 @@ namespace MBTP.Services
                     checkedInList = table.AsEnumerable().Select(row => table.Columns.Cast<DataColumn>().ToDictionary(col => col.ColumnName, col => row[col])).ToList();
                 }
             }
+            
             //END: Retrieve the Checked In List DataSet and convert it to a list
-
 
             var depositsList = new List<ReservationsDeposits>();
             var deposits = new ReservationsDeposits
             {
-                DepositDate = startDate,
-                Sites = 0.0m,
-                Mobile_Home_Rentals = 0.0m,
-                Rentals = 0.0m,
-                Locks_Total = 0.0m,
-                Extra_Vehicles = 0.0m,
-                Visitor_Fees = 0.0m,
-                Manual_Refunds = 0.0m,
-                Sites_Deposits_Taken = 0.0m,
-                Sites_Deposits_Applied = 0.0m,
-                Sites_Manual_Refunds = 0.0m,
-                Rentals_Deposits_Taken = 0.0m,
-                Rentals_Deposits_Applied = 0.0m,
-                Rentals_Manual_Refunds = 0.0m,
-                Golf_Cart_Deposits_Taken = 0.0m,
-                Golf_Cart_Deposits_Applied = 0.0m,
-                Golf_Cart_Manual_Refunds = 0.0m,
-                Gift_Vouchers_Purchased = 0.0m,
-                Gift_Vouchers_Redeemed_For_Sites = 0.0m,
-                Gift_Vouchers_Redeemed_For_Rentals = 0.0m,
-                Gift_Vouchers_Redeemed_For_Storage = 0.0m,
+                TransDate = startDate,
             };
 
             string[] siteCategories = { "WESC", "Water & Electric Only" };
             string[] rentalCategories = { "Ocean Villa", "Cottage", "Cabin", "Travel Trailer" };
-            string[] extrasVehicles = { "Extra Vehicle", "Vehicle", "Vehicles", "Extra Vehicles Fee", "Extra Vehicle Fees" };
+            string[] extrasVehicles = { "Extra Vehicle", "Vehicle", "Vehicles", "Extra Vehicles Fee", "Extra Vehicle Fees", "Extra" };
+            string[] annualLease = {"Annual", "Annual Lease", "ANNUAL LEASE", "A/L"};
+            string[] employee = {"Employee"};
+            string[] mobileHome = {"Mobile", "Mobile Home", "M/L", "ML"};
+            string[] storage = {"Storage"};
+            string[] security = {"Security"};
 
-            //START: Retrieve all deposits held for the day for SITES and RENTALS
+            //START: Retrieve all deposits taken for the day for SITES and RENTALS
             var depositsHeldList = transactions
             .Where(p =>
                 p.Category != null &&
@@ -107,6 +92,8 @@ namespace MBTP.Services
                 return !hasRefund;
             }).ToList();
 
+            // Only keep deposits that were taken before check-in.
+            // Remove deposits where the guest already checked in before the payment was taken.
             var depositsHeldListFiltered = depositsHeldListNoRefunds.Where(t =>
             {
                 if (t.AccountForId == null || t.TransDate == null)
@@ -146,8 +133,8 @@ namespace MBTP.Services
                 return true;
             }).ToList();
 
+            // START: Golf Carts
             var golfCartDepositsHeldList = transactions.Where(c => c.Category != null && c.Category.Contains("Golf Cart", StringComparison.OrdinalIgnoreCase)).ToList();
-
             decimal golfCartDepositsAppliedTotal = 0;
 
             if (checkedInList != null && checkedInList.Count > 0)
@@ -303,7 +290,6 @@ namespace MBTP.Services
                     }
                 }
 
-
                 // Optional long-term stay check 
                 if ((departureDate - arrivalDate).TotalDays >= 90)
                 {
@@ -363,68 +349,13 @@ namespace MBTP.Services
             var refundSitesTotal = refundSitesList.Sum(r => Math.Abs(r.Amount ?? 0));
             var refundRentalsTotal = refundRentalsList.Sum(r => Math.Abs(r.Amount ?? 0));
 
-            //START: Fetch Sites data for DBF and Daily Reservations Table
-            decimal sitesTotal = 0m;
-            sitesTotal = await GetTotals(siteCategories, sitesTotal, checkedInList);
-            //END: Fetch Sites data for DBF and Daily Reservations Table
+            // START: Gift Vouchers
+            var giftVouchersPurchases = GiftVouchers(transactions);
+            var giftVouchersSites = GiftVouchers(transactions, categoryFilters: siteCategories);
+            var giftVouchersRentals = GiftVouchers(transactions, categoryFilters: rentalCategories);
+            var giftVouchersStorage = GiftVouchers(transactions,singleCategory: "Storage");
+            // E: Gift Vouchers
 
-            //START: Fetch Rental data for DBF and Daily Reservations Table
-            decimal rentalsTotal = 0m;
-            rentalsTotal = await GetTotals(rentalCategories, rentalsTotal, checkedInList);
-            //END: Fetch Rental data for DBF and Daily Reservations Table
-
-            var giftVouchersPurchases = transactions
-                .Where(r => r.Category == null &&
-                r.Description != null &&
-                r.Description.Contains("Gift", StringComparison.OrdinalIgnoreCase) &&
-                r.PaymentTypeAction != null &&
-                r.PaymentTypeAction.Contains("Payments") &&
-                (r.Amount ?? 0) < 0).ToList();
-
-            var giftVouchersSites = transactions
-                .Where(r => siteCategories.Any(c => r.Category?.Contains(c, StringComparison.OrdinalIgnoreCase) == true) &&
-                            r.Description != null &&
-                            r.Description.Contains("Gift") &&
-                            r.PaymentTypeAction?.Contains("Payments") == true &&
-                            (r.Amount ?? 0) < 0).ToList();
-
-            var giftVouchersRentals = transactions
-                .Where(r => rentalCategories.Any(c => r.Category?.Contains(c, StringComparison.OrdinalIgnoreCase) == true) &&
-                            r.Description != null &&
-                            r.Description.Contains("Gift", StringComparison.OrdinalIgnoreCase) &&
-                            r.PaymentTypeAction?.Contains("Payments") == true &&
-                            (r.Amount ?? 0) < 0).ToList();
-
-            var giftVouchersStorage = transactions
-                .Where(r => (r.Category?.Contains("Storage", StringComparison.OrdinalIgnoreCase) == true) &&
-                            r.Description != null &&
-                            r.Description.Contains("Gift", StringComparison.OrdinalIgnoreCase) &&
-                            r.PaymentTypeAction?.Contains("Payments") == true &&
-                            (r.Amount ?? 0) < 0).ToList();
-
-            decimal lockFees = 0.0m;
-
-            if (checkedInList != null && checkedInList.Count > 0)
-            {
-                foreach (var record in checkedInList)
-                {
-                    if (!record.TryGetValue("LockFee", out var lockVal) || lockVal == null || lockVal == DBNull.Value)
-                        continue;
-
-                    if (record.TryGetValue("LockFee", out var depVal) &&
-                        depVal != null &&
-                        depVal != DBNull.Value &&
-                        decimal.TryParse(Convert.ToString(depVal), out decimal lockFeeVal))
-                    {
-                        lockFees += Math.Abs(lockFeeVal);
-                    }
-                }
-            }
-
-            // Filter all transactions related to extra vehicles
-            var extraVehiclesList = transactions.Where(p => p.Description != null && extrasVehicles.Any(c => p.Description.Contains(c, StringComparison.OrdinalIgnoreCase))).ToList();
-            var extraVisitorsTotal = extraVehiclesList.Where(p => p.Amount.HasValue && (p.Amount == -42 || p.Amount == -84)).Sum(p => Math.Abs(p.Amount.Value));
-            var extraVehiclesTotal = extraVehiclesList.Where(p => p.Amount.HasValue && (p.Amount == -40 || p.Amount == -80)).Sum(p => Math.Abs(p.Amount.Value));
             bool hasMatchingDate = transactions.Any(p =>
             {
                 if (p.TransDate == null) return false;
@@ -432,66 +363,41 @@ namespace MBTP.Services
                 return dateValue.Date == startDate.Date;
             });
 
-            // Manual Refunds FROM INCOME & NOT VOIDED & LESS THAN 90 DAYS
-            var incomeRefundsFinal = noVoidedrefundsIncome
-                .Where(r => r.Amount.HasValue && r.Amount > 0 &&
-                r.ArrivalDate.HasValue && r.DepartureDate.HasValue &&
-                (r.DepartureDate.Value - r.ArrivalDate.Value).TotalDays < 90)
-                .ToList();
+            var orderedConfirmedSitesList = confirmedSitesList.OrderBy(ite => ite.AccountForId).ToList();
+            decimal totalAmount = 0;
 
-
-            foreach (var ite in depositRefunds)
+            foreach (var ite in orderedConfirmedSitesList)
             {
-                Console.WriteLine($"depositRefunds: BookingId: {ite.AccountForId}, Amount: {ite.Amount}, TransType: {ite.TransType}, PaymentMethod: {ite.PaymentMethod}");
+                Console.WriteLine($"confirmedSitesList: BookingId: {ite.AccountForId}, Amount: {ite.Amount}, TransType: {ite.TransType}, PaymentMethod: {ite.PaymentMethod}");
+                totalAmount += ite.Amount ?? 0; // Assuming Amount is nullable
             }
 
-            foreach (var ite in incomeRefunds)
-            {
-                Console.WriteLine($"incomeRefunds: BookingId: {ite.AccountForId}, Amount: {ite.Amount}, TransType: {ite.TransType}, PaymentMethod: {ite.PaymentMethod}");
-            }  
-                
-            foreach (var ite in incomeRefundsFinal)
-            {
-                Console.WriteLine($"incomeRefundsFinal: BookingId: {ite.AccountForId}, Amount: {ite.Amount}, TransType: {ite.TransType}, PaymentMethod: {ite.PaymentMethod}");
-            }
+            Console.WriteLine($"Total Amount: {totalAmount}");
 
-            var incomeRefundsSitesAndRentals = incomeRefundsFinal
-                .Where(r => r.Category != null &&
-                            (siteCategories.Any(c => r.Category.Contains(c, StringComparison.OrdinalIgnoreCase)) ||
-                            rentalCategories.Any(c => r.Category.Contains(c, StringComparison.OrdinalIgnoreCase))))
-                .ToList();
+            // Update the ProcessReservationsDepositsAsync method to include the new logic
+            var (siteSecurityDeposits, rentalSecurityDeposits) = await GetSecurityDepositsForDay(startDate, siteCategories, rentalCategories); 
 
-            var incomeRefundsSitesAndRentalsTotal = incomeRefundsSitesAndRentals.Sum(r => Math.Abs(r.Amount ?? 0));
-            var mrgTotal = incomeRefundsSitesAndRentalsTotal;
-
-            // Asign to the instances.
-            if (hasMatchingDate)
+            if(hasMatchingDate)
             {
-                deposits.Sites = sitesTotal;
-                deposits.Rentals = rentalsTotal;
-                deposits.Locks_Total = lockFees;
-                deposits.Extra_Vehicles = extraVehiclesTotal;
-                deposits.Visitor_Fees = extraVisitorsTotal;
-                deposits.Manual_Refunds = mrgTotal;
-                deposits.Sites_Deposits_Taken = confirmedSitesList.Sum(p => Math.Abs(p.Amount ?? 0));
-                deposits.Sites_Deposits_Applied = siteDepositsAppliedTotal;
-                deposits.Sites_Manual_Refunds = refundSitesList.Sum(x => x.Amount ?? 0);
-                deposits.Rentals_Deposits_Taken = confirmedRentalsList.Sum(p => Math.Abs(p.Amount ?? 0));
-                deposits.Rentals_Deposits_Applied = rentalDepositsAppliedTotal;
-                deposits.Rentals_Manual_Refunds = refundRentalsList.Sum(x => x.Amount ?? 0);
-                deposits.Golf_Cart_Deposits_Taken = golfCartDepositsHeldList.Sum(p => Math.Abs(p.Amount ?? 0));
-                deposits.Golf_Cart_Deposits_Applied = golfCartDepositsAppliedTotal;
-                deposits.Golf_Cart_Manual_Refunds = refundGolfCarts.Sum(p => Math.Abs(p.Amount ?? 0));
-                deposits.Gift_Vouchers_Purchased = giftVouchersPurchases.Sum(p => Math.Abs(p.Amount ?? 0));
-                deposits.Gift_Vouchers_Redeemed_For_Sites = giftVouchersSites.Sum(p => Math.Abs(p.Amount ?? 0));
-                deposits.Gift_Vouchers_Redeemed_For_Rentals = giftVouchersRentals.Sum(p => Math.Abs(p.Amount ?? 0));
-                deposits.Gift_Vouchers_Redeemed_For_Storage = giftVouchersStorage.Sum(p => Math.Abs(p.Amount ?? 0));
+                deposits.SiteDepTaken = confirmedSitesList.Sum(p => Math.Abs(p.Amount ?? 0)) + siteSecurityDeposits;
+                deposits.SiteDepApp = siteDepositsAppliedTotal;
+                deposits.SiteDepMRG = refundSitesList.Sum(x => x.Amount ?? 0);
+                deposits.RentalDepTaken = confirmedRentalsList.Sum(p => Math.Abs(p.Amount ?? 0)) + rentalSecurityDeposits;
+                deposits.RentalDepApp = rentalDepositsAppliedTotal;
+                deposits.RentalDepMRG = refundRentalsList.Sum(x => x.Amount ?? 0);
+                deposits.GolfDepTaken = golfCartDepositsHeldList.Sum(p => Math.Abs(p.Amount ?? 0));
+                deposits.GolfDepApp = golfCartDepositsAppliedTotal;
+                deposits.GolfDepMRG = refundGolfCarts.Sum(p => Math.Abs(p.Amount ?? 0));
+                deposits.VouchersPurch = giftVouchersPurchases.Sum(p => Math.Abs(p.Amount ?? 0));
+                deposits.VouchersRedSite = giftVouchersSites.Sum(p => Math.Abs(p.Amount ?? 0));
+                deposits.VouchersRedRental = giftVouchersRentals.Sum(p => Math.Abs(p.Amount ?? 0));
+                deposits.VouchersRedStorage = giftVouchersStorage.Sum(p => Math.Abs(p.Amount ?? 0));
 
                 depositsList.Add(deposits);
             }
-
             return depositsList;
         }
+    
 
         private bool MatchesCategory(string category, params string[] keywords) =>
             keywords.Any(keyword => category.Contains(keyword, StringComparison.OrdinalIgnoreCase));
@@ -505,30 +411,81 @@ namespace MBTP.Services
         private IEnumerable<TransactionFlow> FilterTransactions(IEnumerable<TransactionFlow> transactions, string[] categories)
         {
             return transactions.Where(p =>
-                p.Category != null && MatchesCategory(p.Category, categories) &&
+                p.Category != null &&
+                MatchesCategory(p.Category, categories) &&
                 MatchesDeposit(p.Deposit) &&
-                MatchesDescription(p.Description));
+                MatchesDescription(p.Description) &&
+                (p.TranslatedPaymentType == null || !p.TranslatedPaymentType.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase)));
         }
 
-        private bool HasCheckedInBeforeDate(int bookingId, DateTime refundDate)
+        private bool HasCheckedInBeforeDate(int bookingId, DateTime date)
         {
             const string sqlQuery = @"
                 SELECT COUNT(1)
                 FROM dbo.CheckedIn
                 WHERE BookingId = @BookingId
-                AND BookingCheckedIn <= @RefundDate";
+                AND BookingCheckedIn <= @date";
 
             using (var sqlConn = _dbConnectionService.CreateConnection())
             using (var cmd = new SqlCommand(sqlQuery, sqlConn))
             {
                 cmd.Parameters.Add("@BookingId", SqlDbType.Int).Value = bookingId;
-                cmd.Parameters.Add("@RefundDate", SqlDbType.DateTime2).Value = refundDate;
+                cmd.Parameters.Add("@date", SqlDbType.DateTime2).Value = date;
 
                 sqlConn.Open();
                 int count = (int)cmd.ExecuteScalar();
                 return count > 0;
             }
         }
+
+        private async Task<(decimal siteSecurityDeposits, decimal rentalSecurityDeposits)> GetSecurityDepositsForDay(DateTime date, string[] siteCategories, string[] rentalCategories)
+        {
+            const string sqlQuery = @"
+                SELECT Site, SecurityDeposits, BookingName
+                FROM dbo.CheckedIn
+                WHERE CAST(BookingCheckedIn AS DATE) = @date";
+
+            decimal siteSecurityDeposits = 0m;
+            decimal rentalSecurityDeposits = 0m;
+
+            using (var sqlConn = _dbConnectionService.CreateConnection())
+            using (var cmd = new SqlCommand(sqlQuery, sqlConn))
+            {
+                cmd.Parameters.Add("@date", SqlDbType.Date).Value = date;
+
+                sqlConn.Open();
+                using (var reader = await cmd.ExecuteReaderAsync())
+                {
+                    while (reader.Read())
+                    {
+                        string bookingName = reader["BookingName"]?.ToString() ?? string.Empty;
+
+                        // Skip rows where BookingName contains "BLOCKED"
+                        if (bookingName.Contains("BLOCKED", StringComparison.OrdinalIgnoreCase))
+                        {
+                            continue;
+                        }
+
+                        string site = reader["Site"]?.ToString() ?? string.Empty;
+                        decimal securityDeposit = reader["SecurityDeposits"] != DBNull.Value
+                            ? Convert.ToDecimal(reader["SecurityDeposits"])
+                            : 0m;
+
+                        if (siteCategories.Any(c => site.Contains(c, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            siteSecurityDeposits += securityDeposit;
+                        }
+                        else if (rentalCategories.Any(c => site.Contains(c, StringComparison.OrdinalIgnoreCase)))
+                        {
+                            rentalSecurityDeposits += securityDeposit;
+                        }
+                    }
+                }
+            }
+
+            return (siteSecurityDeposits, rentalSecurityDeposits);
+        }
+
 
 
         private async Task<Decimal> GetTotals(string[] categories, decimal total, List<Dictionary<string, object>> checkedInList)
@@ -562,7 +519,6 @@ namespace MBTP.Services
                     if (!isSiteCategory)
                         continue;
 
-                    // Safely extract decimals
                     decimal depositHeld = 0m;
                     decimal paymentsAfter = 0m;
 
@@ -572,7 +528,6 @@ namespace MBTP.Services
                     if (record.TryGetValue("PaymentsAfterCheckIn", out var afterVal) && afterVal != null && afterVal != DBNull.Value)
                         decimal.TryParse(Convert.ToString(afterVal), out paymentsAfter);
 
-                    // Only add if at least one of the values is non-zero
                     if (depositHeld != 0 || paymentsAfter != 0)
                     {
                         decimal totalForSite = depositHeld + paymentsAfter;
@@ -612,5 +567,33 @@ namespace MBTP.Services
             }
             return total;
         }
+
+        private List<TransactionFlow> GiftVouchers(IEnumerable<TransactionFlow> transactions,IEnumerable<string>? categoryFilters = null,string? singleCategory = null)
+        {
+            return transactions
+                .Where(r =>
+                    r.Description != null &&
+                    r.Description.Contains("Gift", StringComparison.OrdinalIgnoreCase) &&
+                    r.PaymentTypeAction?.Contains("Payments") == true &&
+                    (r.Amount ?? 0) < 0 &&
+                    (
+                        categoryFilters == null && singleCategory == null
+                        ? r.Category == null
+                        : (
+                            (categoryFilters != null && categoryFilters.Any(c =>
+                                r.Category?.Contains(c, StringComparison.OrdinalIgnoreCase) == true))
+                            ||
+                            (singleCategory != null &&
+                                r.Category?.Contains(singleCategory, StringComparison.OrdinalIgnoreCase) == true)
+                        )
+                    )
+                )
+                .ToList();
+        }
+
     }
 }
+            
+        
+        
+
