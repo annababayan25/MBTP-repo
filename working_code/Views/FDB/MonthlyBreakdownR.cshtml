@@ -9,6 +9,7 @@
     string? isCurrentFiscalYear = Context.Session.GetString("IsCurrentFiscalYear");
     DateTime currentDate = DateTime.Now;
     int monthIndex = 0;
+    int dataRecordRow = 0;
 
     decimal totalSDTaken = 0;
     decimal totalSDApplied = 0;
@@ -39,8 +40,8 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
-<div class="table-responsive">
-<table id="monthly-table" class="breakdown clickable-tableR" style="width:240px">
+<div class="table-responsive" style="max-height: 75vh; overflow-y: auto;">
+<table id="monthly-table" class="breakdown clickable-tableR" style="width:240px; border: none;">
     <tr>
         <th class="breakdownBigTitle" colspan="18">Reservations Deposits</th>
     </tr>
@@ -63,7 +64,7 @@
                 <th class="breakdownTotalsHead" rowspan="2">Net Change</th>
     </tr>
     <tr>
-        <th class="breakdownMonthScrolling">Month</th>
+        <th class="breakdownMonthScrollingBottom">Month</th>
         <th class="breakdownTitle">Deposits Taken</th>
         <th class="breakdownTitle">Deposits Applied</th>
         <th class="breakdownRefTitle">Manual Refunds Generated</th>
@@ -81,6 +82,25 @@
    </tr>
 @foreach (DataRow row in Model!.Tables[0].Rows)
 {
+        dataRecordRow++;
+        var breakdownMonthClass = new System.Text.StringBuilder("breakdownMonth");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownRefClass = new System.Text.StringBuilder("breakdownRef");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            breakdownMonthClass.Remove(0, "breakdownMonth".Length).Append("breakdownMonthTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownRefClass.Remove(0, "breakdownRef".Length).Append("breakdownRefTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        breakdownMonthClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownRefClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
     var monthDate = startDate.AddMonths(monthIndex);
     var month = startDate.AddMonths(monthIndex).ToString("MMMM");
 
@@ -123,46 +143,46 @@
     
 
     <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
-        <td class="breakdownData">@month</td>
-        <td class="breakdownData">@SDT</td>
-        <td class="breakdownData">@SDA</td>
-        <td class="breakdownRef">@SDMRG</td>
-        <td class="breakdownTotals">@netChange1</td>
-        <td class="breakdownData">@RDT</td>
-        <td class="breakdownData">@RDA</td>
-        <td class="breakdownRef">@RDMRG</td>
-        <td class="breakdownTotals">@netChange2</td>
-        <td class="breakdownData">@GDT</td>
-        <td class="breakdownData">@GDA</td>
-        <td class="breakdownRef">@GDMRG</td>
-        <td class="breakdownTotals">@netChange3</td>
-        <td class="breakdownData">@VP</td>
-        <td class="breakdownData">@VRS</td>
-        <td class="breakdownData">@VRR</td>
-        <td class="breakdownData">@VRSto</td>
-        <td class="breakdownTotals">@netChange4</td>
+        <td class="@breakdownMonthClass">@month</td>
+        <td class="@breakdownDataClass">@(@SDT != 0 ? String.Format("{0:c2}", @SDT) : "")</td>
+        <td class="@breakdownDataClass">@(@SDA != 0 ? String.Format("{0:c2}", @SDA) : "")</td>
+        <td class="@breakdownRefClass">@(@SDMRG != 0 ? String.Format("{0:c2}", @SDMRG) : "")</td>
+        <td class="@breakdownTotalsClass">@(@netChange1 != 0 ? String.Format("{0:c2}", @netChange1) : "")</td>
+        <td class="@breakdownDataClass">@(@RDT != 0 ? String.Format("{0:c2}", @RDT) : "")</td>
+        <td class="@breakdownDataClass">@(@RDA != 0 ? String.Format("{0:c2}", @RDA) : "")</td>
+        <td class="@breakdownRefClass">@(@RDMRG != 0 ? String.Format("{0:c2}", @RDMRG) : "")</td>
+        <td class="@breakdownTotalsClass">@(@netChange2 != 0 ? String.Format("{0:c2}", @netChange2) : "")</td>
+        <td class="@breakdownDataClass">@(@GDT != 0 ? String.Format("{0:c2}", @GDT) : "")</td>
+        <td class="@breakdownDataClass">@(@GDA != 0 ? String.Format("{0:c2}", @GDA) : "")</td>
+        <td class="@breakdownRefClass">@(@GDMRG != 0 ? String.Format("{0:c2}", @GDMRG) : "")</td>
+        <td class="@breakdownTotalsClass">@(@netChange3 != 0 ? String.Format("{0:c2}", @netChange3) : "")</td>
+        <td class="@breakdownDataClass">@(@VP != 0 ? String.Format("{0:c2}", @VP) : "")</td>
+        <td class="@breakdownDataClass">@(@VRS != 0 ? String.Format("{0:c2}", @VRS) : "")</td>
+        <td class="@breakdownDataClass">@(@VRR != 0 ? String.Format("{0:c2}", @VRR) : "")</td>
+        <td class="@breakdownDataClass">@(@VRSto != 0 ? String.Format("{0:c2}", @VRSto) : "")</td>
+        <td class="@breakdownTotalsClass">@(@netChange4 != 0 ? String.Format("{0:c2}", @netChange4) : "")</td>
     </tr>
     monthIndex++;
 }
 <tr>
-    <td class ="breakdownTotalsScrolling">Totals:</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDTaken)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDApplied)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalSDMR)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange1)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDTaken)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDApplied)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRDMR)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange2)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDTaken)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDApplied)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalGDMR)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange3)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalPurchased)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSite)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedRent)</td>      
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalRedeemedSto)</td>
-    <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetChange4)</td>
+    <td class ="breakdownTotalsScrolling" style="border-bottom: 1px solid black;">Totals:</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalSDTaken != 0 ? String.Format("{0:c2}", totalSDTaken) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalSDApplied != 0 ? String.Format("{0:c2}", totalSDApplied) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalSDMR != 0 ? String.Format("{0:c2}", totalSDMR) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNetChange1 != 0 ? String.Format("{0:c2}", totalNetChange1) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRDTaken != 0 ? String.Format("{0:c2}", totalRDTaken) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRDApplied != 0 ? String.Format("{0:c2}", totalRDApplied) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRDMR != 0 ? String.Format("{0:c2}", totalRDMR) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNetChange2 != 0 ? String.Format("{0:c2}", totalNetChange2) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalGDTaken != 0 ? String.Format("{0:c2}", totalGDTaken) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalGDApplied != 0 ? String.Format("{0:c2}", totalGDApplied) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalGDMR != 0 ? String.Format("{0:c2}", totalGDMR) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNetChange3 != 0 ? String.Format("{0:c2}", totalNetChange3) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalPurchased != 0 ? String.Format("{0:c2}", totalPurchased) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRedeemedSite != 0 ? String.Format("{0:c2}", totalRedeemedSite) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRedeemedRent != 0 ? String.Format("{0:c2}", totalRedeemedRent) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRedeemedSto != 0 ? String.Format("{0:c2}", totalRedeemedSto) : "")</td>
+    <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNetChange4 != 0 ? String.Format("{0:c2}", totalNetChange4) : "")</td>
 </tr>
 
 </table>
@@ -185,25 +205,6 @@ $(document).ready(function () {
             console.error('URL is undefined');
         }
     });
-    var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-    if (!isNaN(amount)) { 
-        if (amount == 0){
-            cell.textContent = ' ';
-        } else {
-            if (amount < 0){
-                cell.classList.add('negative-value');
-                cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-            } else{
-            cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-            }
-        }
-    } 
-});
-function formatNumberWithCommas(number) {
-        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
 });
 </script>
 </html>

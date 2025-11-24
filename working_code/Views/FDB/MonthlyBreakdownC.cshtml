@@ -9,6 +9,7 @@
     string? isCurrentFiscalYear = Context.Session.GetString("IsCurrentFiscalYear");
    DateTime currentDate = DateTime.Now;
    int monthIndex = 0;
+    int dataRecordRow = 0;
 
    decimal totalPreparedFoodC  = 0;
    decimal totalMerchandiseC = 0;
@@ -29,7 +30,8 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
-<table id="monthly-table" class="breakdown clickable-tableC" style="width:240px" data-MonthlyBreakdown="/FDB/MonthlyBreakdownC">
+<div class="table-responsive " style="max-height: 75vh; overflow-y: auto;"> 
+<table id="monthly-table" class="breakdown clickable-tableC" style="width:240px; border: none;" data-MonthlyBreakdown="/FDB/MonthlyBreakdownC">
    <tr>
        <th class="breakdownBigTitle" colspan="8">Coffee Camper</th>
    </tr>
@@ -44,13 +46,29 @@
        <th class="breakdownTotalsHead" rowspan="2">Total Tax Expected</th>        
    </tr>
    <tr>
-       <th class="breakdownMonthScrolling">Month</th>
+       <th class="breakdownMonthScrollingBottom">Month</th>
        <th class="breakdownTitle">Prepared Food</th>
        <th class="breakdownTitle">Merchandise</th>
        <th class="breakdownTitle">Non-Tax Food</th>
    </tr>
    @foreach (DataRow row in Model!.Tables[0].Rows)
    {
+        dataRecordRow++;
+        var breakdownMonthClass = new System.Text.StringBuilder("breakdownMonth");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            breakdownMonthClass.Remove(0, "breakdownMonth".Length).Append("breakdownMonthTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        breakdownMonthClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
        var monthDate = startDate.AddMonths(monthIndex);
        var month = startDate.AddMonths(monthIndex).ToString("MMMM");
        var TenP = 1.105m;
@@ -70,28 +88,35 @@
        totalNetRevenue += netRevenue;
        totalTaxExpected += taxExpected;
        <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
-           <td class="breakdownData">@month</td>
-           <td class="breakdownData">@String.Format("{0:F2}", preparedFoodC)</td>
-           <td class="breakdownData">@String.Format("{0:F2}", merchandiseC)</td>
-           <td class="breakdownData">@String.Format("{0:F2}", nonTaxC)</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", grossRevenue)</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", taxCollected)</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", netRevenue)</td>
-           <td class="breakdownTax">@String.Format("{0:F2}", taxExpected)</td>
+           <td class="@breakdownMonthClass">@month</td>
+           <td class="@breakdownDataClass">@(preparedFoodC != 0.00m ? @String.Format("{0:c2}", preparedFoodC) : "")</td>
+           <td class="@breakdownDataClass">@(merchandiseC != 0.00m ? @String.Format("{0:c2}", merchandiseC) : "")</td>
+           <td class="@breakdownDataClass">@(nonTaxC != 0.00m ? @String.Format("{0:c2}", nonTaxC) : "")</td>
+           <td class="@breakdownTotalsClass">@(grossRevenue != 0.00m ? @String.Format("{0:c2}", grossRevenue) : "")</td>
+           <td class="@breakdownTotalsClass">@(taxCollected != 0.00m ? @String.Format("{0:c2}", taxCollected) : "")</td>
+           <td class="@breakdownTotalsClass">@(netRevenue != 0.00m ? @String.Format("{0:c2}", netRevenue) : "")</td>
+           <td class="@breakdownTaxClass">@(taxExpected != 0.00m ? @String.Format("{0:c2}", taxExpected) : "")</td>
        </tr>
        monthIndex++;
    }
    <tr>
-       <td class="breakdownTotalsScrolling">Totals:</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalPreparedFoodC)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalMerchandiseC)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTaxC)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalGrossRevenue)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxCollected)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevenue)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxExpected)</td>
+       <td class="breakdownTotalsScrolling" style="border-bottom: 1px solid black;">Totals:</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(totalPreparedFoodC != 0.00m ? @String.Format("{0:c2}", totalPreparedFoodC) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(totalMerchandiseC != 0.00m ? @String.Format("{0:c2}", totalMerchandiseC) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(totalNonTaxC != 0.00m ? @String.Format("{0:c2}", totalNonTaxC) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(totalGrossRevenue != 0.00m ? @String.Format("{0:c2}", totalGrossRevenue) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(totalTaxCollected != 0.00m ? @String.Format("{0:c2}", totalTaxCollected) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(totalNetRevenue != 0.00m ? @String.Format("{0:c2}", totalNetRevenue) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(totalTaxExpected != 0.00m ? @String.Format("{0:c2}", totalTaxExpected) : "")</td>
    </tr>
 </table>
+</div>
+}
+else
+{
+    <div class="no-data-message">
+        <p>No data available for the selected fiscal year.</p>
+    </div>
 }
 </body>
 
@@ -110,27 +135,6 @@ $(document).ready(function () {
             console.error('URL is undefined');
         }
     });
-
-    var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-    cells.forEach(function (cell) { 
-        var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-        if (!isNaN(amount)) { 
-            if (amount == 0){
-                cell.textContent = ' ';
-            } else {
-                if (amount < 0){
-                    cell.classList.add('negative-value');
-                    cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-                } else{
-                    cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-                }
-            }
-        } 
-    });
-
-    function formatNumberWithCommas(number) {
-        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
 });
 </script>
 </html>

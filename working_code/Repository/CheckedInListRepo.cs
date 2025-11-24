@@ -35,7 +35,10 @@ namespace MBTP.Services
                         command.Parameters.AddWithValue("@SecurityDeposits", checkedIn.SecurityDeposits);
                         command.Parameters.AddWithValue("@OnlineBookingFee", checkedIn.OnlineBookingFee);
                         command.Parameters.AddWithValue("@PaymentsAfterCheckIn", checkedIn.PaymentsAfterCheckIn);
-                        command.Parameters.AddWithValue("@PaymentsAfterCheckInDesc", checkedIn.PaymentsAfterCheckInDesc);
+                        command.Parameters.AddWithValue("@PaymentsAfterCheckInDesc",
+                        string.IsNullOrEmpty(checkedIn.PaymentsAfterCheckInDesc)
+                            ? (object)DBNull.Value
+                            : checkedIn.PaymentsAfterCheckInDesc);
                         command.Parameters.AddWithValue("@Refunds", checkedIn.RefundedAmount);
                         command.Parameters.AddWithValue("@CancellationFee", checkedIn.CancellationFee);
                         command.Parameters.AddWithValue("@Extras", (object?)checkedIn.Extras ?? DBNull.Value);

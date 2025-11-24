@@ -9,6 +9,7 @@
     var yearName = startDate.ToString("yyyy");
     DateTime currentDate = DateTime.Now;
     int monthIndex = 0;
+    int dataRecordRow = 0;
 
    decimal totalSites = 0;
    decimal totalRentals = 0;
@@ -48,8 +49,8 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
-<div class="table-responsive">
-<table id="monthly-table" class="breakdown clickable-tableF">
+<div class="table-responsive" style="max-height: 75vh; overflow-y: auto;"> 
+<table id="monthly-table" class="breakdown clickable-tableF" style="width: 240px; border: none;">
    <tr>
        <th class="breakdownBigTitle" colspan="27">Front Office</th>
    </tr>
@@ -87,7 +88,7 @@
        <th class="breakdownTotalsHead" rowspan="2">Other Non-Taxable Subtotal</th>
    </tr>
    <tr>
-       <th class="breakdownMonthScrolling">Month</th>
+       <th class="breakdownMonthScrollingBottom">Month</th>
        <th class="breakdownTitle">Sites</th>
        <th class="breakdownTitle">Rentals</th>
        <th class="breakdownTitle">Lock Fees</th>
@@ -108,6 +109,28 @@
    </tr>
    @foreach (DataRow row in Model!.Tables[0].Rows)
    {
+        dataRecordRow++;
+        var alertDataClass = new System.Text.StringBuilder("alertData");
+        var breakdownMonthClass = new System.Text.StringBuilder("breakdownMonth");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownRefClass = new System.Text.StringBuilder("breakdownRef");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            alertDataClass.Remove(0, "alertData".Length).Append("alertDataTop");
+            breakdownMonthClass.Remove(0, "breakdownMonth".Length).Append("breakdownMonthTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownRefClass.Remove(0, "breakdownRef".Length).Append("breakdownRefTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        alertDataClass.ToString();
+        breakdownMonthClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownRefClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
        var monthDate = startDate.AddMonths(monthIndex);
        var month = startDate.AddMonths(monthIndex).ToString("MMMM");
        var TwelveP = 1.12m;
@@ -170,64 +193,64 @@
        totalNetRevenue1 += netRevenue1;
 
        <tr class="colorAlt" data-month="@monthDate.Month" data-year="@monthDate.Year">
-           <td class="breakdownData">@month</td>
-           <td class="breakdownData">@sites</td>
-           <td class="breakdownData">@rentals</td>
-           <td class="breakdownData">@locks</td>
-           <td class="breakdownData">@exVeh</td>
-           <td class="breakdownData">@damages</td>
-           <td class="breakdownData">@late</td>
-           <td class="breakdownRef">@manRef</td>
-           <td class="breakdownData">@visit</td>
-           <td class="breakdownData">@golf</td>
-           <td class="breakdownRef">@manRefGolf</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", grossRevenue1)</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", taxLi)</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", netRevSub)</td>
-           <td class="breakdownData">@annual</td>
-           <td class="breakdownData">@employee</td>
-           <td class="breakdownData">@lts</td>
-           <td class="breakdownData">@ltr</td>
-           <td class="breakdownData">@mhp</td>
-           <td class="breakdownRef">@manRefnt</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", noTaxSub)</td>
-           <td class="breakdownData">@storage</td>
-           <td class="breakdownData">@transfers</td>
-           <td class="breakdownData">@misc</td>
-           <td class="breakdownRef">@String.Format("{0:F2}", manRefnt2)</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", nonTax)</td>
-           <td class="breakdownTotals">@String.Format("{0:F2}", netRevenue1)</td>
+           <td class="@breakdownMonthClass">@month</td>
+           <td class="@breakdownDataClass">@(@sites != 0 ? String.Format("{0:c2}", @sites) : "")</td>
+           <td class="@breakdownDataClass">@(@rentals != 0 ? String.Format("{0:c2}", @rentals) : "")</td>
+           <td class="@breakdownDataClass">@(@locks != 0 ? String.Format("{0:c2}", @locks) : "")</td>
+           <td class="@breakdownDataClass">@(@exVeh != 0 ? String.Format("{0:c2}", @exVeh) : "")</td>
+           <td class="@breakdownDataClass">@(@damages != 0 ? String.Format("{0:c2}", @damages) : "")</td>
+           <td class="@breakdownDataClass">@(@late != 0 ? String.Format("{0:c2}", @late) : "")</td>
+           <td class="@breakdownRefClass">@(@manRef != 0 ? String.Format("{0:c2}", @manRef) : "")</td>
+           <td class="@breakdownDataClass">@(@visit != 0 ? String.Format("{0:c2}", @visit) : "")</td>
+           <td class="@breakdownDataClass">@(@golf != 0 ? String.Format("{0:c2}", @golf) : "")</td>
+           <td class="@breakdownRefClass">@(@manRefGolf != 0 ? String.Format("{0:c2}", @manRefGolf) : "")</td>
+           <td class="@breakdownTotalsClass">@(@grossRevenue1 != 0 ? String.Format("{0:c2}", @grossRevenue1) : "")</td>
+           <td class="@breakdownTotalsClass">@(@taxLi != 0 ? String.Format("{0:c2}", @taxLi) : "")</td>
+           <td class="@breakdownTotalsClass">@(@netRevSub != 0 ? String.Format("{0:c2}", @netRevSub) : "")</td>
+           <td class="@breakdownDataClass">@(@annual != 0 ? String.Format("{0:c2}", @annual) : "")</td>
+           <td class="@breakdownDataClass">@(@employee != 0 ? String.Format("{0:c2}", @employee) : "")</td>
+           <td class="@breakdownDataClass">@(@lts != 0 ? String.Format("{0:c2}", @lts) : "")</td>
+           <td class="@breakdownDataClass">@(@ltr != 0 ? String.Format("{0:c2}", @ltr) : "")</td>
+           <td class="@breakdownDataClass">@(@mhp != 0 ? String.Format("{0:c2}", @mhp) : "")</td>
+           <td class="@breakdownRefClass">@(@manRefnt != 0 ? String.Format("{0:c2}", @manRefnt) : "")</td>
+           <td class="@breakdownTotalsClass">@(@noTaxSub != 0 ? String.Format("{0:c2}", @noTaxSub) : "")</td>
+           <td class="@breakdownDataClass">@(@storage != 0 ? String.Format("{0:c2}", @storage) : "")</td>
+           <td class="@breakdownDataClass">@(@transfers != 0 ? String.Format("{0:c2}", @transfers) : "")</td>
+           <td class="@breakdownDataClass">@(@misc != 0 ? String.Format("{0:c2}", @misc) : "")</td>
+           <td class="@breakdownRefClass">@(@manRefnt2 != 0 ? String.Format("{0:c2}", @manRefnt2) : "")</td>
+           <td class="@breakdownTotalsClass">@(@nonTax != 0 ? String.Format("{0:c2}", @nonTax) : "")</td>
+           <td class="@breakdownTotalsClass">@(@netRevenue1 != 0 ? String.Format("{0:c2}", @netRevenue1) : "")</td>
        </tr>
        monthIndex++;
    }
    <tr>
-       <td class="breakdownTotalsScrolling">Totals:</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalSites)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalRentals)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalLockFees)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalExVeh)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalDamageFees)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalLate)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalVisit)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalGolf)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRefGolf)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalGross)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalTaxLi)</td>      
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevSub)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalAnnual)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalEmployee)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalLTS)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalLTR)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalMHP)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef2)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTaxSub)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalStorage)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalTransf)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalMisc)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalManRef3)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNonTax)</td>
-       <td class="breakdownTotals2">@String.Format("{0:F2}", totalNetRevenue1)</td>
+       <td class="breakdownTotalsScrolling" style="border-bottom: 1px solid black;">Totals:</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalSites != 0 ? String.Format("{0:c2}", @totalSites) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalRentals != 0 ? String.Format("{0:c2}", @totalRentals) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalLockFees != 0 ? String.Format("{0:c2}", @totalLockFees) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalExVeh != 0 ? String.Format("{0:c2}", @totalExVeh) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalDamageFees != 0 ? String.Format("{0:c2}", @totalDamageFees) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalLate != 0 ? String.Format("{0:c2}", @totalLate) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalManRef != 0 ? String.Format("{0:c2}", @totalManRef) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalVisit != 0 ? String.Format("{0:c2}", @totalVisit) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalGolf != 0 ? String.Format("{0:c2}", @totalGolf) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalManRefGolf != 0 ? String.Format("{0:c2}", @totalManRefGolf) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalGross != 0 ? String.Format("{0:c2}", @totalGross) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTaxLi != 0 ? String.Format("{0:c2}", @totalTaxLi) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNetRevSub != 0 ? String.Format("{0:c2}", @totalNetRevSub) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalAnnual != 0 ? String.Format("{0:c2}", @totalAnnual) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalEmployee != 0 ? String.Format("{0:c2}", @totalEmployee) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalLTS != 0 ? String.Format("{0:c2}", @totalLTS) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalLTR != 0 ? String.Format("{0:c2}", @totalLTR) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalMHP != 0 ? String.Format("{0:c2}", @totalMHP) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalManRef2 != 0 ? String.Format("{0:c2}", @totalManRef2) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNonTaxSub != 0 ? String.Format("{0:c2}", @totalNonTaxSub) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalStorage != 0 ? String.Format("{0:c2}", @totalStorage) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalTransf != 0 ? String.Format("{0:c2}", @totalTransf) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalMisc != 0 ? String.Format("{0:c2}", @totalMisc) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalManRef3 != 0 ? String.Format("{0:c2}", @totalManRef3) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNonTax != 0 ? String.Format("{0:c2}", @totalNonTax) : "")</td>
+       <td class="breakdownTotals2" style="border-bottom: 1px solid black;">@(@totalNetRevenue1 != 0 ? String.Format("{0:c2}", @totalNetRevenue1) : "")</td>
    </tr>
 </table>
 </div>
@@ -249,27 +272,6 @@ $(document).ready(function () {
             console.error('URL is undefined');
         }
     });
-
-    var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-    cells.forEach(function (cell) { 
-        var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-        if (!isNaN(amount)) { 
-            if (amount == 0){
-                cell.textContent = ' ';
-            } else {
-                if (amount < 0){
-                    cell.classList.add('negative-value');
-                    cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-                } else{
-                    cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-                }
-            }
-        } 
-    });
-
-    function formatNumberWithCommas(number) {
-        return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    }
 });
 </script>
 </html>

@@ -25,6 +25,9 @@ namespace MBTP.Models
         [JsonProperty("translated_payment_type")]
         public string? TranslatedPaymentType { get; set; }
 
+        [JsonProperty("payment_type")]
+        public string? PaymentType { get; set; }
+
         public string? PaymentTypeAction { get; set; }
 
         [JsonProperty("category_name")]
@@ -57,6 +60,12 @@ namespace MBTP.Models
         [JsonProperty("deposit")]
         public string Deposit { get; set; }
         public int BookingId { get; internal set; }
+
+        [JsonProperty("gl_category_id")]
+        public int? GlAccountCode {get;set;}
+
+        [JsonProperty("gl_category")]
+        public string? GlCategory {get;set;}
     }
     
 }

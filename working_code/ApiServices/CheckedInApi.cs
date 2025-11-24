@@ -160,23 +160,52 @@ namespace MBTP.Services
 
                     // security deposit column
                     decimal totalPaymentsSecDep = checkedIn.Payments?
-                    .Where(p => !string.IsNullOrEmpty(p.Description) &&
-                            p.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase))
-                        .Sum(p => p.Amount ?? 0) ?? 0;
+                    .Where(c =>
+                        !string.IsNullOrEmpty(c.Description) &&
+                        c.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase) &&
+
+                        (
+                            c.VoidedWhen == null ||
+                            (checkedIn.BookingCheckedIn.HasValue && c.VoidedWhen >= checkedIn.BookingCheckedIn.Value)
+                        ) &&
+
+                        c.GeneratedWhen.HasValue &&
+                        checkedIn.BookingCheckedIn.HasValue &&
+                        c.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date
+                    )
+                    .Sum(c => c.Amount ?? 0) ?? 0;
+
 
                     decimal totalChargesSecDep = checkedIn.Charges?
-                    .Where(p => !string.IsNullOrEmpty(p.Description) &&
-                            p.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase))
-                        .Sum(p => p.Amount ?? 0) ?? 0;
+                    .Where(c =>
+                        !string.IsNullOrEmpty(c.Description) &&
+                        c.Description.Contains("security deposit", StringComparison.OrdinalIgnoreCase) &&
+
+                        (
+                            c.VoidedWhen == null ||
+                            (checkedIn.BookingCheckedIn.HasValue && c.VoidedWhen >= checkedIn.BookingCheckedIn.Value)
+                        ) &&
+
+                        c.GeneratedWhen.HasValue &&
+                        checkedIn.BookingCheckedIn.HasValue &&
+                        c.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date
+                    )
+                    .Sum(c => c.Amount ?? 0) ?? 0;
+
+
 
                     checkedIn.SecurityDeposits = totalChargesSecDep + totalPaymentsSecDep;
 
+
                     var afterCheckInPayments = checkedIn.Payments?
-                    .Where(p => p.GeneratedWhen.HasValue && p.GeneratedWhen.Value > checkedIn.BookingCheckedIn.Value)
+                    .Where(p => p.GeneratedWhen.HasValue &&
+                                checkedIn.BookingCheckedIn.HasValue &&
+                                p.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date &&
+                                p.GeneratedWhen.Value >= checkedIn.BookingCheckedIn.Value)
                     .ToList();
 
-                    checkedIn.PaymentsAfterCheckIn = afterCheckInPayments?.Sum(p => p.Amount ?? 0) ?? 0;
-                    checkedIn.PaymentsAfterCheckInDesc = afterCheckInPayments != null
+                checkedIn.PaymentsAfterCheckIn = afterCheckInPayments?.Sum(p => p.Amount ?? 0) ?? 0;
+                checkedIn.PaymentsAfterCheckInDesc = afterCheckInPayments != null && afterCheckInPayments.Any()
                     ? string.Join("; ", afterCheckInPayments.Select(p => $"({p.Description})"))
                     : null;
 
@@ -291,7 +320,7 @@ namespace MBTP.Services
 
                     // debug to see the full json for a booking
 
-                    if (checkedIn.BookingId == 373593)
+                    if (checkedIn.BookingId == 372922)
                     {
                         string filePath = "checkedinOut.txt";
                         string contentFile = item.ToString();
@@ -318,8 +347,13 @@ namespace MBTP.Services
                             checkedIn.Extras = $"{checkedIn.Extras} (Possible balance transfer?)";
                         }
                     }
-
                     checkedInList.Add(checkedIn);
+                    if(checkedIn.BookingId == 374404)
+                    {
+                        
+                        File.AppendAllText("checkedInList.json", item.ToString() + Environment.NewLine);
+                    }
+                    
                 }
             }
             return checkedInList;

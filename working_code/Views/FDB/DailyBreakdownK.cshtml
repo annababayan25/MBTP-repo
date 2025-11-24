@@ -2,12 +2,16 @@
 @using MBTP.Controllers
 @using MBTP.Retrieval
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>
+#breakdownLegendId::after{content: ''; background: blue; width: 0px; height: 100%; position: absolute; right: 0;}
+</style>
 
 @{
     DateTime startDate = ViewBag.date != null ? (DateTime)ViewBag.date : DateTime.Now.AddDays(-4);
     DateTime fiscalYearStartDate = ViewBag.fiscalYearStartDate;
     var whichMonth = ViewBag.WhichMonth;    
     var yearName = startDate.ToString("yyyy");
+    int dataRecordRow = 0;
     DateTime currentDate = DateTime.Now;
     DateTime monthStart = new DateTime(startDate.Year, startDate.Month, 1);
     DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
@@ -73,43 +77,66 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {
-<table id="daily-table" class="breakdown clickable-tableK"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownK" style="width:240px">
-    <tr>
-        <th class="breakdownBigTitle" colspan="9">Kayak Shack</th>
-    </tr>
-    <tr>
-        <th class="breakdownDayScrolling"></th>
-        <th class="breakdownTitle" colspan="1">317</th>
-        <th class="breakdownTitle" colspan="1">353</th>
-        <th class="breakdownTitle" colspan="1">354</th>
-        @if(startDate.Month == currentDate.Month) 
-        {
-            <th class="breakdownTitle" rowspan="2">Misc Sales<sup>#</sup></th>
-        }
-        else
-        {
-            <th class="breakdownTitle" rowspan="2">Misc Sales</th>
-        }
-        <th class="breakdownTotalsHead" rowspan="2">Total Gross Revenue</th>
-        <th class="breakdownTotalsHead" rowspan="2">Total Tax Collected</th>
-        <th class="breakdownTotalsHead" rowspan="2">Total Net Revenue</th>
-        <th class="breakdownTaxHead" rowspan="2">Total Tax Expected</th>
-    </tr>
-    <tr>
-        <th class="breakdownDayScrolling">Day</th>
-        @if(startDate.Date >= DateTime.Parse("06-01-2025"))
-        {
-            <th class="breakdownTitle">Prepared Food</th>
-        }
-        else
-        {
-            <th class="breakdownTitle">Non-Taxable Food</th>
-        }
-        <th class="breakdownTitle">Kayaks and Boards</th>
-        <th class="breakdownTitle">Pedal Boats</th>
-    </tr>
+<div class="table-responsive " style="max-height: 60vh; overflow-y: auto; max-width: 60vw; overflow-x: auto;">
+    <table id="daily-table" class="breakdown clickable-tableK"  data-MonthlyBreakdown="/FDB/MonthlyBreakdownK" style="width:auto; border: none;">
+    <thead class="breakdownHead">
+        <tr>
+            <th class="breakdownBigTitle" colspan="9">Kayak Shack</th>
+        </tr>
+        <tr>
+            <th class="breakdownDayScrolling"></th>
+            <th class="breakdownTitle">317</th>
+            <th class="breakdownTitle">353</th>
+            <th class="breakdownTitle">354</th>
+            @if(startDate.Month == currentDate.Month) 
+            {
+                <th class="breakdownTitle" rowspan="2">Misc Sales<sup>#</sup></th>
+            }
+            else
+            {
+                <th class="breakdownTitle" rowspan="2">Misc Sales</th>
+            }
+            <th class="breakdownTotalsHead" rowspan="2">Total Gross Revenue</th>
+            <th class="breakdownTotalsHead" rowspan="2">Total Tax Collected</th>
+            <th class="breakdownTotalsHead" rowspan="2">Total Net Revenue</th>
+            <th class="breakdownTaxHead" rowspan="2">Total Tax Expected</th>
+        </tr>
+        <tr>
+            <th class="breakdownDayScrollingBottom">Day</th>
+            @if(startDate.Date >= DateTime.Parse("06-01-2025"))
+            {
+                <th class="breakdownTitle">Prepared Food</th>
+            }
+            else
+            {
+                <th class="breakdownTitle">Non-Taxable Food</th>
+            }
+            <th class="breakdownTitle">Kayaks and Boards</th>
+            <th class="breakdownTitle">Pedal Boats</th>
+        </tr>
+    </thead>
+    <tbody>
     @foreach (DataRow row in Model!.Tables[0].Rows)
     {
+        dataRecordRow++;
+        var alertDataClass = new System.Text.StringBuilder("alertData");
+        var breakdownDateClass = new System.Text.StringBuilder("breakdownDate");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            alertDataClass.Remove(0, "alertData".Length).Append("alertDataTop");
+            breakdownDateClass.Remove(0, "breakdownDate".Length).Append("breakdownDateTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        alertDataClass.ToString();
+        breakdownDateClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
         var transDate = (DateTime)row["TransDate"];
         string searchExp = "Transdate = '" + transDate.ToShortDateString() + "'";
         bool blackedOutDate = false;
@@ -146,7 +173,7 @@
         combinedFood = noTaxFood + PreparedFood;
 
         <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
-            <td class="breakdownDate">@transDate.ToString("MM/dd/yyyy")</td>
+            <td class="@breakdownDateClass">@transDate.ToString("MM/dd/yyyy")</td>
             @if(combinedFood + KayBo + PedBo + Misc == 0)
             {
                 if(blackedOutDate && gross <= 0)
@@ -155,24 +182,24 @@
                     {
                         blackoutReason = "No reason provided";
                     }
-                    <td class="alertData" colspan="4"><b>CLOSED&nbsp;&#8209;&nbsp;@blackoutReason.ToUpper()</b></td>
+                    <td class="@alertDataClass" colspan="4"><b>CLOSED&nbsp;&#8209;&nbsp;@blackoutReason.ToUpper()</b></td>
                 }
                 else
                 {
-                    <td class="alertData" colspan="4"><b>MISSING DATA</b></td>
+                    <td class="@alertDataClass" colspan="4"><b>MISSING DATA</b></td>
                 }
             }
             else
             {
-                <td class="breakdownData">@combinedFood</td>
-                <td class="breakdownData">@KayBo</td>
-                <td class="breakdownData">@PedBo</td>
-                <td class="breakdownData">@Misc</td>
+                <td class="@breakdownDataClass">@(@combinedFood != 0.00m ? @String.Format("{0:c2}", @combinedFood) : "")</td>
+                <td class="@breakdownDataClass">@(@KayBo != 0.00m ? @String.Format("{0:c2}", @KayBo) : "")</td>
+                <td class="@breakdownDataClass">@(@PedBo != 0.00m ? @String.Format("{0:c2}", @PedBo) : "")</td>
+                <td class="@breakdownDataClass">@(@Misc != 0.00m ? @String.Format("{0:c2}", @Misc) : "")</td>
             }
-            <td class="breakdownTotals">@gross</td>
-            <td class="breakdownTotals">@taxCollected</td>
-            <td class="breakdownTotals">@netRevenue</td>
-            <td class="breakdownTax">@taxExpected</td>
+            <td class="@breakdownTotalsClass">@(@gross != 0.00m ? @String.Format("{0:c2}", @gross) : "")</td>
+            <td class="@breakdownTotalsClass">@(@taxCollected != 0.00m ? @String.Format("{0:c2}", @taxCollected) : "")</td>
+            <td class="@breakdownTotalsClass">@(@netRevenue != 0.00m ? @String.Format("{0:c2}", @netRevenue) : "")</td>
+            <td class="@breakdownTaxClass">@(@taxExpected != 0.00m ? @String.Format("{0:c2}", @taxExpected) : "")</td>
         </tr>
     }
     @{
@@ -205,14 +232,14 @@
         combinedFood = projNoTaxFood + projPreparedFood;
         <tr>
             <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projKayBo)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projPedBo)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projMisc)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGrossRevenue)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTaxCollected)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetRevenue)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTaxExpected)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", combinedFood)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projKayBo)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projPedBo)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projMisc)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGrossRevenue)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTaxCollected)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetRevenue)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTaxExpected)</td>
         </tr>
     }
     @foreach (DataRow row in Model.Tables["prior"].Rows)
@@ -230,14 +257,14 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalKayBo)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalPedBo)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalMisc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGrossRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTaxCollected)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTaxExpected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", combinedFood)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalKayBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalPedBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalMisc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGrossRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTaxCollected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTaxExpected)</td>
     </tr>
     @foreach (DataRow row in Model.Tables["prior2"].Rows)
     {
@@ -254,14 +281,14 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", combinedFood)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalKayBo)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalPedBo)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalMisc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGrossRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTaxCollected)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTaxExpected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", combinedFood)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalKayBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalPedBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalMisc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGrossRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTaxCollected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTaxExpected)</td>
     </tr>
     @{
         decimal deltaNoTaxFood = 0;
@@ -324,33 +351,19 @@
     @if (startDate.Month == currentDate.Month)
     {
         <tr>
-            <td class="breakdownLegendTop" colspan="9"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+            <td class="breakdownLegendTop" colspan="9" style="border-top: 1px solid black;"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
         </tr>
         <tr>
-            <td class="breakdownLegendBottom" colspan="9"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
+            <td class="breakdownLegendBottom" colspan="9" id="breakdownLegendId" style="border-bottom: 1px solid black;"><sup>#</sup> Projected total for this column assumes no addtional income beyond to-date total for the month.</td>
         </tr>
     }
+    </tbody>
     </table>
+</div>
 }
 </body>
 @section Scripts { 
 <script> 
-var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-    var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-    if (!isNaN(amount)) { 
-        if (amount == 0){
-            cell.textContent = ' ';
-        } else {
-            if (amount < 0){
-                cell.classList.add('negative-value');
-                cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-            } else{
-            cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-            }
-        }
-    } 
-});
     $(document).ready(function () { 
             $(".clickable-tableK").on("click", function () { 
                 var url = $(this).data("monthlybreakdown");
@@ -363,9 +376,6 @@ cells.forEach(function (cell) {
                 } 
         }); 
 });
-function formatNumberWithCommas(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
 </script> 
 }
 

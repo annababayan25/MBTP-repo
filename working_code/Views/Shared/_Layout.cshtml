@@ -10,8 +10,19 @@
     {
         isPdf = (bool)isPdfObj;
     }
+    var controllerName = ViewContext.RouteData.Values["controller"]?.ToString();
+    var actionName = ViewContext.RouteData.Values["action"]?.ToString();
+    // You can use controllerName and actionName to identify the current page/action.
     var accID = User.FindFirst("AccID")?.Value;
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+    var containerClass = "container display-flex";
+    if(controllerName != null && actionName != null)
+    {
+        if(controllerName == "FDB" && (actionName.Contains("BreakdownF") || actionName.Contains("BreakdownR") || actionName.Contains("BreakdownG") || actionName.Contains("BreakdownM")))
+        {
+            containerClass = "container-fluid";
+        }
+   }
 }
 <style>
 .switch {
@@ -97,6 +108,20 @@ input:checked + .slider:before {
     font-weight: bold;
     border-radius: 15px;
 }
+.dropdown-submenu {
+  position: relative;
+}
+
+.dropdown-submenu .dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -1px;
+}
+.page-wrapper {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 
 </style>
 <head>
@@ -104,127 +129,124 @@ input:checked + .slider:before {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - MBTP Dashboard</title>
     <link rel="icon" href="~/images/favicon.png" type="image/png" asp-append-version="true" />
+<!--<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"> -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.4.0/css/font-awesome.min.css">
     <script src="https://link.edgepilot.com/s/51b6db46/SdOHDddfAkOw0VAQh-H8rw?u=https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<!--<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>  
 </head>
 
 <body>
+<div class="page-wrapper">
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
+            <div class="container-fluid container-fluid-top">
                 @if (!isPdf)
                 {
                     <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">MBTP Dashboard</a>
-                }
-                @if (!isPdf)
-                {
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                }
-
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        @if (currentAction == "FDB" || currentAction == "Daily" || currentAction == "Monthly"|| currentAction == "Yearly" || currentAction == "Snapshot"|| currentAction == "DailyReservation" || currentAction == "DailyBreakdownA"|| currentAction == "DailyBreakdownC"|| currentAction == "DailyBreakdownG"|| currentAction == "DailyBreakdownF"|| currentAction == "DailyBreakdownK"|| currentAction == "DailyBreakdownM"|| currentAction == "DailyBreakdownR"|| currentAction == "MonthlyBreakdownA"|| currentAction == "MonthlyBreakdownC"|| currentAction == "MonthlyBreakdownG"|| currentAction == "MonthlyBreakdownF"|| currentAction == "MonthlyBreakdownG"|| currentAction == "MonthlyBreakdownK"|| currentAction == "MonthlyBreakdownM"|| currentAction == "MonthlyBreakdownR")
-                        {
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                             @if(accID =="1"|| accID == "2" || accID == "3" || accID == "4" || accID == "5" || accID == "6" || accID == "7" || accID == "11")
                             {
-                                @if (!isPdf)
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Yearly">Yearly Report</a>
-                                    </li>
-                                }
-                                @if (!isPdf)
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Monthly" asp-route-whichMonth="Current">Monthly Report</a>
-                                    </li>
-                                }
-                            }
-                            @if(accID == "1" || accID == "2" || accID == "3" || accID == "6" || accID == "7")
-                            {
-                                @if (!isPdf)
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="DailyReservation">Daily Reservations Report</a>
-                                    </li>
-                                }
-                            }
-                            @if(accID != "3")
-                            {
-                                @if (!isPdf)
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Daily">Daily Operations Report</a>
-                                    </li>
-                                }
+                                <li class="nav-item dropdown">
+                                    <a class="navbar-brand nav-link dropdown-toggle blackText" href="#" id="FDBdropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Financial</a>
+                                    <ul class="dropdown-menu navdropdownColor" aria-labelledby="FDBdropdown">
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Home" asp-action="FDB">Financial Dashboard</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="FDB" asp-action="Yearly">Yearly Report</a></li>
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="FDB" asp-action="Monthly" asp-route-whichMonth="Current">Monthly Report</a></li>
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="FDB" asp-action="Snapshot">Snapshots</a></li>
+                                    @if(accID == "1" || accID == "2" || accID == "3" || accID == "6" || accID == "7")
+                                    {
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="FDB" asp-action="DailyReservation">Daily Reservations Report</a></li>
+                                        @if(accID != "3")
+                                        {
+                                            <li><a class="dropdown-item text-dark" asp-area="" asp-controller="FDB" asp-action="Daily">Daily Operations Report</a></li>
+                                        }
+                                        @if(accID == "1" || accID == "6")
+                                        {
+                                            <li><hr class="dropdown-divider" /></li>
+                                            <li><a class="dropdown-item text-dark" asp-area="" asp-controller="FDB" asp-action="ManageMisc">Enter Miscellaneous Income</a></li>
+                                        }
+                                    }
+                                    </ul>
+                                </li>
                             }
                             @if(accID =="1"|| accID == "2" || accID == "3" || accID == "4" || accID == "5" || accID == "7" || accID == "11")
                             {
-                                @if (!isPdf)
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="FDB" asp-action="Snapshot">Snapshots</a>
-                                    </li>
-                                    <li class="nav-item fyNav">
-                                        <label for="yearSelect" class="fyLabel">Fiscal Year Selected:</label>
-                                        @{
-                                            var fiscalYear = Context.Session.GetString("FiscalYear") ?? "2024";
-                                            var thisFiscalYear = Context.Session.GetString("ThisFiscalYear");
-                                        }
-                                        <input class="fyInput" type="number" value="@fiscalYear" min="2022" max="@thisFiscalYear" step="1" id="yearSelect" />
-                                    </li>
-                                }
+                                <li class="navbar-brand nav-item fyNav">
+                                    <label for="yearSelect" class="fyLabel">Fiscal Year Selected:</label>
+                                    @{
+                                        var fiscalYear = Context.Session.GetString("FiscalYear") ?? "2024";
+                                        var thisFiscalYear = Context.Session.GetString("ThisFiscalYear");
+                                    }
+                                    <input class="fyInput" type="number" value="@fiscalYear" min="2022" max="@thisFiscalYear" step="1" id="yearSelect" />
+                                </li>
                             }
-                        }
-                        else if(currentAction == "Newbook" || currentAction == "Occupancy" || currentAction == "OccupancyAges" || currentAction == "DailyBookings" || currentAction == "BookingsDem" || currentAction == "TrailerMoves" || currentAction == "ExpressCheckins")
-                        {
-                            @if(accID != "6")
+                            @if(accID != "6" && accID != null)
                             {
-                                @if (!isPdf)
-                                {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark loadingButton" asp-area="" asp-controller="Home" asp-action="Occupancy">Occupancy</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark loadingButton2" asp-area="" asp-controller="Home" asp-action="OccupancyAges">Occupancy W/Ages</a>
-                                    </li>
-                                    @if (accID == "1" || accID == "2" || accID == "3" || accID == "7" || accID == "8")
-                                    {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark loadingButton" asp-area="" asp-controller="Home" asp-action="DailyBookings">Daily Bookings</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="BookingsDem">Booking Demographics</a>
-                                    </li>
-                                    }
-                                    if(accID == "1" || accID == "2" || accID == "3" || accID == "4" || accID == "8")
-                                    {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="TrailerMoves">Trailer Move List</a>
-                                    </li>
-                                    }
-                                    if(accID == "1" || accID == "2" || accID == "3" || accID == "4" || accID == "8")
-                                    {
-                                    <li class="nav-item">
-                                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="ExpressCheckins">Express Check-in List</a>
-                                    </li>
-                                    }
-                                }
+                                <li class="nav-item dropdown">
+                                    <a class="navbar-brand nav-link dropdown-toggle blackText" href="#" id="newbookdropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">Reservations</a>
+                                    <ul class="dropdown-menu navdropdownColor" aria-labelledby="newbookdropdown">
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Home" asp-action="Newbook">Newbook Dashboard</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item text-dark loadingButton" asp-area="" asp-controller="Home" asp-action="Occupancy">Occupancy</a></li>
+                                        <li><a class="dropdown-item text-dark loadingButton2" asp-area="" asp-controller="Home" asp-action="OccupancyAges">Occupancy W/Ages</a></li>
+                                        @if (accID == "1" || accID == "2" || accID == "3" || accID == "7" || accID == "8")
+                                        {
+                                            <li><a class="dropdown-item text-dark loadingButton" asp-area="" asp-controller="Home" asp-action="DailyBookings">Daily Bookings</a></li>
+                                            <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Home" asp-action="BookingsDem">Booking Demographics</a></li>
+                                        }
+                                        @if(accID == "1" || accID == "2" || accID == "3" || accID == "4" || accID == "8")
+                                        {
+                                            <li><hr class="dropdown-divider" /></li>
+                                            <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Home" asp-action="TrailerMoves">Trailer Move List</a></li>
+                                            <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Home" asp-action="ExpressCheckins">Express Check-in List</a></li>
+                                        }
+                                    </ul>
+                                </li>
                             }
-                        }
-                    </ul>
-                    @if (!isPdf)
-                    {
+                            @if(accID == "1")
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="navbar-brand nav-link dropdown-toggle blackText" href="#" id="adminDropdown" data-bs-toggle="dropdown" aria-expanded="false">Administration</a>
+                                    <ul class="dropdown-menu navdropdownColor" aria-labelledby="adminDropdown">
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Home" asp-action="Administration">Admin Dashboard</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Home" asp-action="ManageUsers">Manage Users</a></li>
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Admin" asp-action="BlackoutDates">Set Blackout Dates</a></li>
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Admin" asp-action="ProcessExports">Process POS Data</a></li>
+                                        <li class="dropdown-submenu">
+                                            <a class="dropdown-item text-dark" href="#">Data Exports &#x25BA;</a>
+                                            <ul class="dropdown-menu navdropdownColor">
+                                                <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Admin" asp-action="PopulateBookings">Populate Bookings</a></li>
+                                                <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Admin" asp-action="PopulateRecons">Populate Recons</a></li>
+                                                <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Admin" asp-action="PopulateTransactions">Populate Transaction Flow</a></li>
+                                                <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Admin" asp-action="PopulateOccupancy">Populate Occupancy</a></li>
+                                                <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Admin" asp-action="PopulateCheckIns">Populate Check Ins</a></li>
+                                            </ul>
+                                        </li>
+                                        <li><a class="dropdown-item text-dark" asp-area="" asp-controller="Admin" asp-action="ReviewDistinctAlerts">Review Data Alerts</a></li>
+                                    </ul>
+                                </li>
+                            }
+                            @if(accID == "1" || accID == "2" || accID == "3")
+                            {
+                                <li><a class="navbar-brand nav-link blackText" asp-area="" asp-controller="Home" asp-action="Cameras">Cameras</a></li>
+                            }
+                        </ul>
                         <ul class="navbar-nav ms-auto">
                             @if (User.Identity != null && User.Identity.IsAuthenticated)
                             {
                                 <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Sign out</a>
+                                    <a class="navbar-brand nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Sign out</a>
                                 </li>
                                 if(accID == "1")
                                 {
@@ -241,17 +263,17 @@ input:checked + .slider:before {
                             else
                             {
                                 <li class="nav-item sign-in">
-                                    <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Sign in</a>
+                                    <a class="navbar-brand nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Login">Sign in</a>
                                 </li>
                             }
                         </ul>
-                    }
-                </div>
+                    </div>
+                }
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    <div class="@containerClass" style="flex: 1;">
+        <main role="main" class="flex-grow-1 pb-3">
             @RenderBody()
             
 <script>
@@ -292,15 +314,25 @@ input:checked + .slider:before {
                     }
                 );
             });
-        }
+        };
+        $('.dropdown-submenu a.dropdown-item').on("click", function(e){
+            $(this).next('ul').toggle();
+            if($(this).attr('href') == '#') {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            $(this).css('background-color', '#fffd8c');
+        });
     });
 </script>
-
-             
+<script>
+$(document).ready(function(){
+});
+</script>
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
+    <footer class="footer text-muted">
         @if (!isPdf)
         {
             <div class="container">
@@ -309,6 +341,7 @@ input:checked + .slider:before {
         }
     </footer>
     @RenderSection("Scripts", required: false)
+</div>
 </body>
 </html>
 

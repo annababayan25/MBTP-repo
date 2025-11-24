@@ -15,6 +15,7 @@
     DateTime monthStart = new DateTime(startDate.Year, startDate.Month, 1);
     DateTime monthEnd = monthStart.AddMonths(1).AddDays(-1);
     int daysThisMonth = DateTime.DaysInMonth(startDate.Year, startDate.Month);
+    int dataRecordRow = 0;
     TimeSpan daysDiff = monthStart - fiscalYearStartDate;
     int fiscalDays = daysDiff.Days - 1; // number of days elapsed in fiscal year prior to start of report month
     if(fiscalDays < 0)
@@ -122,52 +123,77 @@
 <body>
 @if (Model is not null && Model.Tables[0].Rows.Count > 0)
 {   
-<div class="table-responsive">
-<table id="daily-table" class="breakdown clickable-tableG" data-MonthlyBreakdown="/FDB/MonthlyBreakdownG" style="width:240px">
-    <tr>
-        <th class="breakdownBigTitle" colspan="22">General Store</th>
-    </tr>
-    <tr>
-        <th class="breakdownDayScrolling"></th>
-        <th class="breakdownTaxBig" colspan="10">Sales Tax: 8% (Tax Inclusive)</th>
-        <th class="breakdownTaxBig" colspan="1">Tax: 10.5% (Tax Inclusive)</th>
-        <th class="breakdownTaxBig" colspan="6">Non-Taxable</th>
-        <th class="breakdownTotalsHead" rowspan="3">Total Gross Revenue</th>
-        <th class="breakdownTotalsHead" rowspan="3">Total Tax Collected</th>
-        <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
-        <th class="breakdownTaxHead" rowspan="3">Total Tax Expected</th>
-    </tr>
-    <tr>
-        <th class="breakdownDayScrolling"></th>
-        <th class="breakdownTitle" colspan="4">322</th>
-        <th class="breakdownTitle" colspan="5">324</th>
-        <th class="breakdownTotalsHead" rowspan="2">Total</th>
-        <th class="breakdownTitle">323</th>
-        <th class="breakdownTitle" colspan="3">325</th>
-        <th class="breakdownTitle">326</th>
-        <th class="breakdownTitle">327</th>
-        <th class="breakdownTotalsHead" rowspan="2">Non-Taxable Total</th>
-    </tr>
-    <tr>
-        <th class="breakdownDayScrolling">Day</th>
-        <th class="breakdownTitle">Apparel</th>
-        <th class="breakdownTitle">Seasonal Novelty</th>
-        <th class="breakdownTitle">Other Novelty</th>
-        <th class="breakdownSubtotalTitle">Total Novelty</th>
-        <th class="breakdownTitle">Alcohol</th>
-        <th class="breakdownTitle">Hard Goods</th>
-        <th class="breakdownTitle">RV Parts</th>
-        <th class="breakdownTitle">Seasonal Merch</th>
-        <th class="breakdownSubtotalTitle">Total Merch</th>        
-        <th class="breakdownTitle">Food Counter</th>
-        <th class="breakdownTitle">Food</th>
-        <th class="breakdownTitle">Ice</th>
-        <th class="breakdownSubtotalTitle">Total Food & Ice</th>
-        <th class="breakdownTitle">Vending</th>
-        <th class="breakdownTitle">Stamps</th>
-    </tr>
+<div class="table-responsive " style="max-height: 75vh; overflow-y: auto;">
+<table id="daily-table" class="breakdown clickable-tableG" data-MonthlyBreakdown="/FDB/MonthlyBreakdownG" style="width:240px; border: none;">
+    <thead class="breakdownHead">
+        <tr>
+            <th class="breakdownBigTitle" colspan="22">General Store</th>
+        </tr>
+        <tr>
+            <th class="breakdownDayScrolling"></th>
+            <th class="breakdownTaxBig" colspan="10">Sales Tax: 8% (Tax Inclusive)</th>
+            <th class="breakdownTaxBig" colspan="1">Tax: 10.5% (Tax Inclusive)</th>
+            <th class="breakdownTaxBig" colspan="6">Non-Taxable</th>
+            <th class="breakdownTotalsHead" rowspan="3">Total Gross Revenue</th>
+            <th class="breakdownTotalsHead" rowspan="3">Total Tax Collected</th>
+            <th class="breakdownTotalsHead" rowspan="3">Total Net Revenue</th>
+            <th class="breakdownTaxHead" rowspan="3">Total Tax Expected</th>
+        </tr>
+        <tr>
+            <th class="breakdownDayScrolling"></th>
+            <th class="breakdownTitleLeftMost" colspan="4">322</th>
+            <th class="breakdownTitle" colspan="5">324</th>
+            <th class="breakdownTotalsHead" rowspan="2">Total</th>
+            <th class="breakdownTitle">323</th>
+            <th class="breakdownTitle" colspan="3">325</th>
+            <th class="breakdownTitle">326</th>
+            <th class="breakdownTitle">327</th>
+            <th class="breakdownTotalsHead" rowspan="2">Non-Taxable Total</th>
+        </tr>
+        <tr>
+            <th class="breakdownDayScrollingBottom">Day</th>
+            <th class="breakdownTitleLeftMost">Apparel</th>
+            <th class="breakdownTitle">Seasonal Novelty</th>
+            <th class="breakdownTitle">Other Novelty</th>
+            <th class="breakdownSubtotalTitle">Total Novelty</th>
+            <th class="breakdownTitle">Alcohol</th>
+            <th class="breakdownTitle">Hard Goods</th>
+            <th class="breakdownTitle">RV Parts</th>
+            <th class="breakdownTitle">Seasonal Merch</th>
+            <th class="breakdownSubtotalTitle">Total Merch</th>        
+            <th class="breakdownTitle">Food Counter</th>
+            <th class="breakdownTitle">Food</th>
+            <th class="breakdownTitle">Ice</th>
+            <th class="breakdownSubtotalTitle">Total Food & Ice</th>
+            <th class="breakdownTitle">Vending</th>
+            <th class="breakdownTitle">Stamps</th>
+        </tr>
+    </thead>
+    <tbody style="max-height: 400px; overflow-y: auto;">
     @foreach (DataRow row in Model!.Tables[0].Rows)
     {
+        dataRecordRow++;
+        var alertDataClass = new System.Text.StringBuilder("alertData");
+        var breakdownDateClass = new System.Text.StringBuilder("breakdownDate");
+        var breakdownDataClass = new System.Text.StringBuilder("breakdownData");
+        var breakdownSubTotalsClass = new System.Text.StringBuilder("breakdownSubTotals");
+        var breakdownTotalsClass = new System.Text.StringBuilder("breakdownTotals");
+        var breakdownTaxClass = new System.Text.StringBuilder("breakdownTax");
+        if(dataRecordRow == 1)
+        {
+            alertDataClass.Remove(0, "alertData".Length).Append("alertDataTop");
+            breakdownDateClass.Remove(0, "breakdownDate".Length).Append("breakdownDateTop");
+            breakdownDataClass.Remove(0, "breakdownData".Length).Append("breakdownDataTop");
+            breakdownSubTotalsClass.Remove(0, "breakdownSubTotals".Length).Append("breakdownSubTotalsTop");
+            breakdownTotalsClass.Remove(0, "breakdownTotals".Length).Append("breakdownTotalsTop");
+            breakdownTaxClass.Remove(0, "breakdownTax".Length).Append("breakdownTaxTop");
+        }
+        alertDataClass.ToString();
+        breakdownDateClass.ToString();
+        breakdownDataClass.ToString();
+        breakdownSubTotalsClass.ToString();
+        breakdownTotalsClass.ToString();
+        breakdownTaxClass.ToString();
         var transDate = (DateTime)row["TransDate"];
         string searchExp = "Transdate = '" + transDate.ToShortDateString() + "'";
         bool blackedOutDate = false;
@@ -228,7 +254,7 @@
         totalTaxExpected += taxExpected;
 
     <tr class="colorAlt" data-date="@transDate.ToString("yyyy-MM-dd")">
-        <td class="breakdownDate">@transDate.ToString("MM/dd/yyyy")</td>
+            <td class="@breakdownDateClass">@transDate.ToString("MM/dd/yyyy")</td>
             @if(total + total2 + foodCounter == 0)
             {
                 if(blackedOutDate && grossRevenue <= 0)
@@ -237,37 +263,37 @@
                     {
                         blackoutReason = "No reason provided";
                     }
-                    <td class="alertData" colspan="7"><b>CLOSED&nbsp;&#8209;&nbsp;@blackoutReason.ToUpper()</b></td>
+                    <td class="@alertDataClass" colspan="9"><b>CLOSED&nbsp;&#8209;&nbsp;@blackoutReason.ToUpper()</b></td>
                 }
                 else
                 {
-                    <td class="alertData" colspan="7"><b>MISSING DATA</b></td>
+                    <td class="@alertDataClass" colspan="9"><b>MISSING DATA</b></td>
                 }
             }
             else
             {
-                <td class="breakdownData">@apparel</td>
-                <td class="breakdownData">@seasonalNov</td>
-                <td class="breakdownData">@otherNovelty</td>
-                <td class="breakdownSubTotals">@totalNovelty</td>
-                <td class="breakdownData">@alc</td>
-                <td class="breakdownData">@hardGoods</td>
-                <td class="breakdownData">@rvParts</td>
-                <td class="breakdownData">@seasonalMerch</td>
-                <td class="breakdownSubTotals">@totalMerch</td>
+                <td class="@breakdownDataClass">@(@apparel != 0.00m ? @String.Format("{0:c2}", @apparel) : "")</td>
+                <td class="@breakdownDataClass">@(@seasonalNov != 0.00m ? @String.Format("{0:c2}", @seasonalNov) : "")</td>
+                <td class="@breakdownDataClass">@(@otherNovelty != 0.00m ? @String.Format("{0:c2}", @otherNovelty) : "")</td>
+                <td class="@breakdownSubTotalsClass">@(@totalNovelty != 0.00m ? @String.Format("{0:c2}", @totalNovelty) : "")</td>
+                <td class="@breakdownDataClass">@(@alc != 0.00m ? @String.Format("{0:c2}", @alc) : "")</td>
+                <td class="@breakdownDataClass">@(@hardGoods != 0.00m ? @String.Format("{0:c2}", @hardGoods) : "")</td>
+                <td class="@breakdownDataClass">@(@rvParts != 0.00m ? @String.Format("{0:c2}", @rvParts) : "")</td>
+                <td class="@breakdownDataClass">@(@seasonalMerch != 0.00m ? @String.Format("{0:c2}", @seasonalMerch) : "")</td>
+                <td class="@breakdownSubTotalsClass">@(@totalMerch != 0.00m ? @String.Format("{0:c2}", @totalMerch) : "")</td>
             }
-        <td class="breakdownTotals">@total</td>
-        <td class="breakdownData">@foodCounter</td>
-        <td class="breakdownData">@food</td>
-        <td class="breakdownData">@ice</td>
-        <td class="breakdownSubTotals">@totalFoodAndIce</td>
-        <td class="breakdownData">@vending</td>
-        <td class="breakdownData">@stamps</td>
-        <td class="breakdownTotals">@total2</td>
-        <td class="breakdownTotals">@grossRevenue</td>
-        <td class="breakdownTotals">@taxCollected</td>
-        <td class="breakdownTotals">@netRevenue</td>
-        <td class="breakdownTax">@taxExpected</td>
+        <td class="@breakdownTotalsClass">@(@total != 0.00m ? @String.Format("{0:c2}", @total) : "")</td>
+        <td class="@breakdownDataClass">@(@foodCounter != 0.00m ? @String.Format("{0:c2}", @foodCounter) : "")</td>
+        <td class="@breakdownDataClass">@(@food != 0.00m ? @String.Format("{0:c2}", @food) : "")</td>
+        <td class="@breakdownDataClass">@(@ice != 0.00m ? @String.Format("{0:c2}", @ice) : "")</td>
+        <td class="@breakdownSubTotalsClass">@(@totalFoodAndIce != 0.00m ? @String.Format("{0:c2}", @totalFoodAndIce) : "")</td>
+        <td class="@breakdownDataClass">@(@vending != 0.00m ? @String.Format("{0:c2}", @vending) : "")</td>
+        <td class="@breakdownDataClass">@(@stamps != 0.00m ? String.Format("{0:c2}", @stamps) : "")</td>    
+        <td class="@breakdownTotalsClass">@(@total2 != 0.00m ? String.Format("{0:c2}", @total2) : "")</td>
+        <td class="@breakdownTotalsClass">@(@grossRevenue != 0.00m ? String.Format("{0:c2}", @grossRevenue) : "")</td>
+        <td class="@breakdownTotalsClass">@(@taxCollected != 0.00m ? String.Format("{0:c2}", @taxCollected) : "")</td>
+        <td class="@breakdownTotalsClass">@(@netRevenue != 0.00m ? String.Format("{0:c2}", @netRevenue) : "")</td>
+        <td class="@breakdownTaxClass">@(@taxExpected != 0.00m ? String.Format("{0:c2}", @taxExpected) : "")</td>
     </tr>
     }
     <tr>
@@ -321,27 +347,27 @@
         projtotalTaxExpected = (projFoodCounter - (projFoodCounter / TenP)) + (projtTotal - (projtTotal / EightP));
         <tr>
             <td class="breakdownTotalsScrollingSmallText">Projected @startDate.ToString("MMM") Totals<sup>*</sup>:</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projApparel)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projSeasonalNov)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projOtherNovelty)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTotalNovelty)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projAlc)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projHardGoods)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projRvParts)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projSeasonalMerch)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTotalMerch)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projtTotal)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projFoodCounter)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projFood)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projIce)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTotalFoodAndIce)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projVending)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projStamps)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projtTotal2)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projGrossRevenue)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projTaxCollected)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projNetRevenue)</td>
-            <td class="breakdownTotals2">@String.Format("{0:F2}", projtotalTaxExpected)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projApparel)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projSeasonalNov)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projOtherNovelty)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTotalNovelty)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projAlc)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projHardGoods)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projRvParts)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projSeasonalMerch)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTotalMerch)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projtTotal)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projFoodCounter)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projFood)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projIce)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTotalFoodAndIce)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projVending)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projStamps)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projtTotal2)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projGrossRevenue)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projTaxCollected)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projNetRevenue)</td>
+            <td class="breakdownTotals2">@String.Format("{0:c2}", projtotalTaxExpected)</td>
         </tr>
     }
     @foreach (DataRow row in Model!.Tables["prior"].Rows)
@@ -370,27 +396,27 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-1).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalApparel)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSeasonalNov)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalOtherNovelty)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotalNovelty)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalAlc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalHardGoods)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalRvParts)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalSeasonalMerch)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotalMerch)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptTotal)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFoodCounter)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalFood)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalIce)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTotalFoodAndIce)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalVending)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalStamps)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptTotal2)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalGrossRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTaxCollected)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalNetRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", ptotalTaxExpected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalApparel)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalSeasonalNov)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalOtherNovelty)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTotalNovelty)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalAlc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalHardGoods)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalRvParts)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalSeasonalMerch)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTotalMerch)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptTotal)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalFoodCounter)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalFood)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalIce)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTotalFoodAndIce)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalVending)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalStamps)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptTotal2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalGrossRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTaxCollected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalNetRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", ptotalTaxExpected)</td>
     </tr>
     @foreach (DataRow row in Model!.Tables["prior2"].Rows)
     {
@@ -418,27 +444,27 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">@startDate.AddYears(-2).ToString("MMM yyyy") Totals:</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalApparel)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSeasonalNov)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalOtherNovelty)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotalNovelty)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalAlc)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalHardGoods)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalRvParts)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalSeasonalMerch)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotalMerch)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2tTotal)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFoodCounter)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalFood)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalIce)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTotalFoodAndIce)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalVending)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalStamps)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2tTotal2)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalGrossRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTaxCollected)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalNetRevenue)</td>
-        <td class="breakdownTotals2">@String.Format("{0:F2}", p2totalTaxExpected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalApparel)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalSeasonalNov)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalOtherNovelty)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTotalNovelty)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalAlc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalHardGoods)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalRvParts)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalSeasonalMerch)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTotalMerch)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2tTotal)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalFoodCounter)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalFood)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalIce)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTotalFoodAndIce)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalVending)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalStamps)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2tTotal2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalGrossRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTaxCollected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalNetRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", p2totalTaxExpected)</td>
     </tr>
     @{
         decimal deltaApparel;
@@ -549,32 +575,17 @@
     @if (startDate.Month == currentDate.Month)
     {
         <tr>
-            <td class="breakdownLegendBottom" colspan="5" id="breakdownLegendId"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
-            <td colspan="17" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black;">&nbsp;</td>
+            <td class="breakdownLegendBottom" colspan="5" id="breakdownLegendId" style="border-bottom: 1px solid black; border-right: none;"><sup>*</sup> Projected totals = month-to-date sum + year-to-date daily average * remainining number of days in the month.</td>
+            <td colspan="17" style="position: sticky; left: 0; background-color:#f2f2f2; border-bottom: 1px solid black; border-right: 1px solid black; border-top: 1px solid black;">&nbsp;</td>
         </tr>
     }
+  </tbody>
 </table>
 </div>
 }
 </body>
 @section Scripts {
 <script>
-var cells = document.querySelectorAll('tbody td.breakdownData, tbody td.breakdownTotals, tbody td.breakdownSubTotals, tbody td.breakdownTax, tbody td.breakdownRef, tbody td.breakdownTotals2'); 
-cells.forEach(function (cell) { 
-   var amount = parseFloat(cell.textContent.replace(/[^0-9.-]+/g,"")); 
-   if (!isNaN(amount)) { 
-       if (amount == 0){
-           cell.textContent = ' ';
-       } else {
-           if (amount < 0){
-               cell.classList.add('negative-value');
-               cell.textContent = '(' +  formatNumberWithCommas(Math.abs(amount).toFixed(2)) + ')';
-           } else{
-           cell.textContent = '$' + formatNumberWithCommas(amount.toFixed(2));
-           }
-       }
-   } 
-});
 $(document).ready(function () {
    $(".clickable-tableG").on("click", function () {
        var url = $(this).data("monthlybreakdown");
@@ -587,8 +598,5 @@ $(document).ready(function () {
        }
    });
 });
-function formatNumberWithCommas(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
 </script>
 }
