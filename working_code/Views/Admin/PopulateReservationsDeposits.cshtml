@@ -1,7 +1,7 @@
 @using System.Text
 
 @{
-    ViewData["Title"] = "Populate Transactions";
+    ViewData["Title"] = "Fetch Deposits Held";
     var SelectedDay = ViewBag.SelectedDay as DateTime?;
     var titleDate = SelectedDay.HasValue
         ? $"for {SelectedDay.Value.ToString("dddd, MMMM dd, yyyy")}"
@@ -15,12 +15,12 @@
 <html lang="en">
 
 <h2 style="text-align: center;">
-    Transaction Flow Report @titleDate
+    Deposits Held Report @titleDate
 </h2>
 
 <head>
     <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Transactions Report </title>
+    <title>Daily Deposits Held Report </title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
@@ -31,13 +31,9 @@
 </div>
 
 
-<form method="get" asp-action="PopulateTransactions" class="navigation-container">
+<form method="get" asp-action="PopulateReservationsDeposits" class="navigation-container">
     <label for="dayPicker">Select Day:</label>
     <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
-
-    <button type="submit" class="btn btn-success small-btn" formaction="@Url.Action("ExportTransactionFlowToExcel")" formtarget="_blank">
-        <i class="fas fa-file-excel"></i> Export
-    </button>
 </form>
 
 @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))

@@ -106,17 +106,6 @@ namespace FinancialC_
 //                new Recon() { ReconItem = "Trash Pickup", Accum = 0, GL = "0652", MiscTrans = true }
             };
             // initialize applied deposits array
-            var appliedArray = new List<NewbookSupport.Applied>
-            {
-                 new Applied() { AppliedItem = "SiteDepApp", Accum = 0 },
-                 new Applied() { AppliedItem = "RentalDepApp", Accum = 0 },
-                 new Applied() { AppliedItem = "GolfDepApp", Accum = 0 },
-                 new Applied() { AppliedItem = "VouchersRedSite", Accum = 0 },
-                 new Applied() { AppliedItem = "VouchersRedRental", Accum = 0 },
-                 new Applied() { AppliedItem = "VouchersRedSiteDep", Accum = 0 },
-                 new Applied() { AppliedItem = "VouchersRedRentalDep", Accum = 0 },
-                 new Applied() { AppliedItem = "VouchersRedStorage", Accum = 0 }
-            };
             // initialize balance transfers array
             var transferArray = new List<NewbookSupport.Transfers>
             {
@@ -644,8 +633,7 @@ namespace FinancialC_
                             { 
                                 if ((reconMatchFound == false && SameDayArrival(tmpClient.Substring(10,6))) || tmpDesc.IndexOf("WALKIN") != -1)
                                 {
-                                    appliedArray = SupportRoutines.AddApplied(appliedArray, "GolfDepApp", flowStr, tmpVal);
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", flowStr, tmpVal);
+                                      revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", flowStr, tmpVal);
                                 }
                             }
                             depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", jCnt, flowStr, tmpVal);
@@ -693,13 +681,11 @@ namespace FinancialC_
                             {
                                 if (arrDate >= System.DateTime.Parse(GenericRoutines.repDateStr))
                                 {
-                                    appliedArray = SupportRoutines.AddApplied(appliedArray, tmpCat.IndexOf("WESC") != -1 ? "VouchersRedSiteDep" : "VouchersRedRentalDep", flowStr, tmpVal);
                                     depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                                     transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("WESC") != -1 ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
                                 }
                                 else
                                 {
-                                    appliedArray = SupportRoutines.AddApplied(appliedArray, tmpCat.IndexOf("WESC") != -1 ? "VouchersRedSite" : "VouchersRedRental", flowStr, tmpVal);
                                     revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsites" : "Rentals", flowStr, tmpVal);
                                     transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("WESC") != -1 ? "CampsitesT" : "RentalsT", flowStr, tmpVal);
                                 }
@@ -867,17 +853,10 @@ namespace FinancialC_
                             if (tmpDesc.IndexOf("FOR GIFT VOUCHER FROM CLIENT") != -1 || tmpDesc.IndexOf("BALANCE TRANSFER TO ACCOUNT") != -1 ||
                                 tmpDesc.IndexOf("BALANCE TRANSFER FROM ACCOUNT") != -1 || tmpDesc.IndexOf("BALANCE TRANSFER TO CLIENT ACCOUNT") != -1 ||
                                 tmpDesc.IndexOf("BALANCE TRANSFER FROM CLIENT ACCOUNT") != -1)
-                            {
-                                revenueArray = SupportRoutines.AddRevenue(revenueArray, "Storage", flowStr, tmpVal);
-                                if (tmpDesc.IndexOf("FOR GIFT VOUCHER FROM CLIENT") != -1)
-                                {
-                                    appliedArray = SupportRoutines.AddApplied(appliedArray, "VouchersRedStorage", flowStr, tmpVal);
-                                }
-                            }
+    
                             if (tmpDesc.IndexOf("FOR GIFT VOUCHER TO CLIENT") != -1)
                             {
                                 tmpVal *= -1;    //reverse it arithmetically so it prints correctly on the daily report
-                                appliedArray = SupportRoutines.AddApplied(appliedArray, "VouchersRedStorage", flowStr, tmpVal);
                                 transferArray = SupportRoutines.AddTransfer(transferArray, "StorageT", flowStr, tmpVal);
                             }
                         }
@@ -1127,7 +1106,6 @@ namespace FinancialC_
                     {
                         if ((tmpDesc.IndexOf("Cottage") != -1 || (tmpDesc.IndexOf("Travel Trailer") != -1 || tmpDesc.IndexOf("Villa") != -1 || tmpDesc.IndexOf("Cabin") != -1) && tmpDesc.IndexOf("Storage") == -1))
                         {
-                            appliedArray = SupportRoutines.AddApplied(appliedArray, "RentalDepApp", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
                             if ((departDate - arrDate).Days >= 90) //Check for long term unit rental
                             {
                                 revenueArray = SupportRoutines.AddRevenue(revenueArray, "LTUnits", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
@@ -1139,7 +1117,6 @@ namespace FinancialC_
                         }
                         else if (tmpDesc.IndexOf("WESC") != -1 || tmpDesc.IndexOf("Water") != -1)
                         {
-                            appliedArray = SupportRoutines.AddApplied(appliedArray, "SiteDepApp", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
                             if ((departDate - arrDate).Days >= 90) //Check for long term site rental
                                 revenueArray = SupportRoutines.AddRevenue(revenueArray, "LTSites", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
                             else
@@ -1151,7 +1128,6 @@ namespace FinancialC_
                         {
                             if (tmpVal != 0)
                             {
-                                appliedArray = SupportRoutines.AddApplied(appliedArray, "GolfDepApp", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
                                 revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
                             }
                             else
@@ -1219,44 +1195,6 @@ namespace FinancialC_
                     }
                 }
             }
-            double WescAccum = 0, RentalAccum = 0, GolfAccum = 0;
-            int id = 0;
-            foreach (Deposits item in depositsArray)
-            {
-                if (id < 2)
-                {
-                    WescAccum += item.WescAccum;
-                    RentalAccum += item.RentalAccum;
-                    GolfAccum += item.GolfAccum;
-                }
-                else
-                {
-                    sqlSupport.AddSQLParameter("VouchersPurch", SqlDbType.SmallMoney, item.VouchersAccum);
-                    sqlSupport.AddSQLParameter("SiteDepTakenFuture", SqlDbType.SmallMoney, WescAccum);
-                    sqlSupport.AddSQLParameter("RentalDepTakenFuture", SqlDbType.SmallMoney, RentalAccum);
-                    sqlSupport.AddSQLParameter("GolfDepTakenFuture", SqlDbType.SmallMoney, GolfAccum);
-                    sqlSupport.AddSQLParameter("SiteDepTaken", SqlDbType.SmallMoney, item.WescAccum);
-                    sqlSupport.AddSQLParameter("RentalDepTaken", SqlDbType.SmallMoney, item.RentalAccum);
-                    sqlSupport.AddSQLParameter("GolfDepTaken", SqlDbType.SmallMoney, item.GolfAccum);
-                }
-                id++;
-                //System.Diagnostics.Debug.WriteLine(item.Fy + ":" + item.WescAccum.ToString("C") + " " + item.RentalAccum.ToString("C") + " " + item.GolfAccum.ToString("C"));
-            }
-            foreach (Applied item in appliedArray)
-            {
-                if(item.AppliedItem != null)
-                {
-                    if (item.AppliedItem == "SiteDepApp" || item.AppliedItem == "RentalDepApp")
-                    {
-                        sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.Money, item.Accum);
-                    }
-                    else
-                    {
-                        sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.SmallMoney, item.Accum);
-                    }
-                }
-                //System.Diagnostics.Debug.WriteLine(item.AppliedItem + " " + item.Accum.ToString("C"));
-            }
             foreach (Transfers item in transferArray)
             {
                 if(item.TranItem != null)
@@ -1286,11 +1224,11 @@ namespace FinancialC_
                     }
                     else if (item.CheckItem == "SiteDepositsC")
                     {
-                        sqlSupport.AddSQLParameter("SiteDepMRG", SqlDbType.SmallMoney, item.Accum);
+                        //sqlSupport.AddSQLParameter("SiteDepMRG", SqlDbType.SmallMoney, item.Accum);
                     }
                     else if (item.CheckItem == "RentalDepositsC")
                     {
-                        sqlSupport.AddSQLParameter("RentalDepMRG", SqlDbType.SmallMoney, item.Accum);
+                        //sqlSupport.AddSQLParameter("RentalDepMRG", SqlDbType.SmallMoney, item.Accum);
                     }
                     else if (item.CheckItem == "GolfC")
                     {
@@ -1298,7 +1236,7 @@ namespace FinancialC_
                     }
                     else if (item.CheckItem == "GolfDepositsC")
                     {
-                        sqlSupport.AddSQLParameter("GolfDepMRG", SqlDbType.SmallMoney, item.Accum);
+                        //sqlSupport.AddSQLParameter("GolfDepMRG", SqlDbType.SmallMoney, item.Accum);
                     }
                     else
                     {

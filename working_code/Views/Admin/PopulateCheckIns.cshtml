@@ -15,11 +15,11 @@
     }
 }
 
-
 <link rel="stylesheet" href="~/css/reports.css" />
 
 <!DOCTYPE html>
 <html lang="en">
+
 
 <h2 style="text-align: center;">
     Daily Checked-In Report @titleDate
@@ -70,6 +70,7 @@
                         <th>Status</th>
                         <th>Booking Arrival</th>
                         <th>Booking Departure</th>
+                        <th>Booking Checked-In</th>
                         <th>Calculated Stay Cost</th>
                         <th>Deposits Held</th>
                         <th>Security Deposits</th>
@@ -78,10 +79,10 @@
                         <th>Payments Made After Check-In</th>
                         <th>Refunds</th>
                         <th>Cancellation Fee</th>
+                        <th>Extras</th>
                         <th>Car Plate</th>
                         <th>Car Plate Extras</th>
                         <th>Account Balance</th>
-                        <th>Booking Checked-In</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,15 +104,20 @@
                         <td>@row["Site"]</td>
                         <td>@row["BookingStatus"]</td>
                         <td>
-                            @(row["BookingArrival"] != DBNull.Value
-                                ? String.Format("{0:MM/dd/yyyy}", row["BookingArrival"])
-                                : "-")
+                            @(row["BookingArrival"] is DateTime bookingArrival
+                            ? bookingArrival.ToString("MM/dd/yyyy hh:mm tt")
+                            : "-")
                         </td>
                         <td>
-                            @(row["BookingDeparture"] != DBNull.Value
-                                ? String.Format("{0:MM/dd/yyyy}", row["BookingDeparture"])
-                                : "-")
+                            @(row["BookingDeparture"] is DateTime bookingDeparture
+                            ? bookingDeparture.ToString("MM/dd/yyyy hh:mm tt")
+                            : "-")
                         </td>
+                        <td>
+                            @(row["BookingCheckedIn"] is DateTime bookingCheckedIn
+                            ? bookingCheckedIn.ToString("MM/dd/yyyy hh:mm tt")
+                            : "-")
+                        </td>  
                         <td class="amount">
                             @(row["CalculatedStayCost"] != DBNull.Value
                                 ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["CalculatedStayCost"])
@@ -139,7 +145,9 @@
                         </td>
                         <td class="amount">
                             @(row["PaymentsAfterCheckIn"] != DBNull.Value
-                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["PaymentsAfterCheckIn"])
+                                ? String.Format("{0:#,##0.00;#,##0.00;-} {1}",
+                                    row["PaymentsAfterCheckIn"],
+                                    row["PaymentsAfterCheckInDesc"] != DBNull.Value ? row["PaymentsAfterCheckInDesc"] : "")
                                 : "-")
                         </td>
                         <td class="amount">
@@ -152,6 +160,12 @@
                                 ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["CancellationFee"])
                                 : "-")
                         </td>
+                        <td class="amount" 
+                            style="@(row["Extras"] != DBNull.Value ? "color:red;" : "")">
+                            @(row["Extras"] != DBNull.Value
+                                ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["Extras"])
+                                : "-")
+                        </td>
                         <td>@row["CarLicensePlate"]</td>
                         <td>@row["CarLicensePlateExtra"]</td>
                         <td class="amount">
@@ -159,13 +173,8 @@
                                 ? String.Format("{0:#,##0.00;(#,##0.00);-}", row["AccountBalance"])
                                 : "-")
                         </td>
-                        <td>
-                            @(row["BookingCheckedIn"] != DBNull.Value
-                                ? String.Format("{0:MM/dd/yyyy hh:mm tt}", row["BookingCheckedIn"])
-                                : "-")
-                        </td>     
+                           
                 </tr>
-
                 }
                 </tbody>
             </table>
