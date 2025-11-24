@@ -165,38 +165,74 @@ namespace MBTP.Retrieval
             });
         }
 
-    public async Task<DataSet> RetrieveOccupancyReport(DateTime startDate, DateTime endDate)
-    {
-        return await Task.Run(() =>
+        public async Task<DataSet> RetrieveOccupancyReport(DateTime startDate, DateTime endDate)
         {
-            DataSet ds = new DataSet();
-
-            try
+            return await Task.Run(() =>
             {
-                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-                using (SqlCommand cmd = new SqlCommand("dbo.RetrieveOccupancyReport", sqlConn))
+                DataSet ds = new DataSet();
+
+                try
                 {
-                    cmd.CommandType = CommandType.StoredProcedure;
-                    cmd.Parameters.AddWithValue("@StartDate", startDate);
-                    cmd.Parameters.AddWithValue("@EndDate", endDate);
+                    using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveOccupancyReport", sqlConn))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@TransDate", startDate);
+                        cmd.Parameters.AddWithValue("@EndDate", endDate);
 
-                    SqlDataAdapter da = new SqlDataAdapter(cmd);
-                    sqlConn.Open();
-                    da.Fill(ds);
-                    sqlConn.Close();
+                        SqlDataAdapter da = new SqlDataAdapter(cmd);
+                        sqlConn.Open();
+                        da.Fill(ds);
+                        sqlConn.Close();
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Error retrieving occupancy report: " + ex.Message);
-                throw;
-            }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error retrieving occupancy report: " + ex.Message);
+                    throw;
+                }
 
-            DataSet snapshotDs = ds.Copy();
+                DataSet snapshotDs = ds.Copy();
 
-            return snapshotDs;
-        });
-    }
+                return snapshotDs;
+            });
+        }
+
+        public async Task<DataSet> RetrieveReservationsDepositsReport(DateTime startDate)
+        {
+            return await Task.Run(() =>
+           {
+               DataSet myDS = new DataSet();
+
+               try
+               {
+                   using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+                   using (SqlCommand cmd = new SqlCommand("dbo.RetrieveReservationsDepositsTable", sqlConn))
+                   {
+                       cmd.CommandType = CommandType.StoredProcedure;
+                       cmd.Parameters.Add("@TransDate", SqlDbType.Date);
+                       SqlDataAdapter myDA = new SqlDataAdapter(cmd);
+
+                       sqlConn.Open();
+
+                       cmd.Parameters["@TransDate"].Value = startDate;
+                       myDS.Clear();
+                       myDA.Fill(myDS);
+
+                   }
+               }
+               catch (Exception ex)
+               {
+                   Console.WriteLine("Error retrieving occupancy report: " + ex.Message);
+                   throw;
+               }
+
+               DataSet snapshotDs = myDS.Copy();
+
+               return snapshotDs;
+           });
+        }
+        
 
     }
 }
