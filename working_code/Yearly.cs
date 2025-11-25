@@ -152,8 +152,12 @@ namespace MBTP.Retrieval
                         // Move to the next month
                         startDate = startDate.AddMonths(1);
                         endDate = startDate.AddMonths(1).AddDays(-1);
+                        if(endDate > now)
+                        {
+                            endDate = now.AddDays(-1); // Ensure we don't go past today's date
+                        }
                     }
-                }
+                }   
     }
     catch (SqlException sqlEx)
     {
