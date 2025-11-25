@@ -250,7 +250,7 @@ namespace MBTP.Controllers
             var startDay = day.Value.Date;
             var today = DateTime.Today;
 
-            // Store daily results
+            // Store daily resultsz
             var allReports = new List<(DateTime Date, DataSet Report)>();
 
             for (var currentDay = startDay; currentDay <= today; currentDay = currentDay.AddDays(1))

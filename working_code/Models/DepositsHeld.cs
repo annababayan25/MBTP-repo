@@ -4,6 +4,9 @@ namespace MBTP.Models
     {
         public DateTime TransDate { get; set; }
 
+        // =======================
+        // Revenue
+        // =======================
         public decimal? Sites { get; set; } = 0.0m;
         public decimal? Rentals { get; set; } = 0.0m;
 
@@ -36,6 +39,9 @@ namespace MBTP.Models
         public decimal? Events { get; set; } = 0.0m;
         public decimal? Supplemental { get; set; } = 0.0m;
 
+        // =======================
+        // Deposits
+        // =======================
         public decimal? SiteDepTaken { get; set; } = 0.0m;
         public decimal? SiteDepTakenFuture { get; set; } = 0.0m;
         public decimal? SiteDepApp { get; set; } = 0.0m;
@@ -51,11 +57,54 @@ namespace MBTP.Models
         public decimal? GolfDepApp { get; set; } = 0.0m;
         public decimal? GolfDepMRG { get; set; } = 0.0m;
 
+        // =======================
+        // Vouchers
+        // =======================
         public decimal? VouchersPurch { get; set; } = 0.0m;
         public decimal? VouchersRedSite { get; set; } = 0.0m;
         public decimal? VouchersRedRental { get; set; } = 0.0m;
         public decimal? VouchersRedStorage { get; set; } = 0.0m;
         public decimal? VouchersRedSiteDep { get; set; } = 0.0m;
         public decimal? VouchersRedRentalDep { get; set; } = 0.0m;
+
+        // =======================
+        // Payments
+        // =======================
+        public decimal? OfficeCC { get; set; } = 0.0m;
+        public decimal? OfficeCash { get; set; } = 0.0m;
+
+        // =======================
+        // Transfers (T table)
+        // =======================
+        public decimal? CampsitesT { get; set; } = 0.0m;
+        public decimal? RentalsT { get; set; } = 0.0m;
+        public decimal? GolfCarts { get; set; } = 0.0m;
+        public decimal? AnnualT { get; set; } = 0.0m;
+        public decimal? MHParkT { get; set; } = 0.0m;
+        public decimal? StorageT { get; set; } = 0.0m;
+        public decimal? SiteDepositsT { get; set; } = 0.0m;
+        public decimal? RentalDepositsT { get; set; } = 0.0m;
+        public decimal? GolfDepositsT { get; set; } = 0.0m;
+
+        public decimal? Vouchers { get; set; } = 0.0m;
+        public decimal? Forfeits { get; set; } = 0.0m;
+        public decimal? Guests { get; set; } = 0.0m;
+        public decimal? Other { get; set; } = 0.0m;
+
+        // =======================
+        // Checks (C table)
+        // =======================
+        public decimal? CampsitesC { get; set; } = 0.0m;
+        public decimal? RentalsC { get; set; } = 0.0m;
+        public decimal? GolfC { get; set; } = 0.0m;
+        public decimal? AnnualC { get; set; } = 0.0m;
+        public decimal? LTCampsitesC { get; set; } = 0.0m;
+        public decimal? LTRentalsC { get; set; } = 0.0m;
+        public decimal? MHParkC { get; set; } = 0.0m;
+        public decimal? StorageC { get; set; } = 0.0m;
+        public decimal? SiteDepositsC { get; set; } = 0.0m;
+        public decimal? RentalDepositsC { get; set; } = 0.0m;
+        public decimal? GolfDepositsC { get; set; } = 0.0m;
+        public decimal? OtherC { get; set; } = 0.0m;
     }
 }
