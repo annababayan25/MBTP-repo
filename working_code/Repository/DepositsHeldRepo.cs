@@ -58,7 +58,6 @@ namespace MBTP.Services
         cmd.Parameters.AddWithValue("@Events", d.Events ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@Supplemental", d.Supplemental ?? (object)DBNull.Value);
 
-                // === Deposits ===
         cmd.Parameters.AddWithValue("@SiteDepTaken", d.SiteDepTaken ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@SiteDepTakenFuture", d.SiteDepTakenFuture ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@SiteDepApp", d.SiteDepApp ?? (object)DBNull.Value);
@@ -74,7 +73,6 @@ namespace MBTP.Services
         cmd.Parameters.AddWithValue("@GolfDepApp", d.GolfDepApp ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@GolfDepMRG", d.GolfDepMRG ?? (object)DBNull.Value);
 
-        // === Vouchers ===
         cmd.Parameters.AddWithValue("@VouchersPurch", d.VouchersPurch ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@VouchersRedSite", d.VouchersRedSite ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@VouchersRedRental", d.VouchersRedRental ?? (object)DBNull.Value);
@@ -82,11 +80,9 @@ namespace MBTP.Services
         cmd.Parameters.AddWithValue("@VouchersRedSiteDep", d.VouchersRedSiteDep ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@VouchersRedRentalDep", d.VouchersRedRentalDep ?? (object)DBNull.Value);
 
-        // === Payments ===
         cmd.Parameters.AddWithValue("@OfficeCC", d.OfficeCC ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@OfficeCash", d.OfficeCash ?? (object)DBNull.Value);
 
-        // === Transfers (T values) ===
         cmd.Parameters.AddWithValue("@CampsitesT", d.CampsitesT ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@RentalsT", d.RentalsT ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@GolfCarts", d.GolfCarts ?? (object)DBNull.Value);
@@ -101,7 +97,6 @@ namespace MBTP.Services
         cmd.Parameters.AddWithValue("@Guests", d.Guests ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@Other", d.Other ?? (object)DBNull.Value);
 
-        // === Checks (C values) ===
         cmd.Parameters.AddWithValue("@CampsitesC", d.CampsitesC ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@RentalsC", d.RentalsC ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@GolfC", d.GolfC ?? (object)DBNull.Value);
@@ -115,7 +110,6 @@ namespace MBTP.Services
         cmd.Parameters.AddWithValue("@GolfDepositsC", d.GolfDepositsC ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@OtherC", d.OtherC ?? (object)DBNull.Value);
 
-        // === OUTPUT PARAMETER ===
         cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000)
             .Direction = ParameterDirection.Output;
 
