@@ -363,26 +363,78 @@ namespace MBTP.Services
                 return dateValue.Date == startDate.Date;
             });
 
-            var orderedConfirmedSitesList = confirmedSitesList.OrderBy(ite => ite.AccountForId).ToList();
-            decimal totalAmount = 0;
-
-            foreach (var ite in orderedConfirmedSitesList)
-            {
-                Console.WriteLine($"confirmedSitesList: BookingId: {ite.AccountForId}, Amount: {ite.Amount}, TransType: {ite.TransType}, PaymentMethod: {ite.PaymentMethod}");
-                totalAmount += ite.Amount ?? 0; // Assuming Amount is nullable
-            }
-
-            Console.WriteLine($"Total Amount: {totalAmount}");
 
             // Update the ProcessReservationsDepositsAsync method to include the new logic
             var (siteSecurityDeposits, rentalSecurityDeposits) = await GetSecurityDepositsForDay(startDate, siteCategories, rentalCategories); 
+    
+            // Newbook fiscal-year logic reproduced here:
+            // Newbook allocates deposits to the fiscal year of the arrival date,
+            // not the payment date. Their fiscal year begins Oct 1.
+            // Example: Arrival on 2025-11-10 falls in FY 2026.
+            // Rule: if (arrival.Month >= 10) FY = arrival.Year + 1 else FY = arrival.Year.
 
-            if(hasMatchingDate)
+            var fyBuckets = new[]
             {
-                deposits.SiteDepTaken = confirmedSitesList.Sum(p => Math.Abs(p.Amount ?? 0)) + siteSecurityDeposits;
+                new { FyStart = new DateTime(startDate.Year + 2, 10, 1), Sites = 0m, Rentals = 0m },  // FY+2
+                new { FyStart = new DateTime(startDate.Year + 1, 10, 1), Sites = 0m, Rentals = 0m },  // FY+1
+                new { FyStart = new DateTime(startDate.Year,     10, 1), Sites = 0m, Rentals = 0m }   // Current FY
+            }.ToList();
+
+            // Assign deposit to correct bucket
+            Action<TransactionFlow, bool> assignToBucket = (t, isSite) =>
+            {
+                if (!t.ArrivalDate.HasValue)
+                {
+                    return;
+                }
+
+                var arr = t.ArrivalDate.Value.Date;
+                decimal amt = Math.Abs(t.Amount ?? 0);
+
+                // Try FY+2 -> FY+1 -> FY
+                for (int i = 0; i < fyBuckets.Count; i++)
+                {
+                    if (arr >= fyBuckets[i].FyStart)
+                    {
+
+                        if (isSite)
+                            fyBuckets[i] = new { fyBuckets[i].FyStart, Sites = fyBuckets[i].Sites + amt, fyBuckets[i].Rentals };
+                        else
+                            fyBuckets[i] = new { fyBuckets[i].FyStart, Sites = fyBuckets[i].Sites, Rentals = fyBuckets[i].Rentals + amt };
+
+                        return;
+                    }
+                }
+
+                // Default to current FY (bucket index 2)
+
+                if (isSite)
+                    fyBuckets[2] = new { fyBuckets[2].FyStart, Sites = fyBuckets[2].Sites + amt, fyBuckets[2].Rentals };
+                else
+                    fyBuckets[2] = new { fyBuckets[2].FyStart, Sites = fyBuckets[2].Sites, Rentals = fyBuckets[2].Rentals + amt };
+            };
+
+            // Feed confirmed site and rental deposits into buckets
+            foreach (var t in confirmedSitesList)
+                assignToBucket(t, true);
+
+            foreach (var t in confirmedRentalsList)
+                assignToBucket(t, false);
+
+            // FUTURE YEARS = FY+1 + FY+2
+            deposits.SiteDepTakenFuture =  fyBuckets[0].Sites + fyBuckets[1].Sites;
+            deposits.RentalDepTakenFuture = fyBuckets[0].Rentals + fyBuckets[1].Rentals;
+
+            // CURRENT FY ONLY
+            deposits.SiteDepTaken = fyBuckets[2].Sites;
+            deposits.RentalDepTaken = fyBuckets[2].Rentals;
+
+            if (hasMatchingDate)
+            {
+                //deposits.SiteDepTaken = confirmedSitesList.Sum(p => Math.Abs(p.Amount ?? 0)) + siteSecurityDeposits;
                 deposits.SiteDepApp = siteDepositsAppliedTotal;
                 deposits.SiteDepMRG = refundSitesList.Sum(x => x.Amount ?? 0);
-                deposits.RentalDepTaken = confirmedRentalsList.Sum(p => Math.Abs(p.Amount ?? 0)) + rentalSecurityDeposits;
+                //deposits.RentalDepTaken = confirmedRentalsList.Sum(p => Math.Abs(p.Amount ?? 0)) + rentalSecurityDeposits;
                 deposits.RentalDepApp = rentalDepositsAppliedTotal;
                 deposits.RentalDepMRG = refundRentalsList.Sum(x => x.Amount ?? 0);
                 deposits.GolfDepTaken = golfCartDepositsHeldList.Sum(p => Math.Abs(p.Amount ?? 0));
@@ -414,8 +466,7 @@ namespace MBTP.Services
                 p.Category != null &&
                 MatchesCategory(p.Category, categories) &&
                 MatchesDeposit(p.Deposit) &&
-                MatchesDescription(p.Description) &&
-                (p.TranslatedPaymentType == null || !p.TranslatedPaymentType.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase)));
+                MatchesDescription(p.Description));
         }
 
         private bool HasCheckedInBeforeDate(int bookingId, DateTime date)
