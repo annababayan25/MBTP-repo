@@ -350,14 +350,16 @@ namespace MBTP.Services
             var refundRentalsTotal = refundRentalsList.Sum(r => Math.Abs(r.Amount ?? 0));
 
             // START: Gift Vouchers
-            var giftVouchersPurchases = GiftVouchers(transactions);
-            var giftVouchersSites = GiftVouchers(transactions, categoryFilters: siteCategories);
-            var giftVouchersRentals = GiftVouchers(transactions, categoryFilters: rentalCategories);
-            var giftVouchersStorage = GiftVouchers(transactions,singleCategory: "Storage");
-            // E: Gift Vouchers
+            var giftVouchersPurchases = GiftVouchersPurchased(transactions);
+            var giftVouchersSites = GiftVouchers(transactions, siteCategories);
+            var giftVouchersRentals = GiftVouchers(transactions, rentalCategories);
+            var giftVouchersDepSites = GiftVouchersDeposit(transactions, siteCategories);
+            var giftVouchersDepRentals = GiftVouchersDeposit(transactions, rentalCategories);
+            var giftVouchersStorage = GiftVouchersStorage(transactions);
 
-            
+            // END: Gift Vouchers
 
+        
             // Security Deposits
             // var (siteSecurityDeposits, rentalSecurityDeposits) = await GetSecurityDepositsForDay(startDate, siteCategories, rentalCategories); 
     
@@ -445,6 +447,8 @@ namespace MBTP.Services
                 deposits.VouchersRedSite = giftVouchersSites.Sum(p => Math.Abs(p.Amount ?? 0));
                 deposits.VouchersRedRental = giftVouchersRentals.Sum(p => Math.Abs(p.Amount ?? 0));
                 deposits.VouchersRedStorage = giftVouchersStorage.Sum(p => Math.Abs(p.Amount ?? 0));
+                deposits.VouchersRedSiteDep = giftVouchersDepSites.Sum(p => Math.Abs(p.Amount ?? 0));
+                deposits.VouchersRedRentalDep = giftVouchersDepRentals.Sum(p => Math.Abs(p.Amount ?? 0));
 
                 depositsList.Add(deposits);
             }
@@ -620,28 +624,71 @@ namespace MBTP.Services
             return total;
         }
 
-        private List<TransactionFlow> GiftVouchers(IEnumerable<TransactionFlow> transactions,IEnumerable<string>? categoryFilters = null,string? singleCategory = null)
+        private List<TransactionFlow> GiftVouchersPurchased(IEnumerable<TransactionFlow> transactions)
         {
             return transactions
                 .Where(r =>
-                    r.Description != null &&
-                    r.Description.Contains("Gift", StringComparison.OrdinalIgnoreCase) &&
-                    r.PaymentTypeAction?.Contains("Payments") == true &&
-                    (r.Amount ?? 0) < 0 &&
-                    (
-                        categoryFilters == null && singleCategory == null
-                        ? r.Category == null
-                        : (
-                            (categoryFilters != null && categoryFilters.Any(c =>
-                                r.Category?.Contains(c, StringComparison.OrdinalIgnoreCase) == true))
-                            ||
-                            (singleCategory != null &&
-                                r.Category?.Contains(singleCategory, StringComparison.OrdinalIgnoreCase) == true)
-                        )
-                    )
+                    (string.IsNullOrWhiteSpace(r.Category)) &&
+                    r.Description.Equals("Gift Voucher Payment", StringComparison.OrdinalIgnoreCase)
                 )
                 .ToList();
         }
+
+        private List<TransactionFlow> GiftVouchers(IEnumerable<TransactionFlow> transactions, IEnumerable<string> categories)
+        {
+            return transactions
+                .Where(r =>
+                    !string.IsNullOrWhiteSpace(r.Category) &&
+                    categories.Any(c => r.Category.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
+                    r.Description.Contains("Gift", StringComparison.OrdinalIgnoreCase) &&
+                    (r.Deposit != "1")
+                )
+                .ToList();
+        }
+
+        private List<TransactionFlow> GiftVouchersDeposit(IEnumerable<TransactionFlow> transactions, IEnumerable<string> categories)
+        {
+            return transactions
+                .Where(r =>
+                    r.Deposit == "1" &&
+                    !string.IsNullOrWhiteSpace(r.Category) &&
+                    categories.Any(c => r.Category.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
+                    r.Description.Contains("Gift", StringComparison.OrdinalIgnoreCase)
+                )
+                .ToList();
+        }
+
+        private List<TransactionFlow> GiftVouchersStorage(IEnumerable<TransactionFlow> transactions)
+{
+    return transactions
+        .Where(r =>
+            // STORAGE CATEGORY RULES
+            !string.IsNullOrWhiteSpace(r.Category) &&
+            !r.Category.Equals("GUEST", StringComparison.OrdinalIgnoreCase) &&
+            (
+                r.Category.StartsWith("STORAGE", StringComparison.OrdinalIgnoreCase) ||
+                r.Category.Equals("FRONT PARKING LOT", StringComparison.OrdinalIgnoreCase)
+            )
+            &&
+
+            r.Description != null &&
+            r.Description.Contains("Gift", StringComparison.OrdinalIgnoreCase) &&
+
+            // BALANCE TRANSFER RULES
+            (
+                // FROM CLIENT or BALANCE TRANSFER
+                r.Description.Contains("FOR GIFT VOUCHER FROM CLIENT", StringComparison.OrdinalIgnoreCase) ||
+                r.Description.Contains("BALANCE TRANSFER TO ACCOUNT", StringComparison.OrdinalIgnoreCase) ||
+                r.Description.Contains("BALANCE TRANSFER FROM ACCOUNT", StringComparison.OrdinalIgnoreCase) ||
+                r.Description.Contains("BALANCE TRANSFER TO CLIENT ACCOUNT", StringComparison.OrdinalIgnoreCase) ||
+                r.Description.Contains("BALANCE TRANSFER FROM CLIENT ACCOUNT", StringComparison.OrdinalIgnoreCase) ||
+
+                // TO CLIENT (reverse in legacy)
+                r.Description.Contains("FOR GIFT VOUCHER TO CLIENT", StringComparison.OrdinalIgnoreCase)
+            )
+        )
+        .ToList();
+}
 
     }
 }
