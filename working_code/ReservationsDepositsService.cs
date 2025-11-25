@@ -356,16 +356,10 @@ namespace MBTP.Services
             var giftVouchersStorage = GiftVouchers(transactions,singleCategory: "Storage");
             // E: Gift Vouchers
 
-            bool hasMatchingDate = transactions.Any(p =>
-            {
-                if (p.TransDate == null) return false;
-                var dateValue = Convert.ToDateTime(p.TransDate);
-                return dateValue.Date == startDate.Date;
-            });
+            
 
-
-            // Update the ProcessReservationsDepositsAsync method to include the new logic
-            var (siteSecurityDeposits, rentalSecurityDeposits) = await GetSecurityDepositsForDay(startDate, siteCategories, rentalCategories); 
+            // Security Deposits
+            // var (siteSecurityDeposits, rentalSecurityDeposits) = await GetSecurityDepositsForDay(startDate, siteCategories, rentalCategories); 
     
             // Newbook fiscal-year logic reproduced here:
             // Newbook allocates deposits to the fiscal year of the arrival date,
@@ -428,6 +422,13 @@ namespace MBTP.Services
             // CURRENT FY ONLY
             deposits.SiteDepTaken = fyBuckets[2].Sites;
             deposits.RentalDepTaken = fyBuckets[2].Rentals;
+
+            bool hasMatchingDate = transactions.Any(p =>
+            {
+                if (p.TransDate == null) return false;
+                var dateValue = Convert.ToDateTime(p.TransDate);
+                return dateValue.Date == startDate.Date;
+            });
 
             if (hasMatchingDate)
             {
