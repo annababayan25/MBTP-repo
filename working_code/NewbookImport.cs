@@ -21,7 +21,7 @@ namespace FinancialC_
         {
             string tmpAction, tmpDesc, tmpCat, tmpTrans, tmpID, tmpClient, tmpGen, flowStr;
             double tmpVal, totAmex = 0, totOtherCC = 0, totCash = 0, lockFee, siteDeposit = 100, rentalDeposit = 200, vehicleRateDayTax = 5.6;
-            System.DateTime arrDate, departDate, tmpTransDate;
+            System.DateTime arrDate, departDate;
             int startRow;
             bool refundChecksActive = false;
             const double visitorRateBase = 4;
