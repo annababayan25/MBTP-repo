@@ -204,6 +204,7 @@ namespace MBTP.Controllers
             ViewBag.Host = host;
             return View();
         }
+        /*
         [Authorize]
         public async Task<IActionResult> PopulateBookings(DateTime? month)
         {
@@ -218,7 +219,26 @@ namespace MBTP.Controllers
             }
             return View();
         }
+        */
+        [Authorize]
+        public async Task<IActionResult> PopulateBookings(DateTime? day)
+        {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
 
+            var selectedDay = day.Value;
+            ViewBag.SelectedDay = selectedDay;
+
+            // Process reservations and deposits
+            var bookings = await _bookingAPI.PopulateBookings(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            await _bookingsRepo.SaveBookingsAsync(bookings);
+
+            return View();
+        } 
+        
         [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
@@ -237,6 +257,7 @@ namespace MBTP.Controllers
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
         }
+        
         /*
          [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
@@ -369,7 +390,27 @@ namespace MBTP.Controllers
 
             return View();
         }
+        
+        [Authorize]
+        public async Task<IActionResult> PopulateReservationsDeposits(DateTime? day)
+        {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
+    
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+            var reservations = await _reservationsDepositsService.ProcessReservationsDepositsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            await _reservationsDepositsRepo.SaveReservationsDepositsAsync(reservations);
 
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+
+            return View();
+        }
+         
+/*
         [Authorize]
         public async Task<IActionResult> PopulateReservationsDeposits(DateTime? day)
         {
@@ -379,17 +420,29 @@ namespace MBTP.Controllers
                 return View();
             }
 
-            var selectedDay = day ?? DateTime.Today;
-            ViewBag.SelectedDay = selectedDay;
-            var reservationsHeld = await _reservationsDepositsService.ProcessReservationsDepositsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
-            await _reservationsDepositsRepo.SaveReservationsDepositsAsync(reservationsHeld);
+            var startDay = day.Value.Date;
+            var today = DateTime.Today;
 
-            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+            // Store daily results
+            var allReports = new List<(DateTime Date, DataSet Report)>();
 
-            return View();
-        }
-           
-    
+            for (var currentDay = startDay; currentDay <= today; currentDay = currentDay.AddDays(1))
+            {
+                var from = currentDay;
+                var to = currentDay.AddDays(1).AddTicks(-1);
+
+                // Process reservations and deposits
+                var reservations = await _reservationsDepositsService.ProcessReservationsDepositsAsync(from, to);
+                await _reservationsDepositsRepo.SaveReservationsDepositsAsync(reservations);
+
+                // Retrieve daily report
+            }
+
+            ViewBag.TitleDate = $"{startDay:MMMM dd, yyyy} - {today:MMMM dd, yyyy}";
+
+            return View(allReports);
+        } 
+     */
         [HttpPost]
         public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
         {

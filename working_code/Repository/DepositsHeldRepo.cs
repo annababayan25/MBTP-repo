@@ -14,7 +14,7 @@ namespace MBTP.Services
             _dbConnectionService = dbConnectionService;
         }
 
-        public async Task SaveReservationsDepositsAsync(IEnumerable<ReservationsDeposits> items)
+        public async Task SaveReservationsDepositsAsync(IEnumerable<Reservations> items)
 {
     using var sqlConn = _dbConnectionService.CreateConnection();
     await sqlConn.OpenAsync();
@@ -38,7 +38,7 @@ namespace MBTP.Services
         cmd.Parameters.AddWithValue("@MRG1", d.MRG1 ?? (object)DBNull.Value);
 
         cmd.Parameters.AddWithValue("@VisitorFees", d.Visitor_Fees ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("@GolfCartRentals", d.GolfDepApp ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("@GolfCartRentals", d.Golf_Cart_Rentals ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("@MRGGolf", d.GolfDepMRG ?? (object)DBNull.Value);
 
         cmd.Parameters.AddWithValue("@Annual", d.Annual_Leases ?? (object)DBNull.Value);

@@ -25,7 +25,7 @@ namespace MBTP.Services
                 using (SqlCommand command = new SqlCommand("dbo.UpdateBookingsTable", sqlConn))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@BookingID", booking.BookingID);
+                    command.Parameters.AddWithValue("@BookingId", booking.BookingId);
                     command.Parameters.AddWithValue("@SiteName", booking.SiteName);
                     command.Parameters.AddWithValue("@BookingArrival", booking.BookingArrival);
                     command.Parameters.AddWithValue("@BookingDeparture", booking.BookingDeparture);
@@ -52,6 +52,7 @@ namespace MBTP.Services
                     command.Parameters.AddWithValue("@LastName", booking.Lastname ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@CarLicensePlate", booking.CarLicensePlate ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@CarLicensePlateExtra", booking.CarLicensePlateExtra ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@LockFee", booking.LockFee ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Wristbands", booking.Wristbands);
                     command.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
                     command.Parameters["@status"].Direction = ParameterDirection.Output;

@@ -11,7 +11,7 @@ namespace MBTP.Models
         public string? PaymentMethod { get; set; }
 
         [JsonProperty("account_for")]
-        public string AccountFor { get; set; }
+        public string? AccountFor { get; set; }
 
         [JsonProperty("account_for_id")]
         public int AccountForId { get; set; }
@@ -37,7 +37,7 @@ namespace MBTP.Models
         public string? TransType { get; set; }
 
         [JsonProperty("item_date")]
-        public DateTime? TransDate { get; set; }
+        public DateTime TransDate { get; set; }
 
         [JsonProperty("client_account")]
         public string? ClientAccount { get; set; }
@@ -58,14 +58,18 @@ namespace MBTP.Models
         public DateTime? DepartureDate { get; set; }
 
         [JsonProperty("deposit")]
-        public string Deposit { get; set; }
+        public string? Deposit { get; set; }
         public int BookingId { get; internal set; }
 
         [JsonProperty("gl_category_id")]
         public int? GlAccountCode {get;set;}
 
         [JsonProperty("gl_category")]
-        public string? GlCategory {get;set;}
+        public string? GlCategory { get; set; }
+        
+        public bool? HasArrived { get; set; }
+
+        public DateTime? BookingCheckedIn { get; set; }
     }
     
 }
