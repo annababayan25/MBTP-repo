@@ -1,7 +1,7 @@
 @using System.Text
 
 @{
-    ViewData["Title"] = "Fetch Deposits Held";
+    ViewData["Title"] = "Fetch Reservations";
     var SelectedDay = ViewBag.SelectedDay as DateTime?;
     var titleDate = SelectedDay.HasValue
         ? $"for {SelectedDay.Value.ToString("dddd, MMMM dd, yyyy")}"
@@ -15,23 +15,23 @@
 <html lang="en">
 
 <h2 style="text-align: center;">
-    Deposits Held Report @titleDate
+    Reservations Report @titleDate
 </h2>
 
 <head>
     <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Deposits Held Report </title>
+    <title>Daily Reservations Report </title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
-<div class="loading-overlay" id="loadingOverlay">
+<div class="loading-overlay" id="loadingOverlay" style="display:none;">
     <i class="fas fa-spinner fa-spin spinner"></i>
 </div>
 
 
-<form method="get" asp-action="PopulateReservationsDeposits" class="navigation-container">
+<form method="get" asp-action="PopulateReservations" class="navigation-container">
     <label for="dayPicker">Select Day:</label>
     <input type="text" id="dayPicker" name="day" value="@SelectedDay?.ToString("yyyy-MM-dd")">
 </form>
@@ -91,4 +91,6 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
 </body>
+
+
 </html>

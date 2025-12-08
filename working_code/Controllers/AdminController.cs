@@ -53,8 +53,8 @@ namespace MBTP.Controllers
         private readonly OccupancyApi _occupancyApi;
         private readonly PaymentsApi _paymentsApi;
         private readonly ChargesApi _chargesApi;
-        private readonly ReservationsDepositsService _reservationsDepositsService;
-        private readonly ReservationsDepositsRepo _reservationsDepositsRepo;
+        private readonly ReservationsService _reservationsService;
+        private readonly ReservationsRepo _reservationsRepo;
         private readonly OccupancyRepo _occupancyRepo;
         private readonly ReconRepo _reconRepo;
         private readonly TransactionFlowRepo _transactionFlowRepo;
@@ -81,8 +81,8 @@ namespace MBTP.Controllers
             OccupancyApi occupancyApi,
             PaymentsApi paymentsApi,
             ChargesApi chargesApi,
-            ReservationsDepositsService reservationsDepositsService,
-            ReservationsDepositsRepo reservationsDepositsRepo,
+            ReservationsService reservationsService,
+            ReservationsRepo reservationsRepo,
             OccupancyRepo occupancyRepo,
             ReconRepo reconRepo,
             TransactionFlowRepo transactionFlowRepo,
@@ -109,8 +109,8 @@ namespace MBTP.Controllers
             _occupancyApi = occupancyApi;
             _paymentsApi = paymentsApi;
             _chargesApi = chargesApi;
-            _reservationsDepositsService = reservationsDepositsService;
-            _reservationsDepositsRepo = reservationsDepositsRepo;
+            _reservationsService = reservationsService;
+            _reservationsRepo = reservationsRepo;
             _occupancyRepo = occupancyRepo;
             _reconRepo = reconRepo;
             _transactionFlowRepo = transactionFlowRepo;
@@ -392,7 +392,7 @@ namespace MBTP.Controllers
         }
         
         [Authorize]
-        public async Task<IActionResult> PopulateReservationsDeposits(DateTime? day)
+        public async Task<IActionResult> PopulateReservations(DateTime? day)
         {
             if (day == null)
             {
@@ -402,8 +402,8 @@ namespace MBTP.Controllers
     
             var selectedDay = day ?? DateTime.Today;
             ViewBag.SelectedDay = selectedDay;
-            var reservations = await _reservationsDepositsService.ProcessReservationsDepositsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
-            await _reservationsDepositsRepo.SaveReservationsDepositsAsync(reservations);
+            var reservations = await _reservationsService.ProcessReservationsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+            await _reservationsRepo.SaveReservationsAsync(reservations);
 
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
 
@@ -412,7 +412,7 @@ namespace MBTP.Controllers
          
 /*
         [Authorize]
-        public async Task<IActionResult> PopulateReservationsDeposits(DateTime? day)
+        public async Task<IActionResult> PopulateReservations(DateTime? day)
         {
             if (day == null)
             {
@@ -432,8 +432,8 @@ namespace MBTP.Controllers
                 var to = currentDay.AddDays(1).AddTicks(-1);
 
                 // Process reservations and deposits
-                var reservations = await _reservationsDepositsService.ProcessReservationsDepositsAsync(from, to);
-                await _reservationsDepositsRepo.SaveReservationsDepositsAsync(reservations);
+                var reservations = await _reservationsService.ProcessReservationsAsync(from, to);
+                await _reservationsRepo.SaveReservationsAsync(reservations);
 
                 // Retrieve daily report
             }

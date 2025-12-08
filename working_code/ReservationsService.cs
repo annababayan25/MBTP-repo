@@ -9,17 +9,17 @@ using MBTP.Interfaces;
 using Microsoft.Data.SqlClient;
 using System.Text.RegularExpressions;
 
-// ReservationsDepositsService is a class dedicated to Reservations Deposits Table (Daily Breakdown R)
+// ReservationsService is a class dedicated to Reservations Deposits Table (Daily Breakdown R)
 namespace MBTP.Services
 {
-    public class ReservationsDepositsService : NewbookBaseApi
+    public class ReservationsService : NewbookBaseApi
     {
         private readonly TransactionFlowApi _transactionFlowApi;
         private readonly DailyReport _dailyReport;
         private readonly IDatabaseConnectionService _dbConnectionService;
         private readonly Dictionary<string, decimal> _bucketTotals = new(); 
 
-        public ReservationsDepositsService(IDatabaseConnectionService dbConnectionService, HttpClient client, DailyReport dailyReport, TransactionFlowApi transactionFlowApi)
+        public ReservationsService(IDatabaseConnectionService dbConnectionService, HttpClient client, DailyReport dailyReport, TransactionFlowApi transactionFlowApi)
             : base(client)
         {
             _dbConnectionService = dbConnectionService;
@@ -27,12 +27,12 @@ namespace MBTP.Services
             _dailyReport = dailyReport;
         }
 
-        public async Task<List<Reservations>> ProcessReservationsDepositsAsync(DateTime startDate, DateTime endDate)
+        public async Task<List<Reservations>> ProcessReservationsAsync(DateTime startDate, DateTime endDate)
         {
-            // Call the Transaction Flow Api and retrieve the list
-            var transactions = await _transactionFlowApi.PopulateTransactions(startDate, endDate);
             // Retrieve the Checked In List DataSet and convert it to a list
             var checkedInList = await GetCheckedInList(startDate, endDate);
+            // Call the Transaction Flow Api and retrieve the list
+            var transactions = await _transactionFlowApi.PopulateTransactions(startDate, endDate);
             var reservations = new Reservations { TransDate = startDate };
             var reservationsList = new List<Reservations>();
 
@@ -182,9 +182,9 @@ namespace MBTP.Services
             reservations.GolfDepTaken = CalculateGolfCartDeposits(transactions);
 
             // Deposits Applied 
-            reservations.SiteDepApp = await GetDepositsApplied(siteCategories, 0.0m, checkedInList);
-            reservations.RentalDepApp = await GetDepositsApplied(rentalCategories, 0.0m, checkedInList);
-            reservations.GolfDepApp = await GetDepositsApplied(golfCategories, 0.0m, checkedInList);
+            reservations.SiteDepApp = GetDepositsApplied(siteCategories, 0.0m, checkedInList);
+            reservations.RentalDepApp = GetDepositsApplied(rentalCategories, 0.0m, checkedInList);
+            reservations.GolfDepApp = GetDepositsApplied(golfCategories, 0.0m, checkedInList);
 
             // Manual Deposit Refunds For Sites, Rentals, and Golf Carts
             var manualRefunds = GetManualRefundTransactions(transactions);
@@ -656,7 +656,7 @@ namespace MBTP.Services
             description == null || !description.Contains("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase);
 
         // Filters transactions based on category, deposit, and description.
-        // Used in the `ProcessReservationsDepositsAsync` method to filter confirmed site and rental deposits.
+        // Used in the `ProcessReservationsAsync` method to filter confirmed site and rental deposits.
         private IEnumerable<TransactionFlow> FilterTransactions(IEnumerable<TransactionFlow> transactions, string[] categories)
         {
             return transactions.Where(p =>
@@ -667,8 +667,8 @@ namespace MBTP.Services
         }
 
         // Calculates the total deposits applied for specific categories from the checked-in list.
-        // Used in the `ProcessReservationsDepositsAsync` method to calculate deposits applied for sites and rentals.
-        private async Task<Decimal> GetDepositsApplied(string[] categories, decimal total, List<Dictionary<string, object>> checkedInList)
+        // Used in the `ProcessReservationsAsync` method to calculate deposits applied for sites and rentals.
+        private decimal GetDepositsApplied(string[] categories, decimal total, List<Dictionary<string, object>> checkedInList)
         {
             if (checkedInList != null && checkedInList.Count > 0)
             {
@@ -699,7 +699,7 @@ namespace MBTP.Services
         }
         
         // Retrieves gift voucher transactions where the description contains "Gift Voucher Payment".
-        // Used in the `ProcessReservationsDepositsAsync` method to calculate gift voucher purchases.
+        // Used in the `ProcessReservationsAsync` method to calculate gift voucher purchases.
         private decimal GiftVouchersPurchased(IEnumerable<TransactionFlow> transactions)
         {
             return transactions
@@ -708,7 +708,7 @@ namespace MBTP.Services
         }
 
         // Retrieves gift voucher transactions for specific categories where the description contains "Gift".
-        // Used in the `ProcessReservationsDepositsAsync` method to calculate gift vouchers for sites and rentals.
+        // Used in the `ProcessReservationsAsync` method to calculate gift vouchers for sites and rentals.
         private decimal GiftVouchers(IEnumerable<TransactionFlow> transactions, IEnumerable<string> categories)
         {
             return transactions
@@ -722,7 +722,7 @@ namespace MBTP.Services
         }
 
         // Retrieves gift voucher deposit transactions for specific categories where the description contains "Gift".
-        // Used in the `ProcessReservationsDepositsAsync` method to calculate gift voucher deposits for sites and rentals.
+        // Used in the `ProcessReservationsAsync` method to calculate gift voucher deposits for sites and rentals.
         private decimal GiftVouchersDeposit(IEnumerable<TransactionFlow> transactions, IEnumerable<string> categories)
         {
             return transactions
@@ -735,7 +735,7 @@ namespace MBTP.Services
                 .Sum(p => Math.Abs(p.Amount ?? 0));
         }
         // Retrieves gift voucher transactions for storage categories.
-        // Used in the `ProcessReservationsDepositsAsync` method to calculate gift vouchers for storage.
+        // Used in the `ProcessReservationsAsync` method to calculate gift vouchers for storage.
         private decimal GiftVouchersStorage(IEnumerable<TransactionFlow> transactions)
         {
             return transactions
@@ -769,7 +769,7 @@ namespace MBTP.Services
         }
 
         // Retrieves the total lock fees for a specific day from the Bookings Table in the database.
-        // Used in the `ProcessReservationsDepositsAsync` method to calculate lock fees for the day.
+        // Used in the `ProcessReservationAsync` method to calculate lock fees for the day.
          private async Task<decimal> GetLockFeesForDay(DateTime date, List<TransactionFlow> depositsTakenList_NoRefunds)
         {
             decimal total = 0m;
@@ -833,7 +833,7 @@ namespace MBTP.Services
             return total;
         }
         // Retrieves Sites, Rentals, and Golf Carts amount earned as Income
-        private async Task<Decimal> Get_Taxed_Totals(string[] categories, decimal total, List<Dictionary<string, object>>? checkedInList)
+       private async Task<Decimal> Get_Taxed_Totals(string[] categories, decimal total, List<Dictionary<string, object>>? checkedInList)
         {
             if (checkedInList != null && checkedInList.Count > 0)
             {
@@ -891,6 +891,7 @@ namespace MBTP.Services
             }
             return total;
         }
+
 
         // Calculates the totals for Annual Leases and MH Parks from the TF list
         private decimal GetNoTaxTotals(IEnumerable<TransactionFlow> transactions, string[] categories)
@@ -1079,7 +1080,7 @@ namespace MBTP.Services
             string desc = t.Description?.ToUpper() ?? "";
             string client = t.ClientAccount?.ToUpper() ?? "";
 
-            if (Math.Abs(t.Amount ?? 0) == 40 && Math.Abs(t.Amount ?? 0) == 30 && !desc.Contains("EXCEPTION"))
+            if (Math.Abs(t.Amount ?? 0) == 40 || Math.Abs(t.Amount ?? 0) == 30)
                     return null;
 
             // Splits
