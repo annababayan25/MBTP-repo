@@ -33,7 +33,7 @@ namespace SQLStuff
                 };
                 _cmd.Parameters.Add("@TransDate", SqlDbType.Date).Value = GenericRoutines.repDateStr;
                 _cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
-
+                
                 return true;
             }
             catch (Exception e)

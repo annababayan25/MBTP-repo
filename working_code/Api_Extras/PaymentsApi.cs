@@ -22,7 +22,6 @@ namespace MBTP.Services
             _dbConnectionService = dbConnectionService;
         }
 
-
         public async Task PopulatePayments(DateTime startDate, DateTime endDate)
         {
             var body = new
@@ -37,11 +36,12 @@ namespace MBTP.Services
             var json = await PostAsync("payments_list", body);
 
             var result = JsonConvert.DeserializeObject<dynamic>(json.ToString());
-            var payments = new List<Paymentss>();
+            
+            var payments = new List<Payments_Payments>();
 
             foreach (var item in result.data)
             {
-                var payment = new Paymentss
+                var payment = new Payments_Payments
                 {
                     Id = item.id,
                     AccountId = item.account_id,
@@ -65,12 +65,6 @@ namespace MBTP.Services
                 File.AppendAllText(outputFile, item.ToString() + Environment.NewLine);
             }
             
-
-            
-    
-            Console.WriteLine("Run method finished.");
-            Console.WriteLine("Total Payments: " + payments.Count);
-            payments.Clear();
 
         }
         

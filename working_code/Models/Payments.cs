@@ -149,7 +149,57 @@ namespace MBTP.Models
     }
     
 
-    public class Paymentss
+    public class Payments_Charges
+    {
+        [JsonProperty("id")]
+        public int? Id { get; set; }
+
+        [JsonProperty("account_id")]
+        public int? AccountId { get; set; }
+
+        [JsonProperty("account_for")]
+        public string AccountFor { get; set; }
+
+        [JsonProperty("account_for_id")]
+        public int AccountForId { get; set; }
+
+        [JsonProperty("account_for_name")]
+        public string AccountForName { get; set; }
+
+        [JsonProperty("description")]
+        public string Description { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal? Amount { get; set; }
+
+        [JsonProperty("generated_by")]
+        public int? GeneratedBy { get; set; }
+
+        [JsonProperty("generated_when")]
+        public DateTime? GeneratedWhen { get; set; }
+
+        [JsonProperty("voided_when")]
+        public DateTime? VoidedWhen { get; set; }
+
+        [JsonProperty("voided_by")]
+        public int? VoidedBy { get; set; }
+    
+    }
+
+    public class Refunds
+    {
+        [JsonProperty("id")]
+        public int Id { get; set; }
+
+        [JsonProperty("description")]
+        public string? Description { get; set; }
+
+        [JsonProperty("amount")]
+        public decimal? Amount { get; set; }
+
+    }
+
+    public class Payments_Payments
     {
         [JsonProperty("id")]
         public int? Id { get; set; }
@@ -215,33 +265,12 @@ namespace MBTP.Models
     public List<Credits> Credits { get; set; }
 
     [JsonProperty("taxes")]
-    public List<Tax> Taxes { get; set; }
-    }
+        public List<Tax> Taxes { get; set; }
 
-    public class Refunds
-    {
-        [JsonProperty("id")]
-        public int Id { get; set; }
-
-        [JsonProperty("description")]
-        public string? Description { get; set; }
-
-        [JsonProperty("amount")]
-        public decimal? Amount { get; set; }
+    public List<Payments_Charges> Charge { get; set; }
+    
 
     }
-
-
-    public class PaymentsResponse
-    {
-        [JsonProperty("success")]
-        public string Success { get; set; }
-
-        [JsonProperty("data")]
-        public List<Paymentss> Data { get; set; }
-
-        [JsonProperty("message")]
-        public string Message { get; set; }
-    }
-
 }
+
+
