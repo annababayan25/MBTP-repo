@@ -10,25 +10,34 @@ namespace MBTP.Models
         [JsonProperty("payment_transaction_method")]
         public string? PaymentMethod { get; set; }
 
+        [JsonProperty("account_for")]
+        public string? AccountFor { get; set; }
+
+        [JsonProperty("account_for_id")]
+        public int AccountForId { get; set; }
+
         [JsonProperty("item_description")]
         public string? PaymentDescription { get; set; }
 
         [JsonProperty("payment_type_reference")]
         public string? PaymentTypeReference { get; set; }
 
-        [JsonProperty("grouped_payment_type")]
-        public string? GroupedPaymentType { get; set; }
+        [JsonProperty("translated_payment_type")]
+        public string? TranslatedPaymentType { get; set; }
+
+        [JsonProperty("payment_type")]
+        public string? PaymentType { get; set; }
 
         public string? PaymentTypeAction { get; set; }
 
         [JsonProperty("category_name")]
         public string? Category { get; set; }
 
-        [JsonProperty("item_type")]
+        [JsonProperty("type")]
         public string? TransType { get; set; }
 
         [JsonProperty("item_date")]
-        public string? TransDate { get; set; }
+        public DateTime TransDate { get; set; }
 
         [JsonProperty("client_account")]
         public string? ClientAccount { get; set; }
@@ -43,13 +52,24 @@ namespace MBTP.Models
         public decimal? Amount { get; set; }
 
         [JsonProperty("booking_period_from")]
-        public string? ArrivalDate { get; set; }
+        public DateTime? ArrivalDate { get; set; }
 
         [JsonProperty("booking_period_to")]
-        public string? DepartureDate { get; set; }
+        public DateTime? DepartureDate { get; set; }
 
         [JsonProperty("deposit")]
-        public string Deposit { get; set; }
+        public string? Deposit { get; set; }
+        public int BookingId { get; internal set; }
 
+        [JsonProperty("gl_category_id")]
+        public int? GlAccountCode {get;set;}
+
+        [JsonProperty("gl_category")]
+        public string? GlCategory { get; set; }
+        
+        public bool? HasArrived { get; set; }
+
+        public DateTime? BookingCheckedIn { get; set; }
     }
+    
 }

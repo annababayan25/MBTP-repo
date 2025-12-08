@@ -71,6 +71,7 @@ namespace MBTP.Controllers
             ViewBag.FinalDate = finalDate;
             return View(dataSetter);
         }
+
         [Authorize]
         public IActionResult Monthly(string whichMonth)
         {
@@ -228,6 +229,7 @@ namespace MBTP.Controllers
         {
             return View(FetchDailyReportData(date, whichMonth));
         }
+        
         [Authorize]
         public IActionResult DailyBreakdownR(DateTime? date, string whichMonth)
         {

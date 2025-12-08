@@ -19,12 +19,14 @@ namespace MBTP.Services
     public class BookingApi : NewbookBaseApi
     {
         private readonly IDatabaseConnectionService _dbConnectionService;
+        
         public BookingApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
         {
             _dbConnectionService = dbConnectionService;
+            
         }
 
-        public async Task PopulateBookings(DateTime startDate, DateTime endDate)
+        public async Task<List<Booking>> PopulateBookings(DateTime startDate, DateTime endDate)
         {
             var dataOffset = 0;
             var dataCount = 500;
@@ -33,7 +35,7 @@ namespace MBTP.Services
 
             while (dataOffset < dataTotal)
             {
-                var body = new
+                var requestBody = new
                 {
                     region = region,
                     api_key = apiKey,
@@ -47,7 +49,7 @@ namespace MBTP.Services
                     account_breakdown = "true"
                 };
 
-                var json = await PostAsync("bookings_list", body);
+                var json = await PostAsync("bookings_list", requestBody);
                 var result = JsonConvert.DeserializeObject<dynamic>(json.ToString());
 
                 Console.WriteLine($"Sending request at offset {dataOffset} of {dataTotal} (batch size {dataCount})");
@@ -61,7 +63,7 @@ namespace MBTP.Services
                 {
                     var booking = new Booking
                     {
-                        BookingID = item.booking_id,
+                        BookingId = item.booking_id,
                         SiteName = item.site_name,
                         BookingArrival = item.booking_arrival,
                         BookingDeparture = item.booking_departure,
@@ -78,9 +80,14 @@ namespace MBTP.Services
                         BookingPlaced = item.booking_placed,
                         BookingCancelled = item.booking_cancelled,
                         ExpressCheckin = item.booking_demographic_name,
+                        LockFee = 0.0m,
                         Guests = JsonConvert.DeserializeObject<List<Guests>>(item.guests.ToString()), // Deserialize the guests list
                         CustomFields = JsonConvert.DeserializeObject<List<CustomFields>>(item.custom_fields.ToString()), // Deserialize the custom fields list
                         Equipment = JsonConvert.DeserializeObject<List<EquipmentFields>>(item.equipment.ToString()), // Deserialize the equipment fields list
+                        Charges = JsonConvert.DeserializeObject<List<Charges>>(item.charges.ToString()),
+                        Payments = JsonConvert.DeserializeObject<List<Payment>>(item.payments.ToString()),
+                        InventoryItems = JsonConvert.DeserializeObject<List<InventoryItem>>(item.inventory_items.ToString())
+
                     };
 
                     if (booking.Guests != null && booking.Guests.Count > 0)
@@ -141,69 +148,68 @@ namespace MBTP.Services
                             }
                         }
                     }
+                    // lock fee column
+                    // 1. Find charges that match
+                    var lockFeeChargeIds = booking.Charges?
+                        .Where(c => c.Description != null &&
+                                    (c.Description.Contains("lock fee", StringComparison.OrdinalIgnoreCase) ||
+                                    c.Description.Contains("site selection", StringComparison.OrdinalIgnoreCase)) &&
+                                    c.VoidedWhen == null)
+                        .Select(c => c.Id)
+                        .ToHashSet() ?? new HashSet<int?>();
+
+                    decimal lockFeePaid = 0;
+
+                    // 2. Sum payments linked to those charges
+                    if (booking.Payments != null)
+                    {
+                        lockFeePaid = booking.Payments
+                            .SelectMany(p => p.PaymentCharges ?? new List<PaymentChargeLink>())
+                            .Where(pc => lockFeeChargeIds.Contains(pc.ChargeId))
+                            .Sum(pc => pc.ReconciledAmount);
+                    }
+
+                    // 3. Fallback: sum charges directly
+                    if (lockFeePaid == 0 && booking.Charges != null)
+                    {
+                        lockFeePaid = booking.Charges
+                            .Where(c => lockFeeChargeIds.Contains(c.Id ?? -1))
+                            .Sum(c => c.Amount ?? 0);
+                    }
+
+                    // 4. FINAL FALLBACK: check inventory items
+                    if (lockFeePaid == 0 && booking.InventoryItems != null)
+                    {
+                        lockFeePaid = booking.InventoryItems
+                            .Where(i =>
+                                i.Description != null &&
+                                (i.Description.Contains("lock fee", StringComparison.OrdinalIgnoreCase) ||
+                                i.Description.Contains("site selection", StringComparison.OrdinalIgnoreCase)))
+                            .Sum(i => decimal.Parse(i.Amount ?? "0"));
+                    }
+
+                    booking.LockFee = lockFeePaid;
+
+
                     if (booking.BookingAdults + booking.BookingChildren + booking.BookingInfants != 0)
                     {
                         bookings.Add(booking);
                     }
                     else
                     {
-                        Console.WriteLine("Booking ID " + booking.BookingID + " not added");
+                        Console.WriteLine("Booking ID " + booking.BookingId + " not added");
                     }
 
-                    if (booking.BookingID == 366736)
+                    if(booking.BookingId == 378087)
                     {
-                        string filePath = "booking.txt";
-                        string contentFile = item.ToString();
-                        File.WriteAllText(filePath, contentFile + Environment.NewLine);
+                        
+                        File.WriteAllText("bookings.json", item.ToString() + Environment.NewLine);
                     }
 
                 }
-
-                using var sqlConn = _dbConnectionService.CreateConnection();
-                await sqlConn.OpenAsync();
-
-                foreach (var booking in bookings)
-                {
-                    using (SqlCommand command = new SqlCommand("dbo.UpdateBookingsTable", sqlConn))
-                    {
-                        command.CommandType = CommandType.StoredProcedure;
-                        command.Parameters.AddWithValue("@BookingID", booking.BookingID);
-                        command.Parameters.AddWithValue("@SiteName", booking.SiteName);
-                        command.Parameters.AddWithValue("@BookingArrival", booking.BookingArrival);
-                        command.Parameters.AddWithValue("@BookingDeparture", booking.BookingDeparture);
-                        command.Parameters.AddWithValue("@BookingStatus", booking.BookingStatus ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@BookingAdults", booking.BookingAdults);
-                        command.Parameters.AddWithValue("@BookingChildren", booking.BookingChildren);
-                        command.Parameters.AddWithValue("@BookingInfants", booking.BookingInfants);
-                        command.Parameters.AddWithValue("@BookingTotal", booking.BookingTotal);
-                        command.Parameters.AddWithValue("@BookingMethodName", booking.BookingMethodName ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@BookingSourceName", booking.BookingSourceName ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@BookingReasonName", booking.BookingReasonName ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@AccountBalance", booking.AccountBalance);
-                        command.Parameters.AddWithValue("@BookingPlaced", booking.BookingPlaced);
-                        command.Parameters.AddWithValue("@StateName", booking.StateName ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@CategoryName", booking.CategoryName ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@BookingCancelled", booking.BookingCancelled ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@ExpressCheckin", booking.ExpressCheckin);
-                        command.Parameters.AddWithValue("@StoredMBTP", booking.StoredMBTP ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@StoredOutside", booking.StoredOutside ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@EquipmentMake", booking.EquipmentMake ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@EquipmentModel", booking.EquipmentModel ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@EquipmentLength", booking.EquipmentLength ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@FirstName", booking.Firstname ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@LastName", booking.Lastname ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@CarLicensePlate", booking.CarLicensePlate ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@CarLicensePlateExtra", booking.CarLicensePlateExtra ?? (object)DBNull.Value);
-                        command.Parameters.AddWithValue("@Wristbands", booking.Wristbands);
-                        command.Parameters.Add("@status", SqlDbType.NVarChar, 4000);
-                        command.Parameters["@status"].Direction = ParameterDirection.Output;
-                        await command.ExecuteNonQueryAsync();
-                        //Console.WriteLine(command.Parameters["@status"].Value.ToString());
-                    }
-                }
-                bookings.Clear();
             }
-           Console.WriteLine("Run method finished.");
+            
+            return bookings;
         }
     }
 }
