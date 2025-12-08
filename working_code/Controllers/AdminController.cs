@@ -390,7 +390,8 @@ namespace MBTP.Controllers
 
             return View();
         }
-        
+        /*
+
         [Authorize]
         public async Task<IActionResult> PopulateReservations(DateTime? day)
         {
@@ -409,8 +410,9 @@ namespace MBTP.Controllers
 
             return View();
         }
-         
-/*
+
+        */
+
         [Authorize]
         public async Task<IActionResult> PopulateReservations(DateTime? day)
         {
@@ -442,7 +444,7 @@ namespace MBTP.Controllers
 
             return View(allReports);
         } 
-     */
+        
         [HttpPost]
         public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
         {
