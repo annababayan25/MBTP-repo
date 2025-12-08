@@ -576,11 +576,8 @@ namespace MBTP.Services
             return noVoidedManualRefunds.ToList();
         }
 
-        // ----------------------------------------------
         // Splits manual refunds into deposit refunds vs income refunds
-        // ----------------------------------------------
-        private (List<TransactionFlow> DepositRefunds, List<TransactionFlow> IncomeRefunds)
-            SplitManualRefunds(List<TransactionFlow> refundTransactions)
+        private (List<TransactionFlow> DepositRefunds, List<TransactionFlow> IncomeRefunds) SplitManualRefunds(List<TransactionFlow> refundTransactions)
         {
             var depositRefunds = new List<TransactionFlow>();
             var incomeRefunds  = new List<TransactionFlow>();
@@ -771,7 +768,7 @@ namespace MBTP.Services
                 .Sum(p => Math.Abs(p.Amount ?? 0));
         }
 
-        // Retrieves the total lock fees for a specific day from the database.
+        // Retrieves the total lock fees for a specific day from the Bookings Table in the database.
         // Used in the `ProcessReservationsDepositsAsync` method to calculate lock fees for the day.
          private async Task<decimal> GetLockFeesForDay(DateTime date, List<TransactionFlow> depositsTakenList_NoRefunds)
         {
@@ -835,7 +832,7 @@ namespace MBTP.Services
 
             return total;
         }
-
+        // Retrieves Sites, Rentals, and Golf Carts amount earned as Income
         private async Task<Decimal> Get_Taxed_Totals(string[] categories, decimal total, List<Dictionary<string, object>>? checkedInList)
         {
             if (checkedInList != null && checkedInList.Count > 0)
