@@ -121,5 +121,6 @@ namespace MBTP.Services
                 throw new Exception($"Stored procedure failed: {result}");
             }
         }
+        Console.WriteLine("Run method finished.");
     }
 }}

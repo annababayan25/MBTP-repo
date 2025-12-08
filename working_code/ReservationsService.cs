@@ -62,7 +62,7 @@ namespace MBTP.Services
                 !p.Description.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
                 (p.Description.Contains("Deposit", StringComparison.OrdinalIgnoreCase) ||
                 p.Description.Contains("at Myrtle Beach Travel Park", StringComparison.OrdinalIgnoreCase) ||  
-                p.Description.Contains("Balance Transfer from Client Account #496531 (Accommodation)", StringComparison.OrdinalIgnoreCase)) &&
+                p.Description.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase)) &&
                 p.Deposit != null &&
                 p.Deposit.Contains("1", StringComparison.OrdinalIgnoreCase) &&
                 (p.Description == null || !p.Description.Contains("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase))
@@ -81,10 +81,6 @@ namespace MBTP.Services
             var confirmedSitesList = FilterTransactions(confirmedList, siteCategories).ToList();
             var confirmedRentalsList = FilterTransactions(confirmedList, rentalCategories).ToList();
 
-            foreach(var i in confirmedSitesList)
-            {
-                Console.WriteLine($"{i.AccountForId} {i.Category} {i.Amount}");
-            }
             
             var RentalDepTaken_Refunds = transactions
             .Where(p =>
@@ -99,16 +95,16 @@ namespace MBTP.Services
             .Sum(p => Math.Abs(p.Amount ?? 0));
 
             var SiteDepTaken_Refunds = transactions
-    .Where(p =>
-        p.PaymentTypeAction == "Refunds" &&
-        p.Category != null &&
-        siteCategories.Any(c => 
-            p.Category.Contains(c, StringComparison.OrdinalIgnoreCase)
-        ) &&
-        p.PaymentMethod == "Authorize.Net" &&
-        p.HasArrived == false
-    )
-    .Sum(p => Math.Abs(p.Amount ?? 0));
+            .Where(p =>
+                p.PaymentTypeAction == "Refunds" &&
+                p.Category != null &&
+                siteCategories.Any(c => 
+                    p.Category.Contains(c, StringComparison.OrdinalIgnoreCase)
+                ) &&
+                p.PaymentMethod == "Authorize.Net" &&
+                p.HasArrived == false
+            )
+            .Sum(p => Math.Abs(p.Amount ?? 0));
             
 
             // -------------------------------------------------------------
