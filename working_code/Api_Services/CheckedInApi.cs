@@ -215,7 +215,7 @@ namespace MBTP.Services
                     {
                         totalRefundAmount = checkedIn.Refunds
                             .Where(r => r.GeneratedWhen.HasValue &&
-                                        r.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date)
+                                        r.GeneratedWhen.Value < checkedIn.BookingCheckedIn.Value)
                             .Sum(r => r.Amount ?? 0m);
                     }
                     checkedIn.RefundedAmount = totalRefundAmount;
@@ -228,11 +228,11 @@ namespace MBTP.Services
                     {
                         clientDebit = checkedIn.Refunds
                             .Where(r => r.GeneratedWhen.HasValue &&
-                                        r.GeneratedWhen.Value > checkedIn.BookingCheckedIn.Value.Date)
+                                        r.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date)
                             .Sum(r => r.Amount ?? 0m);
 
                         checkedIn.DepositsHeld = checkedIn.DepositsHeld - clientDebit;
-                    }
+                    } 
 
                     // Calculate the Stay Cost 
                     decimal baseStayCost = checkedIn.TariffsQuoted?.Sum(t => t.CalculatedAmount) ?? 0;
@@ -348,7 +348,7 @@ namespace MBTP.Services
                         }
                     }
                     checkedInList.Add(checkedIn);
-                    if(checkedIn.BookingId == 374404)
+                    if(checkedIn.BookingId == 332438)
                     {
                         
                         File.AppendAllText("checkedInList.json", item.ToString() + Environment.NewLine);

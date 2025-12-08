@@ -60,7 +60,7 @@ namespace MBTP.Models
 
     public class Booking
     {
-        public int BookingID { get; set; }
+        public int BookingId { get; set; }
         public string? SiteName { get; set; }
         public string? BookingArrival { get; set; }
         public string? BookingDeparture { get; set; }
@@ -91,7 +91,14 @@ namespace MBTP.Models
         public int Wristbands { get; set; }
         public string? CarLicensePlate { get; set; }
         public string? CarLicensePlateExtra { get; set; }
-
+        [JsonProperty("payments")]
+        public List<Payment> Payments { get; set; } = new List<Payment>();
+        [JsonProperty("charges")]
+        public List<Charges> Charges { get; set; } = new List<Charges>();
+        [JsonProperty("payment_charges")]
+        public List<PaymentChargeLink>? PaymentCharges { get; set; }
+        public decimal? LockFee { get; set; }
+        [JsonProperty("inventory_items")]
+        public List<InventoryItem>? InventoryItems { get; set; }
     }
-
 }
