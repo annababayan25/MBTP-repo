@@ -252,7 +252,10 @@ namespace MBTP.Services
             reservations.Damage_Fees = transactions.Where(p => p.Amount.HasValue && p.Description != null && p.Description.Contains("Damage", StringComparison.OrdinalIgnoreCase)).Sum(p => Math.Abs(p.Amount ?? 0));
             // Late Fees 
             reservations.Late_Fees = transactions.Where(p => p.Amount.HasValue && p.Description != null && p.Description.Contains("Late", StringComparison.OrdinalIgnoreCase)).Sum(p => Math.Abs(p.Amount ?? 0));
-            
+            // Supplemental
+            reservations.Supplemental = transactions.Where(p => p.Amount.HasValue && p.Description != null && (p.Description.Contains("Trailer Sales", StringComparison.OrdinalIgnoreCase) ||
+            p.Description.Contains("Trash Pickup", StringComparison.OrdinalIgnoreCase))).Sum(p => Math.Abs(p.Amount ?? 0));
+
             // Golf Cart Income
             reservations.Golf_Cart_Rentals = await Get_Taxed_Totals(golfCategories, 0.0m, checkedInList);                     
 
@@ -267,22 +270,37 @@ namespace MBTP.Services
                 .ToList();
 
             reservations.MRG1 = income_Refunds_Short_Term_Stays
-             .Where(r =>
-                 r.Category != null &&
-                 (siteCategories.Any(c => r.Category.Contains(c, StringComparison.OrdinalIgnoreCase)) ||
-                 rentalCategories.Any(c => r.Category.Contains(c, StringComparison.OrdinalIgnoreCase)))
-                 ||
-                 (r.Description != null &&
-                     (r.Description.Contains("Late", StringComparison.OrdinalIgnoreCase) ||
-                     r.Description.Contains("Lock", StringComparison.OrdinalIgnoreCase) ||
-                     r.Description.Contains("Vehicle", StringComparison.OrdinalIgnoreCase))
-                 )
-             )
-             .Sum(r => Math.Abs(r.Amount ?? 0));
+            .Where(r =>
+                (
+                    (
+                        r.Category != null &&
+                        (
+                            siteCategories.Any(c => r.Category.Contains(c, StringComparison.OrdinalIgnoreCase)) ||
+                            rentalCategories.Any(c => r.Category.Contains(c, StringComparison.OrdinalIgnoreCase))
+                        )
+                    )
+                    ||
+                    (
+                        r.Description != null &&
+                        (
+                            r.Description.Contains("Late", StringComparison.OrdinalIgnoreCase) ||
+                            r.Description.Contains("Lock", StringComparison.OrdinalIgnoreCase) ||
+                            r.Description.Contains("Vehicle", StringComparison.OrdinalIgnoreCase)
+                        )
+                    )
+                )
+                &&
+                !(
+                    (r.Category != null && r.Category.Contains("Storage", StringComparison.OrdinalIgnoreCase)) ||
+                    (r.Description != null && r.Description.Contains("Storage", StringComparison.OrdinalIgnoreCase))
+                )
+            )
+            .Sum(r => Math.Abs(r.Amount ?? 0));
 
             // Annual_Leases
             reservations.Annual_Leases = GetNoTaxTotals(transactions, annualLease);
 
+            
             // Employee
             var employeePayments = transactions
                 .Where(p => p.Category != null &&
