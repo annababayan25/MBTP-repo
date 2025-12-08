@@ -15,7 +15,7 @@ html {
 }
 table#daily-table {
 	width:1600px; /* just to demonstrate horizontal scrolling & stickiness */
-	margin:0;
+	margin:0 auto;
 	border:none;
 	background-color:#FFF;
 	border-collapse:separate;
