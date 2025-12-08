@@ -5,16 +5,16 @@ using MBTP.Interfaces;
 
 namespace MBTP.Services
 {
-    public class ReservationsDepositsRepo
+    public class ReservationsRepo
     {
         private readonly IDatabaseConnectionService _dbConnectionService;
 
-        public ReservationsDepositsRepo(IDatabaseConnectionService dbConnectionService)
+        public ReservationRepo(IDatabaseConnectionService dbConnectionService)
         {
             _dbConnectionService = dbConnectionService;
         }
 
-        public async Task SaveReservationsDepositsAsync(IEnumerable<Reservations> items)
+        public async Task SaveReservationsAsync(IEnumerable<Reservations> items)
 {
     using var sqlConn = _dbConnectionService.CreateConnection();
     await sqlConn.OpenAsync();

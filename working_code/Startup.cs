@@ -40,10 +40,10 @@ namespace MBTP
             services.AddScoped<ReconRepo>();
             services.AddScoped<TransactionFlowRepo>();
             services.AddScoped<CheckedInListRepo>();
-            services.AddScoped<ReservationsDepositsRepo>();
+            services.AddScoped<ReservationsRepo>();
             services.AddScoped<TransactionFlowRepo>();
             services.AddScoped<TransactionFlowApi>();
-            services.AddHttpClient<ReservationsDepositsService>();
+            services.AddHttpClient<ReservationsService>();
             services.AddHttpClient<ChargesApi>();
             services.AddHttpClient<PaymentsApi>();
             services.AddHttpClient<OccupancyApi>();
