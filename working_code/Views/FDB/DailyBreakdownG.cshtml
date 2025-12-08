@@ -298,27 +298,27 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
-        <td class="breakdownTotals2">@totalApparel</td>
-        <td class="breakdownTotals2">@totalSeasonalNov</td>
-        <td class="breakdownTotals2">@totalOtherNovelty</td>
-        <td class="breakdownTotals2">@totalTotalNovelty</td>
-        <td class="breakdownTotals2">@totalAlc</td>
-        <td class="breakdownTotals2">@totalHardGoods</td>
-        <td class="breakdownTotals2">@totalRvParts</td>
-        <td class="breakdownTotals2">@totalSeasonalMerch</td>
-        <td class="breakdownTotals2">@totalTotalMerch</td>
-        <td class="breakdownTotals2">@tTotal</td>
-        <td class="breakdownTotals2">@totalFoodCounter</td>
-        <td class="breakdownTotals2">@totalFood</td>
-        <td class="breakdownTotals2">@totalIce</td>
-        <td class="breakdownTotals2">@totalTotalFoodAndIce</td>
-        <td class="breakdownTotals2">@totalVending</td>
-        <td class="breakdownTotals2">@totalStamps</td>
-        <td class="breakdownTotals2">@tTotal2</td>
-        <td class="breakdownTotals2">@totalGrossRevenue</td>
-        <td class="breakdownTotals2">@totalTaxCollected</td>
-        <td class="breakdownTotals2">@totalNetRevenue</td>
-        <td class="breakdownTotals2">@totalTaxExpected</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalApparel)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalSeasonalNov)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalOtherNovelty)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalTotalNovelty)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalAlc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalHardGoods)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalRvParts)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalSeasonalMerch)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalTotalMerch)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @tTotal)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalFoodCounter)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalFood)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalIce)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalTotalFoodAndIce)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalVending)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalStamps)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @tTotal2)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalGrossRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalTaxCollected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalNetRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalTaxExpected)</td>
     </tr>
     @if (startDate.Month == currentDate.Month)
     {
