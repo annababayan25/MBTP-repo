@@ -57,4 +57,41 @@ namespace MBTP.Models
 
         public List<TransactionFlow>? TransactionFlows { get; set; }
     }
+
+    public class NormalizedReconRow
+    {
+        public string GL { get; set; } = "";
+        public string Client { get; set; } = "";
+        public string Item { get; set; } = "";
+        public string Description { get; set; } = "";
+        public decimal Amount { get; set; }
+        public DateTime? ItemDate { get; set; }
+    }
+
+  public class SpecialReconGroup
+    {
+        public string GL { get; set; }
+        public string Client { get; set; }
+        public string Item { get; set; }
+        public string Description { get; set; }
+
+        public DateTime? ItemDate { get; set; }
+
+        public decimal Amount { get; set; }
+    }
+
+    public class FyBucket
+    {
+        public DateTime FyStart { get; set; }
+
+        public decimal Sites { get; set; }
+        public decimal Rentals { get; set; }
+
+        // NEW FIELD
+        public decimal Lock_Fees { get; set; }
+    }
+
+
+
+
 }

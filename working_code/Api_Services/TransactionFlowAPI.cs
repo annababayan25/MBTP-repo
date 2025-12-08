@@ -19,9 +19,11 @@ namespace MBTP.Services
 {
     public class TransactionFlowApi : NewbookBaseApi
     {
-    
-        public TransactionFlowApi(HttpClient client) : base(client)
+        private readonly IDatabaseConnectionService _dbConnectionService;
+
+        public TransactionFlowApi(HttpClient client, IDatabaseConnectionService dbConnectionService) : base(client)
         {
+            _dbConnectionService = dbConnectionService;
         }
 
         public async Task<List<TransactionFlow>> PopulateTransactions(DateTime startDate, DateTime endDate)
@@ -61,8 +63,14 @@ namespace MBTP.Services
                     Amount = item.amount,
                     ArrivalDate = item.booking_period_from,
                     DepartureDate = item.booking_period_to,
+                    HasArrived = null,
+                    BookingCheckedIn = null,
                     Deposit = item.deposit,
                 };
+
+                var checkedInInfo = await GetCheckedInInfo(transactions.AccountForId, transactions.TransDate);
+                transactions.HasArrived = checkedInInfo.HasArrived;
+                transactions.BookingCheckedIn = checkedInInfo.BookingCheckedIn;
 
                 if (item.item_type == "payments_raised")
                 {
@@ -95,12 +103,57 @@ namespace MBTP.Services
                 }
 
                 transactionFlow.Add(transactions);
+
+
+
                 var jsonOutput = JsonConvert.SerializeObject(transactionFlow, Formatting.Indented);
-                 File.WriteAllText("transFlow2.json", jsonOutput);
+                File.WriteAllText("transFlow2.json", jsonOutput);
                 // File.AppendAllText("transFlow.txt", item.ToString() + Environment.NewLine);
             }
-            
+
             return transactionFlow;
         }
+
+        private async Task<(bool HasArrived, DateTime? BookingCheckedIn)> GetCheckedInInfo(int accountForId, DateTime transDate)
+        {
+            using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
+            {
+                await sqlConn.OpenAsync();
+
+                var query = "SELECT BookingCheckedIn FROM CheckedIn WHERE BookingId = @BookingId AND BookingName NOT LIKE '%EMERGENCY%'";
+                using (var command = new SqlCommand(query, sqlConn))
+                {
+                    command.Parameters.AddWithValue("@BookingId", accountForId);
+
+                    var result = await command.ExecuteScalarAsync();
+
+                    if (result != null) // Entry exists in the table
+                    {
+                        if (DateTime.TryParse(result.ToString(), out var bookingCheckedInDate))
+                        {
+                            // Check if BookingCheckedIn is before the TransDate
+                            if (bookingCheckedInDate < transDate)
+                            {
+                                return (true, bookingCheckedInDate);
+                            }
+                            else
+                            {
+                                // Checked in after the transaction date
+                                return (false, null);
+                            }
+                        }
+                        else
+                        {
+                            // Entry exists, but BookingCheckedIn is blank (user hasn't checked in yet)
+                            return (false, null);
+                        }
+                    }
+                }
+            }
+
+            // No entry exists for the given BookingId
+            return (false, null);
+        }
+
     }
 }

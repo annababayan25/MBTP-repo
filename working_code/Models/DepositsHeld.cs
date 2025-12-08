@@ -1,6 +1,6 @@
 namespace MBTP.Models
 {
-    public class ReservationsDeposits
+    public class Reservations
     {
         public DateTime TransDate { get; set; }
 
