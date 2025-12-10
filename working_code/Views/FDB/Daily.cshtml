@@ -335,7 +335,7 @@
                     <td class="white" style="font-weight:bold; border-radius:10px">Other Revenue:&nbsp;&nbsp;</td>
                     @if(accID == "4")
                     {
-                        <td class="green" style="border-radius:10px">@String.Format(numformat, (decimal)row["Laundry"] + (decimal)row["At-Site Propane"] + (decimal)row["Propane Station"])</td>
+                        <td class="green" style="border-radius:10px">@String.Format(numformat, (decimal)row["Laundry"] + (decimal)row["At-Site Propane"] + (decimal)row["Propane Station"]+(decimal)row["Vending"])</td>
                     }
                     else if(accID == "5")
                     {
@@ -343,7 +343,7 @@
                     }
                     else
                     {
-                        <td class="green" style="border-radius:10px">@String.Format(numformat, (decimal)row["Activities"] + (decimal)row["Other"] + (decimal)row["CATV"] + (decimal)row["Store Events"] + (decimal)row["Leased Concessions"] + (decimal)row["Laundry"] + (decimal)row["At-Site Propane"] + (decimal)row["Propane Station"])</td>
+                        <td class="green" style="border-radius:10px">@String.Format(numformat, (decimal)row["Activities"] + (decimal)row["Other"] + (decimal)row["CATV"] + (decimal)row["Store Events"] + (decimal)row["Leased Concessions"] + (decimal)row["Laundry"] + (decimal)row["At-Site Propane"] + (decimal)row["Propane Station"]+(decimal)row["Vending"]+(decimal)row["ParkModelSales"]+(decimal)row["VendorDecals"]+(decimal)row["925Income"])</td>
                     }
                     <td class="white" style="border-radius:10px">&nbsp;</td>
                 </tr>
@@ -405,7 +405,7 @@
                                 <td>&nbsp;</td>
                                 <td class="center">321</td>
                                 <td colspan="2">&nbsp;</td>
-                                @if(storeClosed) // if store closed, propane station closed too
+                                @if(storeClosed && ((decimal)row["Propane Station"]) == 0) // if store closed, propane station is normally closed too but not always
                                 {
                                     <td class="green">CLOSED</td>
                                 }
@@ -615,7 +615,7 @@
                                 @if((decimal)row["Vending"] != 0)
                                 {
                                     <td colspan="2">&nbsp;</td>
-                                    <td class="bYellow">@String.Format(numformatdashed, (decimal)row["Vending"])</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["Vending"])</td>
                                 }
                                 else
                                 {
@@ -854,6 +854,16 @@
                                     <td colspan="3">&nbsp;</td>
                                 }
                             </tr>
+                            @if(row["925Income"] != DBNull.Value && (decimal)row["925Income"] != 0)
+                            {
+                                <tr class="daily">
+                                    <td>21. Miscellaneous Income</td>
+                                    <td>&nbsp;</td>
+                                    <td class="center">925</td>
+                                    <td colspan="2">&nbsp;</td>
+                                    <td class="green">@String.Format(numformatdashed, (decimal)row["925Income"])</td>
+                                </tr>
+                            }
                         }
                     }
                 </tbody>
@@ -879,7 +889,7 @@
                                     <td>&nbsp;</td>
                                 </tr>
                             <tr class="daily">
-                                <td class="tableHead">1b. Store (Heartland Retail)</td>
+                                <td class="tableHead">1b. Store + Propane (Heartland Retail)</td>
                                 <td colspan="3">&nbsp;</td>
                                 <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["StoreCC"]))</td>
                                     <td>&nbsp;</td>
@@ -897,7 +907,7 @@
                                     <td>&nbsp;</td>
                                 </tr>
                             <tr class="daily">
-                                <td class="tableHead">1e. Guest Services (Clover)</td>
+                                <td class="tableHead">1e. Guest Services (Heartland Retail)</td>
                                     <td colspan="3">&nbsp;</td>
                                     <td class="right">@String.Format(numformatdashed, (decimal)Convert.ToDecimal(row["GuestCC"]))</td>
                                     <td>&nbsp;</td>
@@ -932,7 +942,7 @@
                                     <td>&nbsp;</td>
                                 </tr>
                             <tr class="daily">
-                                <td class="tableHead">3b. General Store</td>
+                                <td class="tableHead">3b. Store + Propane</td>
                                     <td colspan="3">&nbsp;</td>
                                 <td class="right">@String.Format(numformatdashed,(decimal)Convert.ToDecimal(row["StoreCash"]))</td>
                                     <td>&nbsp;</td>
