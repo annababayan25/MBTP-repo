@@ -32,7 +32,7 @@ namespace MBTP.Services
         private const double wristbandRate = 5;
 
         public NewbookImport(IDatabaseConnectionService dbConnectionService, HttpClient client, ReconApi recon, TransactionFlowApi transactionFlowApi, 
-                            ReconApi reconApi, CheckedInApi checkedIn, SupportRoutines supportRoutines)
+                            CheckedInApi checkedIn, SupportRoutines supportRoutines)
         : base(client)
         {
             _dbConnectionService = dbConnectionService;
