@@ -389,59 +389,7 @@ namespace MBTP.Controllers
 
             return View();
         }
-        /*
-
-        [Authorize]
-        public async Task<IActionResult> PopulateReservations(DateTime? day)
-        {
-            if (day == null)
-            {
-                ViewBag.SelectedDay = null;
-                return View();
-            }
-    
-            var selectedDay = day ?? DateTime.Today;
-            ViewBag.SelectedDay = selectedDay;
-            await _newbook.ProcessReservationsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
-
-            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
-
-            return View();
-        }
-
-        */
-
-        [Authorize]
-        public async Task<IActionResult> PopulateReservations(DateTime? day)
-        {
-            if (day == null)
-            {
-                ViewBag.SelectedDay = null;
-                return View();
-            }
-
-            var startDay = day.Value.Date;
-            var today = DateTime.Today;
-
-            // Store daily results
-            var allReports = new List<(DateTime Date, DataSet Report)>();
-
-            for (var currentDay = startDay; currentDay <= today; currentDay = currentDay.AddDays(1))
-            {
-                var from = currentDay;
-                var to = currentDay.AddDays(1).AddTicks(-1);
-
-                // Process reservations and deposits
-                var reservations = await _reservationsService.ProcessReservationsAsync(from, to);
-                await _reservationsRepo.SaveReservationsAsync(reservations);
-
-                // Retrieve daily report
-            }
-
-            ViewBag.TitleDate = $"{startDay:MMMM dd, yyyy} - {today:MMMM dd, yyyy}";
-
-            return View(allReports);
-        } 
+   
         
         [HttpPost]
         public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
