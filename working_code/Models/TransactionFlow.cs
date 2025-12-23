@@ -70,6 +70,12 @@ namespace MBTP.Models
         public bool? HasArrived { get; set; }
 
         public DateTime? BookingCheckedIn { get; set; }
+
+        public string? FormattedTransNumber { get; set; }
+        public string? FormattedPaymentMethod { get; set; }
+        public string? FormattedTransDate { get; set; }
+
+
     }
     
 }

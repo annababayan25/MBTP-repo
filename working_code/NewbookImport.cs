@@ -6,31 +6,53 @@ using NewbookSupport;
 using SQLStuff;
 using System;
 using System.Data;
+using MBTP.Models;
 using MBTP.Interfaces;
+using GenericSupport;
+using SQLStuff;
+using NewbookSupport;
 
-
-namespace FinancialC_
+// ReservationsService is a class dedicated to Reservations Deposits Table (Daily Breakdown R)
+namespace MBTP.Services
 {
-    public class NewbookImport
+    public class NewbookImport : NewbookBaseApi
     {
         private readonly IDatabaseConnectionService _dbConnectionService;
-        public NewbookImport(IDatabaseConnectionService dbConnectionService)
+        private readonly TransactionFlowApi _transactionFlowApi;
+        private readonly CheckedInApi _checkedIn;
+        private readonly ReconApi _recon;
+        private readonly SupportRoutines _supportRoutines;
+
+        private const double vehicleRateDayTax = 5.6;
+        private const double visitorRateBase = 4;
+        private const double visitorRateTax = 4.2;
+        private const double vehicleRateDayBase = 5;
+        private const double vehicleRateYrBase = 40;
+        private const double vehicleRateYrTax = 42;
+        private const double wristbandRate = 5;
+
+        public NewbookImport(IDatabaseConnectionService dbConnectionService, HttpClient client, ReconApi recon, TransactionFlowApi transactionFlowApi, 
+                            ReconApi reconApi, CheckedInApi checkedIn, SupportRoutines supportRoutines)
+        : base(client)
         {
             _dbConnectionService = dbConnectionService;
+            _transactionFlowApi = transactionFlowApi;
+            _recon = recon;
+            _supportRoutines = supportRoutines;
+            _checkedIn = checkedIn;
         }
-        public void ReadNewbookFiles()
+
+        public async Task<List<Reservations>> ProcessReservationsAsync(DateTime startDate, DateTime endDate)
         {
-            string tmpAction, tmpDesc, tmpCat, tmpTrans, tmpID, tmpClient, tmpGen, flowStr;
-            double tmpVal, totAmex = 0, totOtherCC = 0, totCash = 0, lockFee, siteDeposit = 100, rentalDeposit = 200, vehicleRateDayTax = 5.6;
+
+            int tmpId;
+            string tmpAction, tmpDesc, tmpCat, tmpTrans, tmpID, tmpClient, tmpGen, flowStr, tmpFTN, tmpTPM, tmpFPM;
+            double tmpVal = 0, totAmex = 0, totOtherCC = 0, totCash = 0;
+            decimal tmpAmt = 0m;
+            double lockFee, siteDeposit = 100, rentalDeposit = 200;
             System.DateTime arrDate, departDate;
             int startRow;
             bool refundChecksActive = false;
-            const double visitorRateBase = 4;
-            const double visitorRateTax = 4.2;
-            const double vehicleRateDayBase = 5;
-            const double vehicleRateYrBase = 40;
-            const double vehicleRateYrTax = 42;
-            const double wristbandRate = 5;
             const int catCol = 2;
             const int transCol = 3;
             const int dateCol = 4;
@@ -40,31 +62,74 @@ namespace FinancialC_
             const int amtCol = 8;
             const int arrCol = 9;
             const int depCol = 10;
+            bool validCheckin;
 
+            string[] siteCategories = { "WESC", "Water & Electric Only" };
+            string[] rentalCategories = { "Ocean Villa", "Cottage", "Cabin", "Travel Trailer" };
+            string[] extrasVehicles = { "Extra Vehicle", "Extra Vehicles Fee", "Extra Vehicle Fees", "Extra", "Visitor", "PASS", "Accommodation"};
+            string[] annualLease = { "Annual", "Annual Lease", "ANNUAL LEASE", "A/L" };
+            string[] employee = { "Employee" };
+            string[] mobileHome = { "Mobile", "Mobile Home", "M/L", "ML" };
+            string[] storage = { "Storage" };
+            string[] security = { "Security" };
+            string[] golfCategories = { "Golf" };
+
+            // Call all the APIs needed and retrieve list
+            var checkedInList = await _checkedIn.PopulateCheckIns(startDate, endDate);
+            var transactionsList = await _transactionFlowApi.PopulateTransactions(startDate, endDate);
+            // Call the Reconciliation Api and retrieve the list
+            var reconsList = await _recon.PopulateRecons(startDate, endDate);
+            var reservations = new Reservations { };
+            var reservationsList = new List<Reservations>();
+            var paymentsAfterIds = new Dictionary<int, decimal?>();
+
+            // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
+            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
+            if (!sqlSupport.PrepareForNewImport("UpdateFrontOfficeTable", startDate))
+            {
+                return new List<Reservations>();
+            }
+
+            if (startDate < System.DateTime.Parse("2024-01-01"))
+            {
+                lockFee = 30.0;
+            }
+            else
+            {
+                lockFee = 40.0;
+            }
+
+            /*
             // Verify that all files exist.  If any are missing there is no point in processing further.
             if (!GenericRoutines.AllFilesPresent(1)) 
             {
                 return; 
             }
-            // Retrieve the CheckedIn dataset
-            SupportRoutines supportRoutines = new SupportRoutines(_dbConnectionService);
-            DataSet checkedInData = supportRoutines.RetrieveCheckedInData();
+            */
 
-            // Create the connection to the database and define the SQl command that calls the stored procedure.  Stop here it there's a problem
-            SQLSupport sqlSupport = new SQLSupport(_dbConnectionService);
-            if (!sqlSupport.PrepareForImport("UpdateFrontOfficeTable"))
-            {
-                return;
-            }
+             var depositsTakenList = transactionsList
+            .Where(p =>
+                p.Category != null &&
+                (
+                    siteCategories.Any(c => p.Category.Contains(c, StringComparison.OrdinalIgnoreCase)) ||
+                    rentalCategories.Any(c => p.Category.Contains(c, StringComparison.OrdinalIgnoreCase))
+                )
+                &&
+                !p.Category.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
+                !p.Description.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
+                (p.Description.Contains("Deposit", StringComparison.OrdinalIgnoreCase) ||
+                p.Description.Contains("at Myrtle Beach Travel Park", StringComparison.OrdinalIgnoreCase) ||  
+                p.Description.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase)) &&
+                p.Deposit != null &&
+                p.Deposit.Contains("1", StringComparison.OrdinalIgnoreCase) &&
+                (p.Description == null || !p.Description.Contains("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase))
+            )
+            .OrderBy(p => p.AccountForId)
+            .ToList();
 
-            if (System.DateTime.Parse(GenericRoutines.repDateStr) < System.DateTime.Parse("2024-01-01"))
-            {
-                lockFee = 30;
-            }
-            else
-            {
-                lockFee = 40;
-            }
+            // Exclude deposits that have had any refunds for the same PaymentTypeReference + AccountForId on the same day
+            var depositsTakenList_NoRefunds = IgnoreEntries("Refunds Raised", depositsTakenList, transactionsList);
+
             // initialize revenue array
             var revenueArray = new List<NewbookSupport.Revenue>
             {
@@ -82,15 +147,17 @@ namespace FinancialC_
                 new Revenue() { RevType = "DamageFees", Accum = 0 },
                 new Revenue() { RevType = "GolfCartRentals", Accum = 0 }
             };
+
             // initialize deposits arrays
-            int tmpMonth = int.Parse(GenericRoutines.repDateStr.Substring(5, 2));
-            int tmpYear = int.Parse(GenericRoutines.repDateStr.Substring(0, 4)) - (tmpMonth < 10 ? 1 : 0); // Fiscal year starts with month 10
+            int tmpMonth = startDate.Month;
+            int tmpYear = startDate.Year - (tmpMonth < 10 ? 1 : 0); // Fiscal year starts with month 10
             var depositsArray = new List<NewbookSupport.Deposits>
             {
-                new Deposits() { Fy = System.DateTime.Parse("10/01/"+(tmpYear+2).ToString()), WescAccum = 0, RentalAccum = 0, GolfAccum = 0, VouchersAccum = 0 },
-                new Deposits() { Fy = System.DateTime.Parse("10/01/"+(tmpYear+1).ToString()), WescAccum = 0, RentalAccum = 0, GolfAccum = 0, VouchersAccum = 0 },
-                new Deposits() { Fy = System.DateTime.Parse("10/01/"+tmpYear.ToString()), WescAccum = 0, RentalAccum = 0, GolfAccum = 0, VouchersAccum = 0 }
+                new Deposits() { Fy = new DateTime(tmpYear + 2, 10, 1), WescAccum = 0, RentalAccum = 0, GolfAccum = 0, VouchersAccum = 0 },
+                new Deposits() { Fy = new DateTime(tmpYear + 1, 10, 1), WescAccum = 0, RentalAccum = 0, GolfAccum = 0, VouchersAccum = 0 },
+                new Deposits() { Fy = new DateTime(tmpYear, 10, 1), WescAccum = 0, RentalAccum = 0, GolfAccum = 0, VouchersAccum = 0 }
             };
+
             // initialize recon array
             var reconArray = new List<NewbookSupport.Recon>
             {
@@ -107,6 +174,17 @@ namespace FinancialC_
 //                new Recon() { ReconItem = "Trash Pickup", Accum = 0, GL = "0652", MiscTrans = true }
             };
             // initialize applied deposits array
+            var appliedArray = new List<NewbookSupport.Applied>
+            {
+                 new Applied() { AppliedItem = "SiteDepApp", Accum = 0 },
+                 new Applied() { AppliedItem = "RentalDepApp", Accum = 0 },
+                 new Applied() { AppliedItem = "GolfDepApp", Accum = 0 },
+                 new Applied() { AppliedItem = "VouchersRedSite", Accum = 0 },
+                 new Applied() { AppliedItem = "VouchersRedRental", Accum = 0 },
+                 new Applied() { AppliedItem = "VouchersRedSiteDep", Accum = 0 },
+                 new Applied() { AppliedItem = "VouchersRedRentalDep", Accum = 0 },
+                 new Applied() { AppliedItem = "VouchersRedStorage", Accum = 0 }
+            };
             // initialize balance transfers array
             var transferArray = new List<NewbookSupport.Transfers>
             {
@@ -140,48 +218,46 @@ namespace FinancialC_
                  new Checks() { CheckItem = "GolfDepositsC", Accum = 0 },
                  new Checks() { CheckItem = "OtherC", Accum = 0 }
             };
-            // Open the transaction flow and reconciliation files
-            XLWorkbook transBook = new XLWorkbook(GenericRoutines.nbfiles.Transflow);
-            IXLWorksheet transSheet = transBook.Worksheet(1);
-            int rowCount = transSheet.LastRowUsed()!.RowNumber();
-            //XLWorkbook reconBook = new XLWorkbook(GenericRoutines.nbfiles.Recon);
-            //IXLWorksheet reconSheet = reconBook.Worksheet(1);
-            //Spire.Xls.Worksheet specialSheet = SupportRoutines.BuildSpecialReconSheet(reconSheet);
-            IXLCell workCell;
-            startRow = 0;
-            for (int ih = 1; ih <= rowCount; ih++) // Loop until we find the headers row (usually the first row)
-            {
-                workCell = transSheet.Row(ih).Cell(catCol);
-                if (workCell != null && workCell.Value.ToString() == "Category")
-                {
-                    startRow = ih + 1;
-                    break;
-                }
-            }
+            // The transactions and reconsList are already populated from API calls at the top of the method
+
+            //Spire.Xls.Worksheet specialSheet = SupportRoutines.BuildSpecialReconSheet(reconList);
+
             int visCnt = 0, vehdCnt = 0, vehaCnt = 0, wristCnt = 0;
             double visTot = 0, vehdTot = 0, vehaTot = 0, wristTot = 0;
-            for (int i = startRow; i <= rowCount; i++) // Loop to the end of the file
+
+            foreach (var t in transactionsList) // Loop through all transactions
             {
-                tmpAction = transSheet.Row(i).Cell(1).Value.ToString();
-                tmpCat = transSheet.Row(i).Cell(catCol).Value.ToString();
-                tmpTrans = transSheet.Row(i).Cell(transCol).Value.ToString();
-                string tmpDateInStr = transSheet.Row(i).Cell(dateCol).Value.ToString();
-                //tmpDate = transSheet.Row(i).Cell(dateCol).Value.ToString();
-                tmpClient = transSheet.Row(i).Cell(clientCol).Value.ToString();
-                tmpGen = transSheet.Row(i).Cell(genCol).Value.ToString();
-                tmpDesc = transSheet.Row(i).Cell(descCol).Value.ToString();
+               
+                tmpId = t.AccountForId;
+                tmpAction = t.PaymentTypeAction ?? "";
+                tmpCat = t.Category ?? "";
+                tmpTrans = t.TransType ?? "";
+                tmpFTN = t.FormattedTransNumber ?? "";
+                tmpClient = t.ClientAccount ?? "";
+                tmpGen = t.GeneratedBy ?? "";
+                tmpDesc = t.Description ?? "";
+                tmpTPM = t.TranslatedPaymentType ?? "";
+                tmpFPM = t.FormattedPaymentMethod ?? "";
+                tmpAmt = t.Amount ?? 0m;
+
                 // Replace blank category if we need to (some small cash transactions may remain blank)
                 // Do not seek category for vouchers being redeemed as they are tied to a guest not a booking when purchased
-                if (tmpCat == "" && tmpDesc.IndexOf("Balance Transfer for Gift Voucher to Client Account") == -1)
+                if (string.IsNullOrEmpty(tmpCat) && 
+                    (tmpDesc?.IndexOf("Balance Transfer for Gift Voucher to Client Account") ?? -1) == -1)
                 {
-                    tmpCat = SupportRoutines.GetMissingCategory(transSheet, tmpAction, tmpTrans, tmpClient, catCol, transCol);
+                    // Get category from transaction - simplified call without Excel parameters
+                    tmpCat = SupportRoutines.GetMissingCategory(transactionsList, tmpAction, tmpTrans, tmpClient);
                 }
+                
                 tmpCat = tmpCat.ToUpper();  // Make it uppercase, then simplify for all remaining comparisons
-                if (tmpCat != "")
+                
+                if (!string.IsNullOrEmpty(tmpCat))
                 {
-                    if (tmpCat != "WESC" && tmpCat != "GUEST" && (tmpCat.IndexOf("VILLA") != -1 || tmpCat.IndexOf("CABIN") != -1 || tmpCat.IndexOf("STANDARD") != -1 ||
-                       tmpCat.Substring(0, 5) == "ELITE" || tmpCat.Substring(0, 7) == "PREMIUM" || tmpCat.IndexOf("COTTAGE") != -1 ||
-                       (tmpCat.IndexOf("TRAILER") != -1 && tmpCat.IndexOf("STORAGE") == -1)))
+                    if (tmpCat != "WESC" && tmpCat != "GUEST" && 
+                        (tmpCat.IndexOf("VILLA") != -1 || tmpCat.IndexOf("CABIN") != -1 || 
+                        tmpCat.IndexOf("STANDARD") != -1 || tmpCat.StartsWith("ELITE") || 
+                        tmpCat.StartsWith("PREMIUM") || tmpCat.IndexOf("COTTAGE") != -1 ||
+                        (tmpCat.IndexOf("TRAILER") != -1 && tmpCat.IndexOf("STORAGE") == -1)))
                     {
                         tmpCat = "RENTAL";    // Set an all-encompassing value for any type of rental unit
                     }
@@ -190,193 +266,173 @@ namespace FinancialC_
                         tmpCat = "WESC";
                     }
                 }
+
+                bool isWESC = tmpCat.Contains("WESC");
+                bool isRENTAL = tmpCat.Contains("RENTAL");
+
                 // This IF block is necessary to avoid a crash if there are no values in the date fields
-                if (transSheet.Row(i).Cell(arrCol).Value.ToString() == "")
+                if (!t.ArrivalDate.HasValue || t.ArrivalDate.Value == default(DateTime))
                 {
-                    arrDate = System.DateTime.Parse(GenericRoutines.repDateStr); // Assign report date.  Departure date not needed
-                    departDate = arrDate;
+                    arrDate = startDate; // Assign start date. Departure date not needed
+                    departDate = startDate;
                 }
                 else
                 {
-                    arrDate = System.DateTime.Parse(System.DateTime.Parse(transSheet.Row(i).Cell(arrCol).Value.ToString()).ToShortDateString());
-                    departDate = System.DateTime.Parse(System.DateTime.Parse(transSheet.Row(i).Cell(depCol).Value.ToString()).ToShortDateString());
+                    arrDate = t.ArrivalDate.Value.Date;
+                    departDate = t.DepartureDate.HasValue ? t.DepartureDate.Value.Date : startDate;
                 }
-                double.TryParse(transSheet.Row(i).Cell(amtCol).Value.ToString(), out tmpVal); // attempt conversion to double, ignore if false (cellVal will = 0)
-                tmpVal = Math.Round(tmpVal * -1, 2);
+                if (tmpAmt != 0m)
+                {
+                    tmpVal = 0;
+                    tmpVal = Math.Round((double)tmpAmt * -1, 2);
+                }
+
                 // flowStr is a common string that will be passed to all "Add" routines
-                flowStr = tmpAction + " (" + tmpGen + ") for " + tmpCat + "/" + tmpClient + "/" + tmpTrans + "/" + tmpDesc + " for " + string.Format("{0:c}", transSheet.Row(i).Cell(amtCol).Value);
+                flowStr = $"{tmpAction} ({tmpGen}) for {tmpCat}/{tmpClient}/{tmpTrans}/{tmpDesc} for {tmpAmt:C}";
+
                 // Since the Transaction Flow is sorted by actions we can open or close the Departing file if we enter or leave
                 // the Refund Check entries
-                if (tmpAction.IndexOf("Manual Entry Check Refunds") != -1 && refundChecksActive == false)
+                if ((tmpFPM?.IndexOf("Manual Entry Check Refunds") ?? -1) != -1 && !refundChecksActive)
                 {
                     refundChecksActive = true;
                 }
+                
                 // 'sheetsToProcess = openSourceFile("Departed List", ThisWorkbook.fixedDownloadsPath, "Bookings_Departing_List_Current_Quarter_" & wrkDay & ".xlsx", "XLSX", "Newbook")
                 //  sheetsToProcess = openSourceFile("Departed List", downloadsPath, "Bookings_Departing_List_Current_Quarter_" & wrkDay & ".xlsx", "XLSX", "Newbook")
                 //  If sheetsToProcess = -10 Then Exit Sub
                 //Set departedBookCurr = ThisWorkbook.srcBook
                 //Set departedSheetCurr = ThisWorkbook.srcSheet
-                else if (refundChecksActive && tmpAction.IndexOf("Manual Entry Check Refunds") == -1)
+                else if (refundChecksActive && (tmpFPM?.IndexOf("Manual Entry Check Refunds") ?? -1) == -1)
                 {
                     refundChecksActive = false;
                     //Set departedSheetCurr = Nothing
                     //departedBookCurr.Close False
                     //Set departedBookCurr = Nothing
                 }
-                if (tmpAction.Contains("Manual Entry") && (tmpAction.Contains("Visa") || tmpAction.Contains("MasterCard") || tmpAction.Contains("Discover") || tmpAction.Contains("AMEX")))
+                if (tmpAction.Contains("Manual Entry") && 
+                    (tmpTPM.Contains("Visa") || tmpTPM.Contains("MasterCard") || 
+                    tmpTPM.Contains("Discover") || tmpTPM.Contains("AMEX")))
                 {
                     string actionString;
-                    if (tmpAction.Contains("Payments"))
+                    int paymentsIndex = tmpAction.IndexOf("Payments");
+                    int refundsIndex = tmpAction.IndexOf("Refunds");
+                    
+                    if (paymentsIndex != -1)
                     {
-                        actionString = tmpAction.Substring(0, tmpAction.IndexOf("Payments"));
+                        actionString = tmpAction.Substring(0, paymentsIndex);
+                    }
+                    else if (refundsIndex != -1)
+                    {
+                        actionString = tmpAction.Substring(0, refundsIndex);
                     }
                     else
                     {
-                        actionString = tmpAction.Substring(0, tmpAction.IndexOf("Refunds"));
+                        actionString = tmpAction; // Fallback if neither is found
                     }
-                    GenericRoutines.UpdateAlerts(100, "CRITICAL ERROR", actionString + "(" + tmpGen + ") " + tmpTrans + " " + tmpClient + ": " + String.Format("{0:C}", tmpVal));
+                    GenericRoutines.UpdateAlerts2(100, "CRITICAL ERROR", 
+                        $"{actionString}({tmpGen}) {tmpTrans} {tmpClient}: {tmpVal:C}", startDate);
                 }
-                if (tmpAction.ToUpper().IndexOf("NONE") != -1 || tmpAction.ToUpper().IndexOf("BARTERCARD") != -1) { }  // Ignore these entries
-                else if (tmpAction.IndexOf("Manual Entry Check Refunds") != -1) //Refund found - exclude MBTP checks from calculations
+                if (tmpFPM.Contains("NONE", StringComparison.OrdinalIgnoreCase) || 
+                    tmpFPM.Contains("BARTERCARD", StringComparison.OrdinalIgnoreCase)) 
+                { 
+                    // Ignore these entries
+                }  
+                else if (tmpFPM.Contains("Manual Entry Check Refunds"))
                 {
                     tmpVal *= -1;
-                    if (tmpCat.IndexOf("ANNUAL") != -1)
+                    if (tmpCat.Contains("ANNUAL"))
                     {
                         SupportRoutines.AddCheck(checkArray, "AnnualC", flowStr, tmpVal);
                     }
-                    else if (tmpCat.IndexOf("MOBILE") != -1)
+                    else if (tmpCat.Contains("MOBILE"))
                     {
                         SupportRoutines.AddCheck(checkArray, "MHParkC", flowStr, tmpVal);
                     }
-                    else if (tmpCat.IndexOf("STORAGE") != -1)
+                    else if (tmpCat.Contains("STORAGE"))
                     {
                         SupportRoutines.AddCheck(checkArray, "StorageC", flowStr, tmpVal);
                     }
-                    else if (tmpCat.IndexOf("WHEELCHAIR") != -1 || tmpCat == " ")
+                    else if (tmpCat.Contains("WHEELCHAIR") || tmpCat.Trim() == "")
                     {
                         SupportRoutines.AddCheck(checkArray, "OtherC", flowStr, tmpVal);
                     }
                     else
                     {
-                        if (arrDate > System.DateTime.Parse(GenericRoutines.repDateStr))
+                        // First check if the booking ever checked in. If not, even if the arrival date is prior to the report
+                        // date the refund still comes out of deposits
+                        bool bookingCheckedIn = t.HasArrived == true && t.BookingCheckedIn <= t.TransDate;
+                        
+                        // Booking-specific check added 3/6/25 to overcome procedural error in Newbook 
+                        bool isSpecialBooking = t.BookingId == 327777;
+                        
+                        if (!bookingCheckedIn || isSpecialBooking) // Never arrived or departed so it gets applied to deposits
                         {
-                            SupportRoutines.AddCheck(checkArray, tmpCat.IndexOf("WESC") != -1 ? "SiteDepositsC" : tmpCat.IndexOf("GOLF") != -1 ? "GolfDepositsC": "RentalDepositsC", flowStr, tmpVal);
+                            string checkType = tmpCat.Contains("WESC") ? "SiteDepositsC" : 
+                                            tmpCat.Contains("GOLF") ? "GolfDepositsC" : 
+                                            "RentalDepositsC";
+                            SupportRoutines.AddCheck(checkArray, checkType, flowStr, tmpVal);
                         }
-                        else
+                        else if (tmpCat.Contains("GOLF")) // It's a refund against cart rental income
                         {
-                            // first we have to see if the booking ever checked in.  If not, even if the arrival date is prior to the report
-                            // date the refund still comes out of deposits
-                            // Look through the Bookings Departing List report(s) for the booking number.  If no match for the booking is found
-                            // the refund comes from deposits
-                            bool bookingDeparted = false;
-                            string listPath = GenericRoutines.DoesFileExist("", "Bookings_Departing_List_Current_Quarter_", ".xlsx");
-                            XLWorkbook listBook = new XLWorkbook(listPath);
-                            IXLWorksheet listSheet = listBook.Worksheet(1);
-                            int listRowCount = listSheet.LastRowUsed()!.RowNumber();
-                            for (int listCounter = 2; listCounter <= listRowCount; listCounter++)
+                            SupportRoutines.AddCheck(checkArray, "GolfC", flowStr, tmpVal);
+                        }
+                        else // Check to see if it gets applied to long-term (non-taxable) income or regular income
+                        {
+                            TimeSpan daysBetween = departDate - arrDate;
+                            if (daysBetween.Days >= 90) // Long term rental unit or site
                             {
-                                if(listSheet.Row(listCounter).Cell(1).Value.ToString().Substring(0,7) == tmpClient.Substring(9,7))
-                                {
-                                    bookingDeparted = true;
-                                    break;
-                                }
+                                string checkType = tmpCat.Contains("WESC") ? "LTCampsitesC" : "LTRentalsC";
+                                SupportRoutines.AddCheck(checkArray, checkType, flowStr, tmpVal);
                             }
-                            listBook.Dispose();
-                            // if the booking wasn't found check the prior quarter too
-                            if (bookingDeparted == false)
+                            else
                             {
-                                listPath = GenericRoutines.DoesFileExist("", "Bookings_Departing_List_Previous_Quarter_", ".xlsx");
-                                listBook = new XLWorkbook(listPath);
-                                listSheet = listBook.Worksheet(1);
-                                listRowCount = listSheet.LastRowUsed()!.RowNumber();
-                                for (int listCounter = 2; listCounter <= listRowCount; listCounter++)
-                                {
-                                    if (listSheet.Row(listCounter).Cell(1).Value.ToString().Substring(0, 7) == tmpClient.Substring(9, 7))
-                                    {
-                                        bookingDeparted = true;
-                                        break;
-                                    }
-                                }
-                                listBook.Dispose();
-                            }
-                            // one last check to see if the guest checked in on their arrival date, since Accommodation is in the description
-                            // we will loop up to 10 times to see if the booking is on the checked in list beginning on the intended arrival
-                            // date. If the guest did check in we set BookingDeparted to true to force the refund against income.
-                            if (bookingDeparted == false)
-                            {
-                                int arrDays;
-                                DateTime tmpArrDate = arrDate;
-                                for (arrDays = 0; arrDays <= 9; arrDays++)
-                                {
-                                    bookingDeparted = GenericRoutines.DidGuestArrive("", "Checked_In_List_", ".xlsx", tmpArrDate, tmpClient.Substring(10, 6));
-                                    if (bookingDeparted)
-                                    {
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        tmpArrDate = arrDate.AddDays(1);
-                                    }
-                                }
-                            }
-                            // Booking-specific check added 3/6/25 to overcome procedural error in Newbook 
-                            if (bookingDeparted == false || tmpClient.Substring(9, 7) == "#327777")   // never arrived or departed so it gets applied to deposits
-                            {
-                                SupportRoutines.AddCheck(checkArray, tmpCat.IndexOf("WESC") != -1 ? "SiteDepositsC" : tmpCat.IndexOf("GOLF") != -1 ? "GolfDepositsC" : "RentalDepositsC", flowStr, tmpVal);
-                            }
-                            else if (tmpCat.IndexOf("GOLF") != -1)  // It's a refund against cart rental income
-                            {
-                                SupportRoutines.AddCheck(checkArray, "GolfC", flowStr, tmpVal);
-                            }
-                            else  // check to see if it gets applied to long-term (non-taxable) income or regular income
-                            {
-                                TimeSpan daysBetween = departDate - arrDate;
-                                if (daysBetween.Days >= 90)// Long term rental unit or site
-                                {
-                                    SupportRoutines.AddCheck(checkArray, tmpCat.IndexOf("WESC") != -1 ? "LTCampsitesC" : "LTRentalsC", flowStr, tmpVal);
-                                }
-                                else
-                                {
-                                    SupportRoutines.AddCheck(checkArray, tmpCat.IndexOf("WESC") != -1 ? "CampsitesC" : "RentalsC", flowStr, tmpVal);
-                                }
+                                string checkType = tmpCat.Contains("WESC") ? "CampsitesC" : "RentalsC";
+                                SupportRoutines.AddCheck(checkArray, checkType, flowStr, tmpVal);
                             }
                         }
                     }
                 }
+            
                 else
                 {
                     bool reconMatchFound;
-                    // We look for the presence of the record in the reconciliation file.  If it exists we will process
+                    // We look for the presence of the record in the reconciliation file. If it exists we will process
                     // it later unless we override it and pull it out based on the IF block below.
-                    if (tmpAction.IndexOf("Refunds") != -1 && tmpAction.IndexOf("Balance Transfer") == -1 && tmpTrans.IndexOf("Ref #") != -1)
+                    if (tmpAction.Contains("Refunds") && 
+                        !tmpTPM.Contains("Balance Transfer") && 
+                        tmpFTN.Contains("Ref #"))
                     {
-                        reconMatchFound = SupportRoutines.ValidReconEntryFound(tmpAction, tmpTrans, tmpVal, transCol, transSheet);
+                        reconMatchFound = SupportRoutines.ValidReconEntryFound(tmpAction, t, tmpVal);
                     }
                     else
                     {
-                        reconMatchFound = SupportRoutines.ValidReconEntryFound(tmpAction, tmpTrans, tmpVal);
+                        reconMatchFound = SupportRoutines.ValidReconEntryFound(tmpAction, t, tmpVal);
                     }
-                    if (tmpCat.IndexOf("STORAGE") != -1)
+                    
+                    if (tmpCat.Contains("STORAGE"))
                     {
                         tmpCat = tmpCat.ToUpper();
                     }
-                    tmpDesc = tmpDesc.ToUpper();    // So comparisons aren't case sensitive
-                    // Test to see if the value is a multiple of vehicle fee w/tax ($5.60 for FY 21+).
-                    // Choose 10x as arbitrary max value
-                    // The test is to be done this high in the IF so that it will correctly assign vehicle charges even if the
-                    // value in the Description field is Accommodation
-                    //                    if (((tmpCat.IndexOf("WESC") != -1 || tmpCat.IndexOf("RENTAL") != -1) && tmpDesc.IndexOf("REFUND") == -1 &&
-                                        // (tmpDesc.IndexOf("ACCOMMODATION") != -1 && Math.Abs(tmpVal) <= 10 * vehicleRateDayTax)) || tmpVal > 0) &&
-                    if (((tmpCat.IndexOf("WESC") != -1 || tmpCat.IndexOf("RENTAL") != -1) && 
-                        ((tmpVal < 0 && tmpDesc.IndexOf("ACCOMMODATION") == -1) || tmpVal > 0) &&
-                        tmpDesc.IndexOf("REFUND") == -1 &&
+                    tmpDesc = tmpDesc.ToUpper();
+
+                    if (((tmpCat.Contains("WESC", StringComparison.OrdinalIgnoreCase) ||
+                        tmpCat.Contains("RENTAL", StringComparison.OrdinalIgnoreCase)) &&
+                        ((tmpVal < 0 && !tmpDesc.Contains("ACCOMMODATION", StringComparison.OrdinalIgnoreCase)) ||
+                        tmpVal > 0) &&
+                        !tmpDesc.Contains("REFUND", StringComparison.OrdinalIgnoreCase) &&
                         Math.Abs(tmpVal) <= 10 * vehicleRateDayTax &&
-                        Math.Truncate(tmpVal / vehicleRateDayTax) == Math.Round(tmpVal / vehicleRateDayTax, 2) &&
-                        (tmpDesc.IndexOf("DEP") == -1 || tmpDesc.IndexOf("EX") != -1) &&
-                        tmpAction.IndexOf("Balance Transf") == -1) || tmpDesc.IndexOf("VEHICLE REFUND") != -1)
+                        Math.Truncate(tmpVal / (double)vehicleRateDayTax) ==
+                        Math.Round(tmpVal / (double)vehicleRateDayTax, 2) &&
+                        (!tmpDesc.Contains("DEP", StringComparison.OrdinalIgnoreCase) ||
+                        tmpDesc.Contains("EX", StringComparison.OrdinalIgnoreCase)) &&
+                        !tmpTPM.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase)) ||
+                        tmpDesc.Contains("VEHICLE REFUND", StringComparison.OrdinalIgnoreCase))
                     {
-                        reconArray = SupportRoutines.AddRecon(reconArray, "Extra", flowStr, tmpVal);
-                        if (tmpDesc.IndexOf("EX") == -1)
+                        // DebugClassify call removed as it doesn't exist in current codebase
+                        vehaTot += tmpVal;
+                        reconArray = SupportRoutines.AddRecon(reconArray, "ExtraVehicleFees", flowStr, tmpVal);
+
+                        if (!tmpDesc.Contains("EX", StringComparison.OrdinalIgnoreCase))
                         {
                             SupportRoutines.AddAssumption("Unable to determine intent, assigning to Extra Vehicle Fees from " + flowStr);
                         }
@@ -384,14 +440,14 @@ namespace FinancialC_
                     // EVENTS
                     else if (tmpDesc.IndexOf("OYSTER") != -1 || tmpDesc.IndexOf("ACTIV") != -1)
                     {
-                        if (reconMatchFound == false) 
-                        { 
-                            reconArray = SupportRoutines.AddRecon(reconArray, "Events", flowStr, tmpVal); 
+                        if (reconMatchFound == false)
+                        {
+                            reconArray = SupportRoutines.AddRecon(reconArray, "Events", flowStr, tmpVal);
                         }
                         else // Skip it, we'll grab it in the recon file
-                        { 
-                            revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); 
-                        }    
+                        {
+                            revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal);
+                        }
                     }
                     // EMPLOYEE SITE
                     else if (tmpCat.IndexOf("EMPLOYEE") != -1 || (tmpCat.IndexOf("ANNUAL") != -1 && tmpDesc.IndexOf("EMPLOYEE") != -1))
@@ -412,7 +468,7 @@ namespace FinancialC_
                         else
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "Employee", flowStr, tmpVal);
-                            if (tmpAction.IndexOf("Balance Transf") != -1) { transferArray = SupportRoutines.AddTransfer(transferArray, "AnnualT", flowStr, tmpVal); }
+                            if (tmpTPM.IndexOf("Balance Transfer") != -1) { transferArray = SupportRoutines.AddTransfer(transferArray, "AnnualT", flowStr, tmpVal); }
                         }
                     }
                     // PROPANE SALES
@@ -442,6 +498,13 @@ namespace FinancialC_
                         if (reconMatchFound) // We're skipping this record on purpose, we'll get the money from the recon file
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal);
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId; // already non-null
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
                         }
                         else
                         {
@@ -452,42 +515,84 @@ namespace FinancialC_
                     else if ((tmpCat.IndexOf("ANNUAL") != -1 || tmpCat.IndexOf("MOBILE") != -1) && tmpDesc.IndexOf("STORAGE") != -1)
                     {
                         if (reconMatchFound == false) { reconArray = SupportRoutines.AddRecon(reconArray, "Storage", flowStr, tmpVal); }
-                        else { revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); }   // Skip it, we'll grab it in the recon file
+                        else
+                        {
+                            revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal);
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId; // already non-null
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                        }   // Skip it, we'll grab it in the recon file
                     }
                     // VISITOR FEES BEGINS
                     // VF Section 1
                     else if (tmpDesc.IndexOf("VISITOR") != -1 || tmpDesc.IndexOf("VISTOR") != -1 || tmpDesc.IndexOf("DAY") != -1 ||
                             tmpDesc.IndexOf("PASS") != -1 || tmpDesc.IndexOf("WRIST") != -1 ||
                             (tmpClient == "Cash Account" && tmpDesc == "ACCOMMODATION" &&
-                             tmpVal % 2 == 0 && Math.Abs(tmpVal) >= visitorRateBase && tmpAction.IndexOf("Balance Transf") == 0))
+                                tmpVal % 2 == 0 && Math.Abs(tmpVal) >= visitorRateBase && tmpTPM.Contains("Balance Transfer")))
                     {
                         if (tmpDesc.IndexOf("WRIST") != -1)
                         {
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
                             wristTot += tmpVal;
                             wristCnt += (int)Math.Truncate(tmpVal / wristbandRate);
                             reconArray = SupportRoutines.AddRecon(reconArray, "VisitorWRIST", flowStr, tmpVal);
                         }
                         else
                         {
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
                             visTot += tmpVal;
                             visCnt += (int)Math.Truncate(tmpVal / visitorRateTax);
-                            reconArray = SupportRoutines.AddRecon(reconArray, "Visitor", flowStr, tmpVal);
+                            reconArray = SupportRoutines.AddRecon(reconArray, "VisitorFees", flowStr, tmpVal);
                         }
                     } // VF Section 1 ENDS
-                    // VF Section 2
+                      // VF Section 2
                     else if ((tmpCat.IndexOf("ANNUAL") != -1 || tmpCat.IndexOf("MOBILE") != -1) &&
-                             (((Math.Round(tmpVal / vehicleRateDayTax, 2) != (int)Math.Truncate(tmpVal / vehicleRateDayTax)) &&
+                                (((Math.Round(tmpVal / vehicleRateDayTax, 2) != (int)Math.Truncate(tmpVal / vehicleRateDayTax)) &&
                                 Math.Abs(tmpVal) <= vehicleRateYrTax * 2 && tmpDesc.IndexOf("MISC") == -1 &&
                                 tmpDesc.IndexOf("NOT VEHICLE") == -1) || tmpDesc.IndexOf("EXTRA") != -1))
                     {
                         if (Math.Abs(tmpVal) >= vehicleRateYrBase)
                         {
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
                             vehaTot += tmpVal;
                             vehaCnt = (int)(vehaCnt + Math.Truncate(tmpVal / vehicleRateYrBase));
                             reconArray = SupportRoutines.AddRecon(reconArray, "VisitorEXYA", flowStr, tmpVal);
                         }
                         else
                         {
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
                             vehdTot += tmpVal;
                             vehdCnt = (int)(vehdCnt + Math.Truncate(tmpVal / vehicleRateDayBase));
                             reconArray = SupportRoutines.AddRecon(reconArray, "VisitorEXDA", flowStr, tmpVal);
@@ -496,13 +601,21 @@ namespace FinancialC_
                       // VF Section 3
 
                     else if ((tmpDesc.IndexOf("ACCOMMODATION") != -1 || tmpDesc.IndexOf("EXTRA") != -1) &&
-                             ((tmpVal / vehicleRateDayTax == Math.Truncate(tmpVal / vehicleRateDayTax)) ||
-                              (tmpVal / vehicleRateYrTax == Math.Truncate(tmpVal / vehicleRateYrTax))) &&
-                             tmpTrans.IndexOf("Refunds Raised") == -1 && tmpDesc.IndexOf("NOT VEHICLE") == -1 &&
-                             tmpAction.IndexOf("Balance Transfer") == -1 && Math.Abs(tmpVal) < 200)  // 200 is an arbitrary value
+                                ((tmpVal / vehicleRateDayTax == Math.Truncate(tmpVal / vehicleRateDayTax)) ||
+                                (tmpVal / vehicleRateYrTax == Math.Truncate(tmpVal / vehicleRateYrTax))) &&
+                                tmpTrans.IndexOf("Refunds Raised") == -1 && tmpDesc.IndexOf("NOT VEHICLE") == -1 &&
+                                !tmpTPM.Contains("Balance Transfer") && Math.Abs(tmpVal) < 200)  // 200 is an arbitrary value
                     {
                         if (Math.Abs(tmpVal) >= vehicleRateYrBase)
                         {
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
                             vehaTot += tmpVal;
                             vehaCnt += (int)Math.Truncate(tmpVal / vehicleRateYrBase);
                             reconArray = SupportRoutines.AddRecon(reconArray, "VisitorEXYA", flowStr, tmpVal);
@@ -510,52 +623,102 @@ namespace FinancialC_
                         }
                         else
                         {
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
                             vehdTot += tmpVal;
                             vehdCnt += (int)Math.Truncate(tmpVal / vehicleRateDayBase);
                             reconArray = SupportRoutines.AddRecon(reconArray, "VisitorEXDA", flowStr, tmpVal);
                             //reconArray = SupportRoutines.AddRecon(reconArray, "Extra Vehicle Fees", flowStr, tmpVal);
                         }
                     } // VF Section 3 ENDS
-                    // VF Section 4
+                      // VF Section 4
                     else if ((tmpCat.IndexOf("WESC") != -1 || tmpCat.IndexOf("RENTAL") != -1) &&
                             (tmpDesc.IndexOf("ACCOMMODATION") != -1 || tmpDesc.IndexOf("EXTRA") != -1) &&
                             tmpVal / visitorRateTax == (int)Math.Truncate(tmpVal / visitorRateTax) &&
-                            tmpTrans.IndexOf("Refunds Raised") == -1 && tmpAction.IndexOf("Balance Transf") == -1 &&
+                            tmpTrans.IndexOf("Refunds Raised") == -1 && !tmpTPM.Contains("Balance Transfer") &&
                             Math.Abs(tmpVal) <= visitorRateTax * 7) // 7 is arbitrary value to keep it under lock fee
                     {
-                        reconArray = SupportRoutines.AddRecon(reconArray, "Visitor", flowStr, tmpVal);
+                        if (tmpAmt != 0m)
+                        {
+                            int bookingId = t.AccountForId;
+                            decimal amount = tmpAmt;
+
+                            paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                        }
+                        ;
+                        reconArray = SupportRoutines.AddRecon(reconArray, "VisitorFees", flowStr, tmpVal);
                         visTot += tmpVal;
                         visCnt += (int)Math.Truncate(tmpVal / visitorRateTax);
                     } // VF Section 4 ENDS
-                    // VISITOR FEES ENDS
-                    // BEACH WHEELCHAIR
+                      // VISITOR FEES ENDS
+                      // BEACH WHEELCHAIR
                     else if (tmpCat == "BEACH WHEELCHAIR" || tmpDesc.IndexOf("CHAIR") != -1 || tmpDesc.IndexOf("WHEEL") != -1)
                     {
                         revenueArray = SupportRoutines.AddRevenue(revenueArray, "Misc", flowStr, tmpVal);
+                        if (tmpAmt != 0m)
+                        {
+                            int bookingId = t.AccountForId; // already non-null
+                            decimal amount = tmpAmt;
+
+                            paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                        }
                     }
                     // TRANSFER FEE
                     else if (tmpDesc.IndexOf("TRANSFER FEE") != -1)
                     {
                         if (reconMatchFound == false) { reconArray = SupportRoutines.AddRecon(reconArray, "TransferFees", flowStr, tmpVal); }
-                        else { revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); }  // Skip it, we'll grab it in the recon file
-                    }
-                    // LOCK FEE
-                    else if (tmpDesc.IndexOf("LOCK") != -1)
-                    {
-                        if (reconMatchFound) { revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); } // Skip it, we'll grab it in the recon file
-                        else { reconArray = SupportRoutines.AddRecon(reconArray, "LockFees", flowStr, tmpVal); }
+                        else
+                        {
+                            revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal);
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
+                        }  // Skip it, we'll grab it in the recon file
                     }
                     // LATE FEE
                     else if (tmpDesc.IndexOf("LATE") != -1)
                     {
-                        if (reconMatchFound == false) { reconArray = SupportRoutines.AddRecon(reconArray, "Late", flowStr, tmpVal); }
-                        else { revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); } // Skip it, we'll grab it in the recon file
+                        if (reconMatchFound == false) { reconArray = SupportRoutines.AddRecon(reconArray, "LateFees", flowStr, tmpVal); }
+                        else
+                        {
+                            revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal);
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
+                        } // Skip it, we'll grab it in the recon file
                     }
                     // DAMAGE FEE
                     else if (tmpDesc.IndexOf("DAMAGE") != -1)
                     {
-                        if (reconMatchFound == false) { reconArray = SupportRoutines.AddRecon(reconArray, "Damage", flowStr, tmpVal); }
-                        else { revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); } // Skip it, we'll grab it in the recon file
+                        if (reconMatchFound == false) { reconArray = SupportRoutines.AddRecon(reconArray, "DamageFees", flowStr, tmpVal); }
+                        else
+                        {
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            ;
+                            revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal);
+                        } // Skip it, we'll grab it in the recon file
                     }
                     // ANNUAL LEASE AND MOBILE HOME
                     else if (tmpCat.IndexOf("ANNUAL") != -1 || tmpCat.IndexOf("MOBILE") != -1)
@@ -564,21 +727,35 @@ namespace FinancialC_
                             tmpDesc.IndexOf("MOBILE HOME") != -1 || tmpDesc.IndexOf("BALANCE TRANSFER") != -1)
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("ANNUAL") != -1 ? "Annual" : "MHPark", flowStr, tmpVal);
-                            if (tmpAction.IndexOf("Balance Transf") != -1) { transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("ANNUAL") != -1 ? "AnnualT" : "MHParkT", flowStr, tmpVal); }
+                            if (tmpAction.IndexOf("Balance Transfer") != -1) { transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("ANNUAL") != -1 ? "AnnualT" : "MHParkT", flowStr, tmpVal); }
                         }
                         else if (Math.Abs(tmpVal) > 150) // Arbitrary value; above this amount will be considered a normal payment
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("ANNUAL") != -1 ? "Annual" : "MHPark", flowStr, tmpVal);
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
                             SupportRoutines.AddAssumption("Unable to determine intent, assigning to " + (tmpCat.IndexOf("ANNUAL") != -1 ? "Annual Lease" : "Mobile Home") + " from " + flowStr);
                         }
                         else if (tmpDesc.IndexOf("STORAGE") != -1 && reconMatchFound == false) { revenueArray = SupportRoutines.AddRevenue(revenueArray, "Storage", flowStr, tmpVal); }
                         else if (reconMatchFound == false)
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "Misc", flowStr, tmpVal);
-                            GenericRoutines.UpdateAlerts(1, "Informational", "(1)Unable to determine intent, assigning to Misc from " + flowStr);
+                            if (tmpAmt != 0m)
+                            {
+                                int bookingId = t.AccountForId;
+                                decimal amount = tmpAmt;
+
+                                paymentsAfterIds[bookingId] = paymentsAfterIds.TryGetValue(bookingId, out var existing) ? existing + amount : amount;
+                            }
+                            GenericRoutines.UpdateAlerts2(1, "Informational", "(1)Unable to determine intent, assigning to Misc from " + flowStr, startDate);
                         }
                     } // ANNUAL LEASE AND MOBILE HOME ENDS
-                    // GOLF CARTS
+                      // GOLF CARTS
                     else if (tmpCat.IndexOf("GOLF CART RENTAL") != -1)
                     {
                         int jCnt = 3;
@@ -596,22 +773,22 @@ namespace FinancialC_
                             TimeSpan daysBetween = depositsArray[2].Fy - departDate;
                             if (daysBetween.Days < 0) // We can't ignore the error if departure is also in previous FY
                             {
-                                if (SupportRoutines.CheckFYChange(tmpClient) == false)
+                                if (!_supportRoutines.CheckFYChange(tmpId, startDate) == false)
                                 {
-                                    GenericRoutines.UpdateAlerts(1, "WARNING", "PRIOR FY! Payment from " + flowStr + " was applied to a past reservation. Current FY used.");
+                                    GenericRoutines.UpdateAlerts2(1, "WARNING", "PRIOR FY! Payment from " + flowStr + " was applied to a past reservation. Current FY used.", startDate);
                                 }
                             }
                         }
-                        if (tmpAction.IndexOf("Balance Transf") != -1)
+                        if (tmpAction.IndexOf("Balance Transfer") != -1)
                         {
-                            if (arrDate >= System.DateTime.Parse(GenericRoutines.repDateStr))
+                            if (t.HasArrived == false)
                             {
                                 transferArray = SupportRoutines.AddTransfer(transferArray, "GolfDepositsT", flowStr, tmpVal);
                                 depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", jCnt, flowStr, tmpVal);
                             }
-                            else
+                            else if (t.HasArrived == true && t.BookingCheckedIn <= t.TransDate)
                             {
-                                int returnedVal = SupportRoutines.CheckForCancel(tmpClient);
+                                int returnedVal = _supportRoutines.CheckForCancel(tmpId, startDate);
                                 if (returnedVal == 1) // If cancel back out of deposits even if earlier date
                                 {
                                     transferArray = SupportRoutines.AddTransfer(transferArray, "GolfDepositsT", flowStr, tmpVal);
@@ -624,24 +801,26 @@ namespace FinancialC_
                                 }
                                 else // stop processing. Alert written in CheckForCancel
                                 {
-                                    return;
+                                    return new List<Reservations>();
                                 }
                             }
                         }
                         else
                         {
-                            if (arrDate == System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") == -1) 
-                            { 
-                                if ((reconMatchFound == false && SameDayArrival(tmpClient.Substring(10,6))) || tmpDesc.IndexOf("WALKIN") != -1)
-                                {
-                                      revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", flowStr, tmpVal);
-                                }
+                            // Check if guest arrived same day as transaction
+                            bool hasCheckedIn = t.HasArrived == true &&
+                                                t.BookingCheckedIn <= t.TransDate;
+
+                            if (hasCheckedIn && !tmpTrans.Contains("REFUND", StringComparison.OrdinalIgnoreCase))
+                            {
+                                revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", flowStr, tmpVal);
                             }
                             depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", jCnt, flowStr, tmpVal);
                         }
                     } // GOLF CARTS ENDS
+
                     // WESC AND RENTALS BEGINS
-                    else if (tmpCat.IndexOf("WESC") != -1 || tmpCat.IndexOf("RENTAL") != -1)
+                    else if (tmpCat.Contains("WESC") || tmpCat.Contains("RENTAL"))
                     {
                         int jCnt = 3;
                         for (int ii = 0; ii < 3; ii++) // We need to know the fiscal year in case deposits are involved
@@ -652,243 +831,230 @@ namespace FinancialC_
                                 break;
                             }
                         }
-                        if (jCnt == 3)    //   This indicates a possible error.  Put the money in the current FY and report a warning
+                        if (jCnt == 3)    // This indicates a possible error. Put the money in the current FY and report a warning
                         {
                             jCnt = 2;
                             TimeSpan daysBetween = depositsArray[2].Fy - departDate;
                             if (daysBetween.Days < 0) // We can't ignore the error if departure is also in previous FY
                             {
-                                if (SupportRoutines.CheckFYChange(tmpClient) == false)
+                                if (!_supportRoutines.CheckFYChange(tmpId, startDate) == false)
                                 {
-                                    GenericRoutines.UpdateAlerts(1, "WARNING", "PRIOR FY! Payment from " + flowStr + " was applied to a past reservation. Current FY used.");
+                                    GenericRoutines.UpdateAlerts2(1, "WARNING", $"PRIOR FY! Payment from {flowStr} was applied to a past reservation. Current FY used.", startDate);
                                 }
                             }
                         }
-                        if (tmpAction.IndexOf("Balance Transf") != -1)
+
+                        if (tmpTPM.Contains("Balance Transfer"))
                         {
-                            if (tmpClient.ToUpper().IndexOf("FORFEIT") != -1)
+                            if (tmpClient.ToUpper().Contains("FORFEIT"))
                             {
-                                if (tmpVal != 30) // Move from deposits to revenue except for lock fees
+                                if (tmpVal != 30 || tmpVal != 40) // Move from deposits to revenue except for lock fees
                                 {
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsites" : "Rentals", flowStr, tmpVal);
-                                    transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("WESC") != -1 ? "CampsitesT" : "RentalsT", flowStr, tmpVal);
+                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "Campsites" : "Rentals", flowStr, tmpVal);
+                                    transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "CampsitesT" : "RentalsT", flowStr, tmpVal);
                                 }
                                 else
                                 {
                                     revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); // Skip lock fees, we've already claimed them
                                 }
                             }
-                            else if (tmpDesc.IndexOf("FOR GIFT VOUCHER FROM CLIENT") != -1)
+                            else if (tmpDesc.Contains("FOR GIFT VOUCHER FROM CLIENT"))
                             {
-                                if (arrDate >= System.DateTime.Parse(GenericRoutines.repDateStr))
+                                if (t.HasArrived == false)
                                 {
-                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
-                                    transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("WESC") != -1 ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
+                                    appliedArray = SupportRoutines.AddApplied(appliedArray, tmpCat.IndexOf("WESC") != -1 ? "VouchersRedSiteDep" : "VouchersRedRentalDep", flowStr, tmpVal);
+                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
+                                    transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
                                 }
-                                else
+                                else if (t.HasArrived == true && t.BookingCheckedIn <= t.TransDate)
                                 {
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsites" : "Rentals", flowStr, tmpVal);
-                                    transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("WESC") != -1 ? "CampsitesT" : "RentalsT", flowStr, tmpVal);
+                                    appliedArray = SupportRoutines.AddApplied(appliedArray, tmpCat.IndexOf("WESC") != -1 ? "VouchersRedSite" : "VouchersRedRental", flowStr, tmpVal);
+                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "Campsites" : "Rentals", flowStr, tmpVal);
+                                    transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "CampsitesT" : "RentalsT", flowStr, tmpVal);
                                 }
                             }
-                            else if (tmpDesc.IndexOf("BALANCE TRANSFER FROM ACCOUNT") != -1 || tmpDesc.IndexOf("BALANCE TRANSFER TO ACCOUNT") != -1 ||
-                                     tmpDesc.IndexOf("BALANCE TRANSFER FROM CLIENT ACCOUNT") != -1 || tmpDesc.IndexOf("BALANCE TRANSFER TO CLIENT ACCOUNT") != -1)
+                            else if (tmpDesc.Contains("BALANCE TRANSFER FROM ACCOUNT") || tmpDesc.Contains("BALANCE TRANSFER TO ACCOUNT") ||
+                                    tmpDesc.Contains("BALANCE TRANSFER FROM CLIENT ACCOUNT") || tmpDesc.Contains("BALANCE TRANSFER TO CLIENT ACCOUNT"))
                             {
-                                if (Math.Abs(tmpVal) == 30 && tmpDesc.IndexOf("EXCEPTION") == -1) // Assume it's a Lock fee transfer or forfeit so skip it
+                                if ((Math.Abs(tmpVal) == 30 && !tmpDesc.Contains("EXCEPTION")) || (Math.Abs(tmpVal) == 30 && !tmpDesc.Contains("EXCEPTION"))) // Assume it's a Lock fee transfer or forfeit so skip it
                                 {
                                     revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); // Lock fee transfer or forfeit so skip it
                                 }
-                                else if (arrDate >= System.DateTime.Parse(GenericRoutines.repDateStr))
+                                else if (t.HasArrived == false)
                                 {
-                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
-                                    transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("WESC") != -1 ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
+                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
+                                    transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
                                 }
-                                else
+                                else if (t.HasArrived == true && t.BookingCheckedIn <= t.TransDate)
                                 {
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsites" : "Rentals", flowStr, tmpVal);
-                                    transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("WESC") != -1 ? "CampsitesT" : "RentalsT", flowStr, tmpVal);
+                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "Campsites" : "Rentals", flowStr, tmpVal);
+                                    transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "CampsitesT" : "RentalsT", flowStr, tmpVal);
                                 }
                             }
-                            else if (tmpDesc.IndexOf("CANCEL") != -1)
+                            else if (tmpDesc.Contains("CANCEL"))
                             {
-                                transferArray = SupportRoutines.AddTransfer(transferArray, tmpCat.IndexOf("WESC") != -1 ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
-                                depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", 2, flowStr, tmpVal);
+                                transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
+                                depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", 2, flowStr, tmpVal);
                             }
-                            else if ((tmpTrans.IndexOf("Voided Payments Voided") != -1 && tmpDesc == "") ||
-                                     (tmpTrans.IndexOf("Voided Refunds Voided") != -1 && tmpDesc == "") ||
-                                     (tmpTrans.IndexOf("Refunds Raised") != -1 && tmpDesc == "") ||
-                                     (tmpTrans.IndexOf("Payments Raised") != -1 && tmpDesc == ""))
+                            else if ((tmpTrans.Contains("Voided Payments Voided") && tmpDesc == "") ||
+                                    (tmpTrans.Contains("Voided Refunds Voided") && tmpDesc == "") ||
+                                    (tmpTrans.Contains("Refunds Raised") && tmpDesc == "") ||
+                                    (tmpTrans.Contains("Payments Raised") && tmpDesc == ""))
                             {
-                                revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsite" : "Rental", flowStr, tmpVal);
+                                revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "Campsite" : "Rental", flowStr, tmpVal);
                             }
                             else
                             {
                                 revenueArray = SupportRoutines.AddRevenue(revenueArray, "DROPPED", flowStr, tmpVal); // If we got here we didn't process the balance transfer correctly
                             }
                         }
-                        else if ((tmpDesc.IndexOf("STORAGE") != -1 || tmpDesc.IndexOf("TRAILER MOVE") != -1 || tmpDesc == "SERVICE FEE" ||
-                                  tmpDesc == "MOVING FEE" || tmpDesc.IndexOf("TOW") != -1) && reconMatchFound == false)
+                        else if ((tmpDesc.Contains("STORAGE") || tmpDesc.Contains("TRAILER MOVE") || tmpDesc == "SERVICE FEE" ||
+                                tmpDesc == "MOVING FEE" || tmpDesc.Contains("TOW")) && reconMatchFound == false)
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "Storage", flowStr, tmpVal);
                         }
-                        else if (tmpDesc.IndexOf("EMPLOYEE") != -1)
+                        else if (tmpDesc.Contains("EMPLOYEE"))
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "Employee", flowStr, tmpVal);
                         }
-                        //                        else if (tmpDesc.IndexOf("DEP") != -1 || tmpDesc.Substring(0, 7) == "BOOKING" || tmpDesc.IndexOf("RESTORED CREDIT CARD") != -1 ||
-                        //                                 tmpDesc.Substring(0, 11) == "RŽSERVATION" || tmpDesc.Substring(0, 11) == "RÉSERVATION" ||
-                        //                                 tmpDesc.IndexOf("REFUND") != -1 || (tmpDesc.IndexOf("ACCOMMODATION") != -1 && arrDate >= System.DateTime.Parse(GenericRoutines.repDateStr)))
-                        else if (tmpDesc.IndexOf("DEP") != -1 || tmpDesc.IndexOf("BOOKING") != -1 || tmpDesc.IndexOf("RESTORED CREDIT CARD") != -1 ||
-                                 tmpDesc.IndexOf("RŽSERVATION") != -1 || tmpDesc.IndexOf("RÉSERVATION") != -1 ||
-                                 tmpDesc.IndexOf("REFUND") != -1 || (tmpDesc.IndexOf("ACCOMMODATION") != -1 && arrDate >= System.DateTime.Parse(GenericRoutines.repDateStr)))
+                        else if (tmpDesc.Contains("DEP") || tmpDesc.Contains("BOOKING") || tmpDesc.Contains("RESTORED CREDIT CARD") ||
+                                tmpDesc.Contains("RŽSERVATION") || tmpDesc.Contains("RÉSERVATION") ||
+                                tmpDesc.Contains("REFUND") || (tmpDesc.Contains("ACCOMMODATION")))
                         {
-                            if (tmpVal == (tmpCat.IndexOf("WESC") != -1 ? siteDeposit : rentalDeposit) + lockFee && System.DateTime.Parse(GenericRoutines.repDateStr) >= System.DateTime.Parse("10/13/2022"))
+                            if ((t.ArrivalDate.HasValue && t.ArrivalDate.Value.Date == t.TransDate.Date) &&
+                            t.BookingCheckedIn == null && !tmpTrans.ToUpper().Contains("REFUND") && t.Deposit == "1") // Same day checkin but still treat as a deposit
                             {
-                                if (tmpCat.IndexOf("WESC") != -1)
+                                depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
+                            }
+                            else if (tmpDesc.Contains("ACCOMMODATION") && !tmpTrans.ToUpper().Contains("REFUND") &&
+                            t.HasArrived == true && (t.BookingCheckedIn.HasValue &&
+                            t.BookingCheckedIn.Value.Date == t.TransDate.Date))  // Extending existing stay
+                            {
+                                tmpVal *= -1; // Back it out what we just added for same day so it has no affect on deposits
+                                depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
+                                tmpVal *= -1; // Restore original value for revenue and CC/cash accumulators
+                                revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "Campsite" : "Rental", flowStr, tmpVal);
+                            }
+                            else if ((arrDate == t.TransDate.Date && !tmpTrans.ToUpper().Contains("REFUND")) ||
+                                    (arrDate < t.TransDate.Date && tmpTrans.ToUpper().Contains("REFUND")))  // Same day checkin, or late checkin that isn't a deposit refund, not a deposit
+                            {
+                                // Check if actual checkin is before report date                                    
+                                if (t.HasArrived == true && t.BookingCheckedIn <= t.TransDate) // If actual checkin is before report date then the refund is from income, otherwise deposits
                                 {
-                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, "WESC", jCnt, flowStr, siteDeposit);
+                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "Campsite" : "Rental", flowStr, tmpVal);
                                 }
                                 else
                                 {
-                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, "Rentals", jCnt, flowStr, rentalDeposit);
+                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "i", jCnt, flowStr, tmpVal);
                                 }
-                                reconArray = SupportRoutines.AddRecon(reconArray, "LockFees", flowStr, lockFee);
                             }
-                            else if (tmpDesc.IndexOf("RESTORED CREDIT CARD") != -1 && tmpVal == 30 && System.DateTime.Parse(GenericRoutines.repDateStr) >= System.DateTime.Parse("10/13/2022"))
+                            // else if block added 2/5/25 to handle refunds of security deposits
+                            else if (t.HasArrived == true && t.BookingCheckedIn <= t.TransDate && tmpTrans.ToUpper().Contains("REFUND") &&
+                                    tmpDesc.Contains("DEPOSIT") && tmpVal == -200)
                             {
-                                reconArray = SupportRoutines.AddRecon(reconArray, "LockFees", flowStr, tmpVal);
+                                revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "Campsite" : "Rental", flowStr, tmpVal);
                             }
-                            else
+                            else if (t.HasArrived == false)
                             {
-                                if (arrDate == System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") == -1 &&
-                                    (tmpDesc.IndexOf("BOOKING") != -1 || tmpDesc.IndexOf("ACCOMMODATION") != -1 || tmpDesc.IndexOf("DEP") != -1)) // Same day checkin but still treat as a deposit
-                                {
-                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
-                                    if (tmpDesc.IndexOf("ACCOMMODATION") != -1 && tmpTrans.ToUpper().IndexOf("REFUND") == -1)  // Extending existing stay
-                                    {
-                                        tmpVal *= -1; // Back it out what we just added for same day so it has no affect on deposits
-                                        depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
-                                        tmpVal *= -1; // Restore original value for revenue and CC/cash accumulators
-                                        revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsite" : "Rental", flowStr, tmpVal);
-                                    }
-                                }
-
-                                //  Original IF block altered on 11/12/24
-                                //                                else if ((arrDate == System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") == -1) ||
-                                //                                         (arrDate < System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") != -1) &&
-                                //                                          tmpDesc.IndexOf("DEPOSIT") == -1)  // Same day checkin, or late checkin that isn't a deposit refund, not a deposit
-                                else if ((arrDate == System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") == -1) ||
-                                         (arrDate < System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") != -1))  // Same day checkin, or late checkin that isn't a deposit refund, not a deposit
-                                {
-                                    if (supportRoutines.ActualCheckInDate(checkedInData, tmpClient) < System.DateTime.Parse(GenericRoutines.repDateStr)) // If actual checkin is before report date then the refund is from income, otherwise deposits
-                                    {
-                                        revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsite" : "Rental", flowStr, tmpVal);
-                                    }
-                                    else
-                                    {
-                                        depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal); 
-                                    } 
-                                }
-// else if block added 2/5/25 to handle refunds of security deposits
-                                else if (departDate <= System.DateTime.Parse(GenericRoutines.repDateStr) && tmpTrans.ToUpper().IndexOf("REFUND") != -1 &&
-                                         tmpDesc.IndexOf("DEPOSIT") != -1 && tmpVal == -200)
-                                {
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsite" : "Rental", flowStr, tmpVal);
-                                }
-                                else
-                                {
-
-                                    depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
-                                }
+                                depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                             }
                         }
-                        else if (tmpDesc.IndexOf("ACCOMMODATION") != -1) // *****
+                        else if (tmpDesc.Contains("ACCOMMODATION")) // *****
                         {
-                            int returnedVal = SupportRoutines.CheckForCancel(tmpClient);
+                            int returnedVal = _supportRoutines.CheckForCancel(tmpId, startDate);
                             // The IF check will assign any cancellations refunds to deposits and not back them out of income
-                            if (tmpTrans.ToUpper().IndexOf("REFUND") != -1 && returnedVal == 1)
+                            if (tmpTrans.ToUpper().Contains("REFUND") && returnedVal == 1)
                             {
-                                depositsArray = SupportRoutines.AddDeposit(depositsArray, tmpCat.IndexOf("WESC") != -1 ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
+                                depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                             }
                             else
                             {
                                 TimeSpan daysBetween = departDate - arrDate;
                                 if (daysBetween.Days >= 90)
                                 {
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "LTSites" : "LTUnits", flowStr, tmpVal);
+                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "LTSites" : "LTUnits", flowStr, tmpVal);
                                 }
                                 else
                                 {
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, tmpCat.IndexOf("WESC") != -1 ? "Campsite" : "Rental", flowStr, tmpVal);
+                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, isWESC ? "Campsite" : "Rental", flowStr, tmpVal);
                                 }
                             }
                         }
-                        else if (tmpDesc.IndexOf("GOLF") != -1)
+                        else if (tmpDesc.Contains("GOLF"))
                         {
                             depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", 0, flowStr, tmpVal);
                         }
-                        else if (tmpDesc.IndexOf("VEH") != -1)
+                        else if (tmpDesc.Contains("VEH"))
                         {
-                            reconArray = SupportRoutines.AddRecon(reconArray, "Extra", flowStr, tmpVal);
+                            reconArray = SupportRoutines.AddRecon(reconArray, "ExtraVehicleFees", flowStr, tmpVal);
                         }
                         else if (reconMatchFound == false)
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "Misc", flowStr, tmpVal);
-                            SupportRoutines.AddAssumption("Unable to determine intent, assigning to Misc from " + flowStr);
+                            SupportRoutines.AddAssumption($"Unable to determine intent, assigning to Misc from {flowStr}");
                         }
                         else    // We're skipping this record on purpose, we SHOULD get the money from the recon file
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal);
                         }
-                    } // WESC AND RENTALS ENDS
+                    } // WESC AND RENTALS ENDS 
                     // STORAGE
-                    else if (tmpCat != "" && tmpCat != "GUEST" && (tmpCat.Substring(0, 7) == "STORAGE" || tmpCat == "FRONT PARKING LOT")) // Check for Storage transactions we don't grab from the recon file
+                    else if (!string.IsNullOrEmpty(tmpCat) && tmpCat != "GUEST" &&
+                            (tmpCat.StartsWith("STORAGE") || tmpCat == "FRONT PARKING LOT")) // Check for Storage transactions we don't grab from the recon file
                     {
                         if (reconMatchFound)
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "SKIPPED", flowStr, tmpVal); // We're skipping this record on purpose, we'll get the money from the recon file
                         }
-                        else if (tmpAction.IndexOf("Balance Transf") != -1)
+                        else if (tmpTPM.Contains("Balance Transfer"))
                         {
-                            transferArray = SupportRoutines.AddTransfer(transferArray, "Storage", flowStr, tmpVal);
-                            if (tmpDesc.IndexOf("FOR GIFT VOUCHER FROM CLIENT") != -1 || tmpDesc.IndexOf("BALANCE TRANSFER TO ACCOUNT") != -1 ||
-                                tmpDesc.IndexOf("BALANCE TRANSFER FROM ACCOUNT") != -1 || tmpDesc.IndexOf("BALANCE TRANSFER TO CLIENT ACCOUNT") != -1 ||
-                                tmpDesc.IndexOf("BALANCE TRANSFER FROM CLIENT ACCOUNT") != -1)
-    
-                            if (tmpDesc.IndexOf("FOR GIFT VOUCHER TO CLIENT") != -1)
+                            transferArray = SupportRoutines.AddTransfer(transferArray, "StorageT", flowStr, tmpVal);
+                            if (tmpDesc.Contains("FOR GIFT VOUCHER FROM CLIENT") || tmpDesc.Contains("BALANCE TRANSFER TO ACCOUNT") ||
+                                tmpDesc.Contains("BALANCE TRANSFER FROM ACCOUNT") || tmpDesc.Contains("BALANCE TRANSFER TO CLIENT ACCOUNT") ||
+                                tmpDesc.Contains("BALANCE TRANSFER FROM CLIENT ACCOUNT"))
                             {
-                                tmpVal *= -1;    //reverse it arithmetically so it prints correctly on the daily report
+                                revenueArray = SupportRoutines.AddRevenue(revenueArray, "Storage", flowStr, tmpVal);
+                                if (tmpDesc.IndexOf("FOR GIFT VOUCHER FROM CLIENT") != -1)
+                                {
+                                    appliedArray = SupportRoutines.AddApplied(appliedArray, "VouchersRedStorage", flowStr, tmpVal);
+                                }
+                            }
+
+                            if (tmpDesc.Contains("FOR GIFT VOUCHER TO CLIENT"))
+                            {
+                                tmpVal *= -1;    // Reverse it arithmetically so it prints correctly on the daily report
+                                appliedArray = SupportRoutines.AddApplied(appliedArray, "VouchersRedStorage", flowStr, tmpVal);
                                 transferArray = SupportRoutines.AddTransfer(transferArray, "StorageT", flowStr, tmpVal);
                             }
                         }
-                        else if (tmpCat == "FRONT PARKING LOT" || tmpDesc.IndexOf("STOR") != -1 || tmpDesc == "MISC STORAGE" || tmpDesc == "ONLINE PAYMENT" || tmpDesc.IndexOf("RÉSERVATION") != -1 ||
-                                tmpDesc.IndexOf("RESTORED CREDIT CARD") != -1 || tmpDesc.IndexOf("REFUND") != -1 || tmpDesc.Substring(0, 7) == "BOOKING" || tmpDesc.IndexOf("MOVE") != -1)
+                        else if (tmpCat == "FRONT PARKING LOT" || tmpDesc.Contains("STOR") || tmpDesc == "MISC STORAGE" ||
+                                tmpDesc == "ONLINE PAYMENT" || tmpDesc.Contains("RÉSERVATION") ||
+                                tmpDesc.Contains("RESTORED CREDIT CARD") || tmpDesc.Contains("REFUND") ||
+                                tmpDesc.StartsWith("BOOKING") || tmpDesc.Contains("MOVE"))
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "Storage", flowStr, tmpVal);
                         }
-                        //                                 (((tmpDesc.IndexOf("DEPOSIT") != -1 || tmpDesc.IndexOf("ACCOMMODATION") != -1) && tmpVal - Math.Round(tmpVal, 0) == 0) ||
-
-                        else if (tmpCat.Substring(0, 7) == "STORAGE" &&
-                                 (((tmpDesc.IndexOf("DEPOSIT") != -1 || tmpDesc.IndexOf("ACCOMMODATION") != -1)) ||
-                                  tmpDesc.IndexOf("REFUND") != -1))
+                        else if (tmpCat.StartsWith("STORAGE") &&
+                                ((tmpDesc.Contains("DEPOSIT") || tmpDesc.Contains("ACCOMMODATION")) ||
+                                tmpDesc.Contains("REFUND")))
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "Storage", flowStr, tmpVal);
-                            SupportRoutines.AddAssumption("Unable to determine intent, assigning to Storage from " + flowStr);
+                            SupportRoutines.AddAssumption($"Unable to determine intent, assigning to Storage from {flowStr}");
                         }
                         else
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "Misc", flowStr, tmpVal);
-                            GenericRoutines.UpdateAlerts(1, "Informational", "(3)Unable to determine intent, assigning to Misc from " + flowStr);
+                            GenericRoutines.UpdateAlerts2(1, "Informational", $"(3)Unable to determine intent, assigning to Misc from {flowStr}", startDate);
                         }
                     } // STORAGE ENDS
-                    // GIFT VOUCHERS BOUGHT
-                    else if (tmpCat == "" && tmpDesc == "GIFT VOUCHER PAYMENT")
+                      // GIFT VOUCHERS BOUGHT
+                    else if (string.IsNullOrEmpty(tmpCat) && tmpDesc == "GIFT VOUCHER PAYMENT")
                     {
                         depositsArray = SupportRoutines.AddDeposit(depositsArray, "Vouchers", 2, flowStr, tmpVal);
                     }
                     // GIFT VOUCHERS TRANSFERED TO BE USED
-                    else if ((tmpCat == "" && tmpDesc.IndexOf("BALANCE TRANSFER FOR GIFT VOUCHER TO CLIENT ACCOUNT") != -1) ||
-                           (tmpCat == "GUEST" && tmpDesc.IndexOf("BALANCE TRANSFER FOR GIFT VOUCHER FROM CLIENT ACCOUNT") != -1))
+                    else if ((string.IsNullOrEmpty(tmpCat) && tmpDesc.Contains("BALANCE TRANSFER FOR GIFT VOUCHER TO CLIENT ACCOUNT")) ||
+                        (tmpCat == "GUEST" && tmpDesc.Contains("BALANCE TRANSFER FOR GIFT VOUCHER FROM CLIENT ACCOUNT")))
                     {
                         transferArray = SupportRoutines.AddTransfer(transferArray, "Vouchers", flowStr, tmpVal);
                     }
@@ -900,13 +1066,13 @@ namespace FinancialC_
                     // RECORDS NOT PROCESSED THAT SHOULD HAVE BEEN
                     else
                     {
-                        if (tmpCat == "" && tmpClient.ToUpper().IndexOf("GUEST") != -1)
+                        if (string.IsNullOrEmpty(tmpCat) && tmpClient.Contains("GUEST", StringComparison.OrdinalIgnoreCase))
                         {
-                            if(tmpDesc.ToUpper().IndexOf("DEPOSIT") != -1)  // Assume it's going to be a current FY site deposit
+                            if (tmpDesc.Contains("DEPOSIT"))  // Assume it's going to be a current FY site deposit
                             {
                                 depositsArray = SupportRoutines.AddDeposit(depositsArray, "WESC", 2, flowStr, tmpVal);
                             }
-                            else if (tmpDesc.ToUpper().IndexOf("STORAGE") != -1)
+                            else if (tmpDesc.Contains("STORAGE"))
                             {
                                 revenueArray = SupportRoutines.AddRevenue(revenueArray, "Storage", flowStr, tmpVal);
                             }
@@ -919,11 +1085,11 @@ namespace FinancialC_
                         {
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "DROPPED TO BOTTOM", flowStr, tmpVal); // This record fell through and should not have
                         }
-                    }
-                } // END OF ELSE BLOCK
-                if (tmpAction.Substring(0, 13) == "Authorize.Net")
+                    } // END OF ELSE BLOCK
+            }
+                if (t.PaymentMethod.StartsWith("Authorize.Net"))
                 {
-                    if (tmpAction.IndexOf("AMEX") != -1)
+                    if (tmpTPM.Contains("AMEX"))
                     {
                         totAmex += tmpVal;
                     }
@@ -932,318 +1098,290 @@ namespace FinancialC_
                         totOtherCC += tmpVal;
                     }
                 }
-                else if (tmpAction.IndexOf("Cash") != -1 || tmpAction.IndexOf("Check Payments") != -1)
+                else if (tmpTPM.Contains("Cash") || tmpTPM.Contains("Check"))
                 {
                     totCash += tmpVal;
                 }
-                else if (tmpAction.IndexOf("Manual Entry") != -1 &&
-                        (tmpAction.IndexOf("Visa") != -1 || tmpAction.IndexOf("Discover") != -1 ||
-                         tmpAction.IndexOf("MasterCard") != -1 || tmpAction.IndexOf("AMEX") != -1))
+                else if (tmpAction.Contains("Manual Entry") &&
+                        (tmpTPM.Contains("Visa") || tmpTPM.Contains("Discover") ||
+                        tmpTPM.Contains("MasterCard") || tmpTPM.Contains("AMEX")))
                 {
-                    GenericRoutines.UpdateAlerts(1, "CRITICAL ERROR!", flowStr);
+                    GenericRoutines.UpdateAlerts2(1, "CRITICAL ERROR!", flowStr, startDate);
                 }
-            }// END OF THE TRANSACTION FILE READING LOOP
-             // Look for specific inventory items
-            string pymtResult;
-            //Set tmpRng = ThisWorkbook.thisSheet.Range("B:B").Find("Miscellaneous Receipts", lookat:=xlWhole)
-            //lastMiscRow = tmpRng.Row
-            foreach (SpecialRecon item in SupportRoutines.specialReconArray)
-            {
-                // look for valid GL code to check, exclude visitor fees, vehicles, golf carts, lost keys
-                if ((item.Gl != "0360" && item.Gl != "0361" && item.Gl is not null && item.Gl.Substring(0, 2) != "07") || (item.Gl == "1018" || item.Gl == "1020"))
-                    //if ((item.gl != "0360" && item.gl != "0361" && item.gl != "0362" && item.gl.Substring(0, 2) != "07") || (item.gl == "1018" || item.gl == "1020"))
+                } // END OF THE TRANSACTION FILE READING LOOP
+                // lock fee    
+                decimal totalLockFees = GetLockFeesForDay(checkedInList);
+                if (totalLockFees > 0)
                 {
-                    if (item.Gl == "0362")
-                    {
-                        item.Gl = item.Gl;
-                    }
-                    string pymtNum;
-                    if (item.Recon_item is not null && item.Recon_item.IndexOf("Unallocated") != -1)
-                    {
-                        pymtNum = item.Recon_item.Substring(9, item.Recon_item.IndexOf(" Unalloc") - 9);
-                    }
-                    else if (item.Desc == "Unallocated Payments" && item.Recon_item is not null)
-                    {
-                        pymtNum = item.Recon_item.Substring(item.Recon_item.IndexOf("#"), item.Recon_item.IndexOf(" ", item.Recon_item.IndexOf("#")) - item.Recon_item.IndexOf("#"));
-                    }
-                    else if (item.Recon_item is not null && item.Recon_item.IndexOf(" Alloc") != -1)
-                    {
-                        pymtNum = item.Recon_item.Substring(9, item.Recon_item.IndexOf(" Alloc") - 9);
-                    }
-                    else
-                    {
-                        pymtNum = item.Recon_item!.Substring(item.Recon_item.IndexOf("#"), item.Recon_item.IndexOf(" ", item.Recon_item.IndexOf("#")) - item.Recon_item.IndexOf("#"));
-                    }
-                    double pymtVal;
-                    pymtVal = Math.Round(item.Amount,2);
-                    pymtResult = SupportRoutines.PaymentRaised(transSheet, item.Gl, pymtNum, pymtVal * -1, item.Recon_item, 1);  // Look for matching Payments Raised entry in Transaction Flow,
-                    if (pymtResult != "NO") // ignore this line if result is "NO"
-                    {
-                        //jCnt = 0
-                        if (item.Gl == "1018" || item.Gl == "1020") // Correction for original GL codes used in Newbook
-                        {
-                            item.Gl = "0356";
-                        }
-                        //                    for (int jCnt = 0; jCnt <= SupportRoutines.reconArray.Count; jCnt++)
-                        bool matchFound = false;
-                        foreach (Recon reconArrItem in reconArray)
-                        {
-                            if (reconArrItem.GL == "")
-                            {
-                                matchFound = true;
-                                break;
-                            }
-                            else if (item.Gl == reconArrItem.GL)
-                            {
-                                matchFound = true;
-                                reconArray = SupportRoutines.AddRecon(reconArray, reconArrItem.ReconItem == "" ? reconArrItem.GL : reconArrItem.ReconItem, item.Gl + " " + item.Client + " " + item.Recon_item + " " + (item.Amount * -1).ToString("C"), item.Amount);
-                                break;
-                            }
-                        }
-                        if (matchFound == false)   // Add this GL code to the recon array list
-                        {
-                            reconArray.Add(new Recon { ReconItem = item.Recon_item, Accum = item.Amount, GL = item.Gl });
-                        }
-                        //If tmpGL = "0319" Then
-                        //    reconArray(jCnt, 2) = specialSheet.Range("D" & iCnt).Formula + "-" + _
-                        //        Mid(specialSheet.Range("B" & iCnt).Formula, InStr(specialSheet.Range("B" & iCnt).Formula, ")") + 2)
-                    }
-                }
-            } // END OF specific inventory items
-              // Now we loop through the recon array and process any non-zero values
-            foreach (Recon reconArrItem in reconArray)
-            {
-                if (reconArrItem.Accum != 0)
-                {
-                    if (reconArrItem.ReconItem != "" && reconArrItem.ReconItem != "Other" && reconArrItem.ReconItem != "Trash Pickup") // This processes the default GL codes, excluding Trash which doesn't print by default
-                    {
+                    revenueArray = SupportRoutines.AddRevenue(revenueArray, "LockFees", 
+                        $"Total Lock Fees for {startDate:MM/dd/yyyy}", (double)totalLockFees);
+                }            
+                // Look for specific inventory items
+                string pymtResult;
 
-                    }
-                    //Dim OldComment As Variant
-                    //    Dim NewComment As Variant
-                    //    OldComment = ThisWorkbook.monthlySheet.Range(Cells(ThisWorkbook.monthlyPrintRow, tmpCol).Address(0, 0)).Comment.Text
-                    //    NewComment = OldComment + vbCrLf & reconArray(jCnt, 3) & " (" & reconArray(jCnt, 2) & "): " & FormatCurrency(tmpVal, 2, , vbTrue)
-                    // Special adjustment needed for employee trailer sales 0319, which will have already been posted to Employee Sites
-                }
-                if (reconArrItem.GL == "0319") // SKIP THIS GL Code, already grabbed it above
-                { }
-            }
-            // Now we have to get the deposits held from the Checked In List
-            // Open the booking adjustments and checked in list files
-            XLWorkbook adjustBook = new XLWorkbook(GenericRoutines.nbfiles.Bookadj);
-            IXLWorksheet adjustSheet = adjustBook.Worksheet(1);
-            XLWorkbook checkedBook = new XLWorkbook(GenericRoutines.nbfiles.Checkedin);
-            IXLWorksheet checkedSheet = checkedBook.Worksheet(1);
-            int arrColc, depColc, descColc, idColc, heldColc;
-            descColc = 2;
-            idColc = 3;
-            heldColc = 6;
-            arrColc = 7;
-            depColc = 8;
-            bool validCheckin;
-            // If there are no check-ins so do not attempt to process the file (holidays, hurricanes, etc.)
-            if (checkedSheet.Row(checkedSheet.LastRowUsed()!.RowNumber()).Cell(1).Value.ToString().IndexOf("No Bookings were found with the specified parameters") == -1)
-            {
-                for (int iCnt = 2; iCnt <= checkedSheet.LastRowUsed()!.RowNumber(); iCnt++)  // skip the header row
+                foreach (SpecialRecon item in SupportRoutines.specialReconArray)
                 {
-                    double.TryParse(checkedSheet.Row(iCnt).Cell(heldColc).Value.ToString(), out tmpVal); // attempt conversion to double, ignore if false (cellVal will = 0)
-                    tmpVal = Math.Round(tmpVal, 2);
-                    tmpDesc = checkedSheet.Row(iCnt).Cell(descColc).Value.ToString();
-                    tmpID = checkedSheet.Row(iCnt).Cell(idColc).Value.ToString();
-                    arrDate = System.DateTime.Parse(System.DateTime.Parse(checkedSheet.Row(iCnt).Cell(arrColc).Value.ToString()).ToShortDateString());
-                    departDate = System.DateTime.Parse(System.DateTime.Parse(checkedSheet.Row(iCnt).Cell(depColc).Value.ToString()).ToShortDateString());
-                    if ((arrDate - GenericRoutines.repDateTmp).Days == 0 && // were supposed to arrive today and checked in today, this is a good record
-                        tmpDesc.IndexOf("Golf Cart Rental") == -1) // except golf carts, which must go through the else block below
+                    // look for valid GL code to check, exclude visitor fees, vehicles, golf carts, lost keys
+                    if ((item.Gl != "0360" && item.Gl != "0361" && item.Gl is not null && item.Gl.StartsWith("07") == false) || 
+                        (item.Gl == "1018" || item.Gl == "1020"))
                     {
-                        validCheckin = true;
-                    }
-                    else if (tmpDesc == "") // entry for a Split so we ignore it
-                    {
-                        validCheckin = false;
-                    }
-                    else // arrival date was earlier so we have to see if this is just a late check in (process it)
-                         // or user manipulation of the status field (ignore it)
-                    {
-                        string bookingIDStr = "Bookings #" + tmpID;
-                        int iCnt2 = 2; // the first row is headers
-                        while (adjustSheet.Row(iCnt2).Cell(1).Value.ToString() != bookingIDStr &&
-                               iCnt2 <= adjustSheet.LastRowUsed()!.RowNumber()) // loop until we find the first matching row
+                        if (item.Gl == "0362")
                         {
-                            iCnt2++;
+                            item.Gl = item.Gl;
                         }
-                        validCheckin = true;    // assume it's valid, now test to see if it's not
-                        if (iCnt2 <= adjustSheet.LastRowUsed()!.RowNumber()) // no need to process further if we already reached the end of the data
+                        
+                        string pymtNum;
+                        if (item.Recon_item is not null && item.Recon_item.Contains("Unallocated"))
                         {
-                            bool ratesQuoted = false;
-                            while (adjustSheet.Row(iCnt2).Cell(1).Value.ToString() == bookingIDStr ||
-                                  adjustSheet.Row(iCnt2).Cell(1).Value.ToString().IndexOf("Rates Quoted") != -1) // look until there are no more matching rows or we break
+                            int startIndex = 9;
+                            int endIndex = item.Recon_item.IndexOf(" Unalloc");
+                            pymtNum = item.Recon_item.Substring(startIndex, endIndex - startIndex);
+                        }
+                        else if (item.Desc == "Unallocated Payments" && item.Recon_item is not null)
+                        {
+                            int hashIndex = item.Recon_item.IndexOf("#");
+                            int spaceIndex = item.Recon_item.IndexOf(" ", hashIndex);
+                            pymtNum = item.Recon_item.Substring(hashIndex, spaceIndex - hashIndex);
+                        }
+                        else if (item.Recon_item is not null && item.Recon_item.Contains(" Alloc"))
+                        {
+                            int startIndex = 9;
+                            int endIndex = item.Recon_item.IndexOf(" Alloc");
+                            pymtNum = item.Recon_item.Substring(startIndex, endIndex - startIndex);
+                        }
+                        else
+                        {
+                            int hashIndex = item.Recon_item!.IndexOf("#");
+                            int spaceIndex = item.Recon_item.IndexOf(" ", hashIndex);
+                            pymtNum = item.Recon_item.Substring(hashIndex, spaceIndex - hashIndex);
+                        }
+                        
+                        double pymtVal = Math.Round(item.Amount, 2);
+                        
+                        // Look for matching Payments Raised entry in Transaction Flow using the transactions list
+                        pymtResult = SupportRoutines.PaymentRaised(transactionsList, item.Gl, pymtNum, pymtVal * -1, item.Recon_item);
+                        
+                        if (pymtResult != "NO") // ignore this line if result is "NO"
+                        {
+                            if (item.Gl == "1018" || item.Gl == "1020") // Correction for original GL codes used in Newbook
                             {
-                                if (adjustSheet.Row(iCnt2).Cell(1).Value.ToString().IndexOf("Rates Quoted") != -1 &&
-                                   tmpDesc.IndexOf("Golf Cart Rental") != -1)
+                                item.Gl = "0356";
+                            }
+                            
+                            bool matchFound = false;
+                            foreach (Recon reconArrItem in reconArray)
+                            {
+                                if (string.IsNullOrEmpty(reconArrItem.GL))
                                 {
-                                    ratesQuoted = true;
+                                    matchFound = true;
+                                    break;
                                 }
-                                if (adjustSheet.Row(iCnt2).Cell(2).Value.ToString() == "Arrived When" &&
-                                    adjustSheet.Row(iCnt2).Cell(3).Value.ToString() != "")
+                                else if (item.Gl == reconArrItem.GL)
                                 {
-                                    DateTime arrWhenDate = System.DateTime.Parse(System.DateTime.Parse(adjustSheet.Row(iCnt2).Cell(3).Value.ToString()).ToShortDateString());
-                                    if ((arrWhenDate - GenericRoutines.repDateTmp).Days != 0)
-                                    {
-                                        validCheckin = false;   // this booking originally checked in on an earlier day so it gets ignored
-                                        break;
-                                    }
+                                    matchFound = true;
+                                    string reconItem = string.IsNullOrEmpty(reconArrItem.ReconItem) ? reconArrItem.GL : reconArrItem.ReconItem;
+                                    reconArray = SupportRoutines.AddRecon(reconArray, reconItem, 
+                                        $"{item.Gl} {item.Client} {item.Recon_item} {(item.Amount * -1):C}", item.Amount);
+                                    break;
                                 }
-                                iCnt2++;
                             }
-                            if (ratesQuoted && tmpDesc.IndexOf("Golf Cart Rental") != -1)
+                            
+                            if (matchFound == false)   // Add this GL code to the recon array list
                             {
-                                //validCheckin = false;   // ignore this so same day payments processed as deposits aren't double counted
-                                // they will have already been picked up in the Transaction Flow
+                                reconArray.Add(new Recon { ReconItem = item.Recon_item, Accum = item.Amount, GL = item.Gl });
                             }
                         }
                     }
-                    // Retrieve the deposit held if the checkin is valid and the value is non-zero
-                    if (validCheckin && tmpVal != 0 )
+                } // END OF specific inventory items
+                // Now we loop through the recon array and process any non-zero values
+                foreach (Recon reconArrItem in reconArray)
+                {
+                    if (reconArrItem.Accum != 0)
                     {
-                        if ((tmpDesc.IndexOf("Cottage") != -1 || (tmpDesc.IndexOf("Travel Trailer") != -1 || tmpDesc.IndexOf("Villa") != -1 || tmpDesc.IndexOf("Cabin") != -1) && tmpDesc.IndexOf("Storage") == -1))
+                        if (!string.IsNullOrEmpty(reconArrItem.ReconItem) && 
+                            reconArrItem.ReconItem != "Other" && 
+                            reconArrItem.ReconItem != "Trash Pickup") // This processes the default GL codes, excluding Trash which doesn't print by default
                         {
-                            if ((departDate - arrDate).Days >= 90) //Check for long term unit rental
-                            {
-                                revenueArray = SupportRoutines.AddRevenue(revenueArray, "LTUnits", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
-                            }
-                            else
-                            {
-                                revenueArray = SupportRoutines.AddRevenue(revenueArray, "Rental", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
-                            }
+                            // Processing logic here (currently empty in original code)
                         }
-                        else if (tmpDesc.IndexOf("WESC") != -1 || tmpDesc.IndexOf("Water") != -1)
-                        {
-                            if ((departDate - arrDate).Days >= 90) //Check for long term site rental
-                                revenueArray = SupportRoutines.AddRevenue(revenueArray, "LTSites", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
-                            else
-                            {
-                                revenueArray = SupportRoutines.AddRevenue(revenueArray, "Campsite", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
-                            }
-                        }
-                        else if (tmpDesc.IndexOf("Golf Cart") != -1) // deduct from deposits and add to revenue
-                        {
-                            if (tmpVal != 0)
-                            {
-                                revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal.ToString(), tmpVal);
-                            }
-                            else
-                            {
-                                //appliedArray = SupportRoutines.AddApplied(appliedArray, "GolfDepApp", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal2.ToString(), tmpVal2);
-                                //revenueArray = SupportRoutines.AddRevenue(revenueArray, "GolfCartRentals", "Booking #" + tmpID + " w/Booked Arrival Date of " + arrDate.ToString("MM/dd/yyyy") + " Deposit Held = $" + tmpVal2.ToString(), tmpVal2);
-                            }
-                        }
+                        //Dim OldComment As Variant
+                        //    Dim NewComment As Variant
+                        //    OldComment = ThisWorkbook.monthlySheet.Range(Cells(ThisWorkbook.monthlyPrintRow, tmpCol).Address(0, 0)).Comment.Text
+                        //    NewComment = OldComment + vbCrLf & reconArray(jCnt, 3) & " (" & reconArray(jCnt, 2) & "): " & FormatCurrency(tmpVal, 2, , vbTrue)
+                        // Special adjustment needed for employee trailer sales 0319, which will have already been posted to Employee Sites
                     }
-                    else { }
-                    //AddIgnoredNote("Booking " + tmpID + " was ignored (Departed -> Arrived transition).")
+                    
+                    if (reconArrItem.GL == "0319") // SKIP THIS GL Code, already grabbed it above
+                    { 
+                        // Skip processing
+                    }
                 }
 
-            }
-            // This next section is for exception income that has to be pulled from the special income spreadsheet
-            string repDateShort = GenericRoutines.repDateTmp.ToString("MM/dd/yyyy");
-            if (repDateShort == "02/08/2024")
-            {
-                // Verify that the file exists.  If not there is no point in processing further.
-                if (GenericRoutines.AllFilesPresent(6)) 
-                { 
-                    // define the GL codes that we care about
-                    XLWorkbook workBook = new XLWorkbook(GenericRoutines.singleFile.Data);
-                    IXLWorksheet workSheet = workBook.Worksheet(1);
-                    rowCount = workSheet.LastRowUsed()!.RowNumber();
-                    //iterate over the worksheet rows to find the date being checked.
-                    for (int i = 2; i <= rowCount; i++) // skip the header row
+                // Now we have to get the deposits held for checked in
+                if (checkedInList != null && checkedInList.Count > 0)
+                {
+                    foreach (var record in checkedInList)
                     {
-                        if (workSheet.Row(i).Cell(1) != null)
+                        decimal paymentsAfterCheckIn = record.PaymentsAfterCheckIn ?? 0m;
+
+                        bool exclude = paymentsAfterIds.Any(p =>
+                            p.Key == record.BookingId &&
+                            Math.Abs((p.Value ?? 0m) - paymentsAfterCheckIn) < 0.01m
+                        );
+
+                        if (exclude)
+                            continue;
+
+                        decimal depositsHeld = record.DepositsHeld ?? 0m;
+                        decimal securityDeposits = record.SecurityDeposits ?? 0m;
+                        decimal onlineBookingFee = record.OnlineBookingFee ?? 0m;
+                        decimal cancellationFee = record.CancellationFee ?? 0m;
+
+                        // Subtract security deposits from deposits held
+                        decimal netDepositHeld = depositsHeld + paymentsAfterCheckIn + onlineBookingFee + cancellationFee;
+                        if(depositsHeld == 0m && securityDeposits > 0m && record.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
                         {
-                            System.DateTime tmpDate = workSheet.Row(i).Cell(1).Value; // get date from spreadsheet
-                            string tmpDateStr = tmpDate.ToString("MM/dd/yyyy");
-                            if (tmpDateStr == repDateShort)
-                            {
-                                double.TryParse(workSheet.Row(i).Cell(4).Value.ToString(), out double cellVal); // attempt conversion to double, ignore if false (cellVal will = 0)
-                                string glStr = "0" + workSheet.Row(i).Cell(2).Value.ToString();
-                                if (glStr == "0302")
-                                {
-                                    revenueArray = SupportRoutines.AddRevenue(revenueArray, "Annual", workSheet.Row(i).Cell(3).Value.ToString(), cellVal);
-                                }
-                                else if (glStr == "0358")
-                                {
-                                    reconArray = SupportRoutines.AddRecon(reconArray, "TransferFees", workSheet.Row(i).Cell(3).Value.ToString(), cellVal);
-                                }
-                            }
+                        netDepositHeld = netDepositHeld - securityDeposits;
+                        }
+
+                        bool isLongTerm = 
+                            (record.BookingDeparture - record.BookingArrival)?.TotalDays >= 90;
+
+                        if (rentalCategories.Any(c =>
+                                record.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
+                            !record.CategoryName.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
+                            !record.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
+                        {
+                            revenueArray = SupportRoutines.AddRevenue(
+                                revenueArray,
+                                isLongTerm ? "LTUnits" : "Rental",
+                                $"Booking #{record.BookingId} Deposit Held",
+                                (double)netDepositHeld
+                            );
+                        }
+                        else if (siteCategories.Any(c =>
+                                record.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
+                            !record.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
+                        {
+                            revenueArray = SupportRoutines.AddRevenue(
+                                revenueArray,
+                                isLongTerm ? "LTSites" : "Campsite",
+                                $"Booking #{record.BookingId} Deposit Held",
+                                (double)netDepositHeld
+                            );
                         }
                     }
                 }
-            } // end of special exception block
-            // loop through the dictionaries to add the parameters for the income items and their values needed for the stored procedure
+
+                
+                // Populate applied deposits array using the helper methods
+                // Calculate deposits applied from checked-in list
+                appliedArray.First(a => a.AppliedItem == "SiteDepApp").Accum = 
+                    (double)GetDepositsApplied(siteCategories, checkedInList);
+                
+                appliedArray.First(a => a.AppliedItem == "RentalDepApp").Accum = 
+                    (double)GetDepositsApplied(rentalCategories, checkedInList);
+                
+                appliedArray.First(a => a.AppliedItem == "GolfDepApp").Accum = 
+                    (double)GetDepositsApplied(golfCategories, checkedInList);
+
+                revenueArray.First(a => a.RevType == "GolfCartRentals").Accum += 
+                    (double)GetDepositsApplied(golfCategories, checkedInList);
+
+
+                // loop through the dictionaries to add the parameters for the income items and their values needed for the stored procedure
             // Process revenue array
             foreach (Revenue item in revenueArray)
             {
                 //System.Diagnostics.Debug.WriteLine(item.RevType.ToString() + " " + item.Accum.ToString("C"));
-                if (item.RevType != null)
-                {
-                    if (item.RevType == "Campsites" || item.RevType == "Rentals" || item.RevType == "Annual" || item.RevType == "LTSites" ||
+                if(item.RevType == "Campsites" || item.RevType == "Rentals" || item.RevType == "Annual" || item.RevType == "LTSites" ||
                     item.RevType == "LTUnits" || item.RevType == "MHPark" || item.RevType == "Storage")
-                    {
-                        sqlSupport.AddSQLParameter(item.RevType, SqlDbType.Money, item.Accum);
-                    }
-                    else
-                    {
-                        sqlSupport.AddSQLParameter(item.RevType, SqlDbType.SmallMoney, item.Accum);
-                    }
+                {
+                    sqlSupport.AddSQLParameter(item.RevType, SqlDbType.Money, item.Accum);
                 }
+                else
+                {
+                    sqlSupport.AddSQLParameter(item.RevType, SqlDbType.SmallMoney, item.Accum);
+                }
+            }
+            double WescAccum = 0, RentalAccum = 0, GolfAccum = 0;
+            int id = 0;
+            foreach (Deposits item in depositsArray)
+            {
+                if (id < 2)
+                {
+                    WescAccum += item.WescAccum;
+                    RentalAccum += item.RentalAccum;
+                    GolfAccum += item.GolfAccum;
+                }
+                else
+                {
+                    sqlSupport.AddSQLParameter("VouchersPurch", SqlDbType.SmallMoney, item.VouchersAccum);
+                    sqlSupport.AddSQLParameter("SiteDepTakenFuture", SqlDbType.SmallMoney, WescAccum);
+                    sqlSupport.AddSQLParameter("RentalDepTakenFuture", SqlDbType.SmallMoney, RentalAccum);
+                    sqlSupport.AddSQLParameter("GolfDepTakenFuture", SqlDbType.SmallMoney, GolfAccum);
+                    sqlSupport.AddSQLParameter("SiteDepTaken", SqlDbType.SmallMoney, item.WescAccum);
+                    sqlSupport.AddSQLParameter("RentalDepTaken", SqlDbType.SmallMoney, item.RentalAccum);
+                    sqlSupport.AddSQLParameter("GolfDepTaken", SqlDbType.SmallMoney, item.GolfAccum);
+                }
+                id++;
+                //System.Diagnostics.Debug.WriteLine(item.Fy + ":" + item.WescAccum.ToString("C") + " " + item.RentalAccum.ToString("C") + " " + item.GolfAccum.ToString("C"));
+            }
+            foreach (Applied item in appliedArray)
+            {
+                if(item.AppliedItem == "SiteDepApp" || item.AppliedItem == "RentalDepApp")
+                {
+                    sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.Money, item.Accum);
+                }
+                else
+                {
+                    sqlSupport.AddSQLParameter(item.AppliedItem, SqlDbType.SmallMoney, item.Accum);
+                }
+                //System.Diagnostics.Debug.WriteLine(item.AppliedItem + " " + item.Accum.ToString("C"));
             }
             foreach (Transfers item in transferArray)
             {
-                if(item.TranItem != null)
-                {
-                    sqlSupport.AddSQLParameter(item.TranItem, SqlDbType.SmallMoney, item.Accum);
-                }
+                sqlSupport.AddSQLParameter(item.TranItem, SqlDbType.SmallMoney, item.Accum);
                 //System.Diagnostics.Debug.WriteLine(item.TranItem + " " + item.Accum.ToString("C"));
             }
             double MRG1 = 0, MRG2 = 0, MRG3 = 0;
             foreach (Checks item in checkArray)
             {
-                if(item.CheckItem != null)
+                sqlSupport.AddSQLParameter(item.CheckItem, SqlDbType.SmallMoney, item.Accum);
+                if (item.CheckItem == "CampsitesC" || item.CheckItem == "RentalsC")
                 {
-                    sqlSupport.AddSQLParameter(item.CheckItem, SqlDbType.SmallMoney, item.Accum);
-                    if (item.CheckItem == "CampsitesC" || item.CheckItem == "RentalsC")
-                    {
-                        MRG1 += item.Accum;
-                    }
-                    else if (item.CheckItem == "AnnualC" || item.CheckItem == "MHParkC" ||
-                             item.CheckItem == "LTCampsitesC" || item.CheckItem == "LTRentalsC")
-                    {
-                        MRG2 += item.Accum;
-                    }
-                    else if (item.CheckItem == "StorageC" || item.CheckItem == "OtherC")
-                    {
-                        MRG3 += item.Accum;
-                    }
-                    else if (item.CheckItem == "SiteDepositsC")
-                    {
-                        //sqlSupport.AddSQLParameter("SiteDepMRG", SqlDbType.SmallMoney, item.Accum);
-                    }
-                    else if (item.CheckItem == "RentalDepositsC")
-                    {
-                        //sqlSupport.AddSQLParameter("RentalDepMRG", SqlDbType.SmallMoney, item.Accum);
-                    }
-                    else if (item.CheckItem == "GolfC")
-                    {
-                        sqlSupport.AddSQLParameter("MRGGolf", SqlDbType.SmallMoney, item.Accum);
-                    }
-                    else if (item.CheckItem == "GolfDepositsC")
-                    {
-                        //sqlSupport.AddSQLParameter("GolfDepMRG", SqlDbType.SmallMoney, item.Accum);
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine("This guy fell through: " + item.CheckItem);
-                    }
+                    MRG1 += item.Accum;
                 }
+                else if (item.CheckItem == "AnnualC" || item.CheckItem == "MHParkC" || 
+                         item.CheckItem == "LTCampsitesC" || item.CheckItem == "LTRentalsC")
+                {
+                    MRG2 += item.Accum;
+                }
+                else if (item.CheckItem == "StorageC" || item.CheckItem == "OtherC")
+                {
+                    MRG3 += item.Accum;
+                }
+                else if (item.CheckItem == "SiteDepositsC")
+                {
+                    sqlSupport.AddSQLParameter("SiteDepMRG", SqlDbType.SmallMoney, item.Accum);
+                }
+                else if (item.CheckItem == "RentalDepositsC")
+                {
+                    sqlSupport.AddSQLParameter("RentalDepMRG", SqlDbType.SmallMoney, item.Accum);
+                }
+                else if (item.CheckItem == "GolfC")
+                {
+                    sqlSupport.AddSQLParameter("MRGGolf", SqlDbType.SmallMoney, item.Accum);
+                }
+                else if (item.CheckItem == "GolfDepositsC")
+                {
+                    sqlSupport.AddSQLParameter("GolfDepMRG", SqlDbType.SmallMoney, item.Accum);
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("This guy fell through: " + item.CheckItem);
+                }
+                //System.Diagnostics.Debug.WriteLine(item.CheckItem + " " + item.Accum.ToString("C"));
             }
             sqlSupport.AddSQLParameter("MRG1", SqlDbType.SmallMoney, MRG1);
             sqlSupport.AddSQLParameter("MRG2", SqlDbType.SmallMoney, MRG2);
@@ -1273,8 +1411,6 @@ namespace FinancialC_
                 }
                 //System.Diagnostics.Debug.WriteLine(item.ReconItem + " " + item.Accum.ToString("C"));
             }
-            //System.Diagnostics.Debug.WriteLine(totOtherCC.ToString("C") + "," + totAmex.ToString("C") + "," + totCash.ToString("C"));
-            // add the Supplemental parameter if it was not added in the previous loop
             if (supplementalAdded == false)
             {
                 sqlSupport.AddSQLParameter("Supplemental", SqlDbType.SmallMoney, 0);
@@ -1282,8 +1418,8 @@ namespace FinancialC_
             // add the parameters needed for the payments table
             sqlSupport.AddSQLParameter("OfficeCC", SqlDbType.Money, totAmex + totOtherCC);
             sqlSupport.AddSQLParameter("OfficeCash", SqlDbType.Money, totCash);
-            // act on the transaction table
-            string tmpReturned = sqlSupport.ExecuteStoredProcedure(1);
+            // Output miscellaneous records   
+            string tmpReturned = sqlSupport.ExecuteStoredProcedure2(1, startDate);
             if (tmpReturned == "SUCCESS")
             {
                 string miscParamStr = "";
@@ -1296,37 +1432,68 @@ namespace FinancialC_
                     }
                 }
                 // Even if nothing is found we have to process the miscellaneous table in case any previous entries need to be deleted
-                sqlSupport.PrepareForImport("UpdateFrontOfficeMiscTable");
+                sqlSupport.PrepareForNewImport("UpdateFrontOfficeMiscTable", startDate);
                 sqlSupport.AddSQLParameterString("ParamString", SqlDbType.NVarChar, miscParamStr);
                 // act on the misc table
-                _ = sqlSupport.ExecuteStoredProcedure(1);
+                _ = sqlSupport.ExecuteStoredProcedure2(1, startDate);
             }
-            SupportRoutines.specialReconArray.Clear(); // This is necessary so no values carry over from date to date
-            //visCnt = visCnt;
-        } // END OF ReadNewbookFiles
-        private static bool SameDayArrival (string bookingIn)
+
+            Console.WriteLine("\n=== PROCESSING COMPLETE ===");
+            SupportRoutines.specialReconArray.Clear();
+            reservationsList.Add(reservations);
+            return reservationsList;
+        }
+
+        private decimal GetLockFeesForDay(List<CheckedIn> checkedInList)
         {
-            XLWorkbook localCheckedBook = new XLWorkbook(GenericRoutines.nbfiles.Checkedin);
-            IXLWorksheet localCheckedSheet = localCheckedBook.Worksheet(1);
-            int idColc = 3;
-            bool notFound = true;
-            for (int iCnt = 2; iCnt <= localCheckedSheet.LastRowUsed()!.RowNumber(); iCnt++)  // skip the header row
+            decimal total = 0m;
+
+            if (checkedInList != null && checkedInList.Count > 0)
             {
-                if (localCheckedSheet.Row(iCnt).Cell(idColc).Value.ToString() == bookingIn)
-                {
-                    int heldColc = 6;
-                    if (localCheckedSheet.Row(iCnt).Cell(heldColc).Value.ToString() == "0")
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        notFound = false;
-                        break;
-                    }
-                }
+                total = checkedInList.Sum(d => d.LockFee ?? 0);
             }
-            return notFound;
-        } // END OF sameDayArrival
-    } // END OF CLASS
-} // END OF NAMESPACE
+            return total;
+        }
+
+        private List<TransactionFlow> IgnoreEntries(string TransType, List<TransactionFlow> listType, List<TransactionFlow> transactions)
+        {
+            var noVoids = listType.Where(p =>
+            {
+                if (string.IsNullOrEmpty(p.PaymentTypeReference))
+                    return true;
+
+                bool hasRefund = transactions.Any(r =>
+                    r.AccountForId == p.AccountForId &&
+                    r.PaymentTypeReference == p.PaymentTypeReference &&
+                    (r.TransType == TransType ||
+                    r.TransType == "Voided Refunds Voided" ||
+                    r.TransType == "Voided Payments Voided") &&
+                    (r.Amount ?? 0) == Math.Abs(p.Amount ?? 0)
+                );
+
+                return !hasRefund;
+            }).ToList();
+
+            return noVoids;
+        }
+        
+        // Retrieves deposits applied from checked-in list for specific categories
+        private decimal GetDepositsApplied(string[] categories, List<CheckedIn> checkedInList)
+        {
+            if (checkedInList == null || checkedInList.Count == 0)
+                return 0m;
+
+            return checkedInList
+                .Where(d =>
+                    !string.IsNullOrEmpty(d.CategoryName) &&
+                    categories.Any(c =>
+                        d.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
+                    !d.CategoryName.Contains("Storage", StringComparison.OrdinalIgnoreCase) ||
+                    (string.IsNullOrEmpty(d.BookingName) ||
+                    !d.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
+                )
+                .Sum(d => d.DepositsHeld ?? 0m);
+            
+        }
+
+}}

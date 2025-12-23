@@ -11,6 +11,7 @@ using SQLStuff;
 using MBTP.Interfaces;
 using IronPdf;
 using MBTP.Extreme;
+using NewbookSupport;
 
 
 namespace MBTP
@@ -32,6 +33,8 @@ namespace MBTP
                 client.Timeout = TimeSpan.FromSeconds(30);
             });
             services.AddHttpContextAccessor();
+            services.AddScoped<SupportRoutines>();
+            services.AddScoped<NewbookImport>();
             services.AddSingleton<GLAccounts>();
             services.AddSingleton<InventoryApi>();
             services.AddScoped<RetrievalReport>();
@@ -40,10 +43,15 @@ namespace MBTP
             services.AddScoped<ReconRepo>();
             services.AddScoped<TransactionFlowRepo>();
             services.AddScoped<CheckedInListRepo>();
+<<<<<<< HEAD
+            services.AddScoped<TransactionFlowRepo>();
+            services.AddScoped<TransactionFlowApi>();
+=======
             services.AddScoped<ReservationsRepo>();
             services.AddScoped<TransactionFlowRepo>();
             services.AddScoped<TransactionFlowApi>();
             services.AddHttpClient<ReservationsService>();
+>>>>>>> main
             services.AddHttpClient<ChargesApi>();
             services.AddHttpClient<PaymentsApi>();
             services.AddHttpClient<OccupancyApi>();

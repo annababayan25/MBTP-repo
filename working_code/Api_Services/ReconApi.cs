@@ -24,7 +24,7 @@ namespace MBTP.Services
         {
         }
 
-        public async Task<List<Recon>> PopulateRecons(DateTime startDate, DateTime endDate)
+        public async Task<List<ReconsApi>> PopulateRecons(DateTime startDate, DateTime endDate)
         {
 
             var requestBody = new
@@ -38,11 +38,11 @@ namespace MBTP.Services
             var json = await PostAsync("reports_reconciliation", requestBody);
 
             var result = JsonConvert.DeserializeObject<dynamic>(json.ToString());
-            var reconReport = new List<Recon>();
+            var reconReport = new List<ReconsApi>();
 
             foreach (var item in result.data)
             {
-                var recon = new Recon
+                var recon = new ReconsApi
                 {
                     BookingId = item.booking_id,
                     AccountForName = item.account_for_name,

@@ -102,6 +102,22 @@ namespace MBTP.Services
                     transactions.PaymentMethod = "Manual Entry";
                 }
 
+                transactions.FormattedTransDate = FormatDate(transactions.TransDate);
+
+                transactions.FormattedTransNumber =
+                    $"{transactions.TransType} #{transactions.ItemId}" +
+                    (!string.IsNullOrWhiteSpace(transactions.PaymentTypeReference)
+                        ? $" (Ref #{transactions.PaymentTypeReference})"
+                        : "");
+
+                var paymentDetail =
+                    !string.IsNullOrWhiteSpace(transactions.TranslatedPaymentType)
+                        ? transactions.TranslatedPaymentType
+                        : transactions.PaymentTypeReference;
+
+                transactions.FormattedPaymentMethod =
+                    $"{transactions.PaymentMethod} {paymentDetail} {transactions.PaymentTypeAction} - For {FormatShortDate(transactions.TransDate)}";
+
                 transactionFlow.Add(transactions);
 
                 var jsonOutput = JsonConvert.SerializeObject(transactionFlow, Formatting.Indented);
@@ -112,6 +128,17 @@ namespace MBTP.Services
 
             return transactionFlow;
         }
+
+        private static string FormatDate(DateTime date)
+        {
+            return date.ToString("MMM dd yyyy hh:mm tt", CultureInfo.InvariantCulture);
+        }
+
+        private static string FormatShortDate(DateTime date)
+        {
+            return date.ToString("MMM dd yyyy", CultureInfo.InvariantCulture);
+        }
+
 
         private async Task<(bool HasArrived, DateTime? BookingCheckedIn)> GetCheckedInInfo(int accountForId, DateTime transDate)
         {

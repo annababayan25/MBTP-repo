@@ -132,7 +132,8 @@ namespace MBTP.Services
 
                     // Online booking fee column
                     decimal onlineBookingFee = checkedIn.Charges?
-                    .Where(c => c.Description?.Contains("online booking fee", StringComparison.OrdinalIgnoreCase) == true)
+                    .Where(c => c.Description?.Contains("online booking fee", StringComparison.OrdinalIgnoreCase) == true &&
+                    (c.VoidedWhen != null))
                     .Sum(c => c.Amount ?? 0) ?? 0;
                     checkedIn.OnlineBookingFee = onlineBookingFee;
 
@@ -348,11 +349,8 @@ namespace MBTP.Services
                         }
                     }
                     checkedInList.Add(checkedIn);
-                    if(checkedIn.BookingId == 332438)
-                    {
-                        
-                        File.AppendAllText("checkedInList.json", item.ToString() + Environment.NewLine);
-                    }
+                    var jsonOutput = JsonConvert.SerializeObject(checkedInList, Formatting.Indented);
+                    File.AppendAllText("checkedInList.json", jsonOutput);
                     
                 }
             }

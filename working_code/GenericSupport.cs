@@ -72,6 +72,11 @@ namespace GenericSupport
             SQLSupport.UpdateAlertsTable(_dbConnectionService, pcidIn, severityIn, textIn);
         }
 
+        public static void UpdateAlerts2(byte pcidIn, string severityIn, string textIn, DateTime reportDate)
+        {
+            SQLSupport.UpdateAlertsTable2(_dbConnectionService, pcidIn, severityIn, textIn, reportDate);
+        }
+
         public static string DoesFileExist(string subDirectoryIn, string fileNameIn, string suffixIn, bool modifyCheck = false)
         {
             string repDate = repDateTmp.ToString("MMMdd").ToUpper();
