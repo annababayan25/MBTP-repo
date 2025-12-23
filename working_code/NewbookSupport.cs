@@ -1,18 +1,10 @@
-using ClosedXML.Excel;
-using Spire.Xls;
-using Spire.Xls.Core;
-using Spire.Xls.Core.Spreadsheet.AutoFilter;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using GenericSupport;
-using DocumentFormat.OpenXml.Spreadsheet;
-using MBTP.Models;
 using System.Data;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using MBTP.Interfaces;
+using MBTP.Models;
+using GenericSupport;
+using ClosedXML.Excel;
+
 
 namespace NewbookSupport
 {
@@ -22,6 +14,7 @@ namespace NewbookSupport
         public string? RevType { get; set; }
         public double Accum { get; set; }
     }
+
     public class Deposits
     {
         public DateTime Fy { get; set; }
@@ -30,6 +23,7 @@ namespace NewbookSupport
         public double GolfAccum { get; set; }
         public double VouchersAccum { get; set; }
     }
+
     public class Recon
     {
         public string? ReconItem { get; set; }
@@ -37,21 +31,25 @@ namespace NewbookSupport
         public string? GL { get; set; }
         public bool MiscTrans { get; set; }
     }
+
     public class Applied
     {
         public string? AppliedItem { get; set; }
         public double Accum { get; set; }
     }
+
     public class Transfers
     {
         public string? TranItem { get; set; }
         public double Accum { get; set; }
     }
+
     public class Checks
     {
         public string? CheckItem { get; set; }
         public double Accum { get; set; }
     }
+
     public class SpecialRecon
     {
         public string? Gl { get; set; }
@@ -60,7 +58,8 @@ namespace NewbookSupport
         public string? Desc { get; set; }
         public double Amount { get; set; }
     }
-#nullable disable
+ #nullable disable
+   
     public class SupportRoutines
     {
         private readonly IDatabaseConnectionService _dbConnectionService;
@@ -69,7 +68,7 @@ namespace NewbookSupport
         {
             _dbConnectionService = dbConnectionService;
         }
-        static double depositsCarts = 0, depositsChairs = 0, returnedChairs = 0, vouchersSold = 0;
+       static double depositsCarts = 0, depositsChairs = 0, returnedChairs = 0, vouchersSold = 0;
         public static List<NewbookSupport.Revenue> revenueArray;
         public static List<NewbookSupport.Deposits> depositsarray;
         public static List<NewbookSupport.Recon> reconArray;
@@ -77,207 +76,230 @@ namespace NewbookSupport
         public static List<NewbookSupport.Transfers> transfersArray;
         public static List<NewbookSupport.Checks> checksArray;
         public static List<NewbookSupport.SpecialRecon> specialReconArray = new List<NewbookSupport.SpecialRecon>();
-        public static Spire.Xls.Worksheet BuildSpecialReconSheet(IXLWorksheet reconSheetIn)
+        public static List<SpecialRecon> BuildSpecialReconList(List<ReconsApi> recons)
         {
-            const int tmpGLCol = 1;
-            const int tmpClientCol = 2;
-            const int tmpItemCol = 3;
-            const int tmpDescCol = 4;
-            const int tmpTotalCol = 6;
-            Spire.Xls.Workbook spireReconWB = new Spire.Xls.Workbook();
-            Spire.Xls.Worksheet spireReconSheet = spireReconWB.Worksheets[0];
-            int rowCount = reconSheetIn.LastRowUsed().RowNumber();
-            IXLCell workCell;
-            string tmpStr, itemToCompare = "", lastClient = "", lastItem = "", lastDesc = "", lastGL = "";
-            double runningTotal = 0;
-            for (int i = 1; i <= rowCount; i++) // Loop until we find the headers row (usually the first row)
-            {
-                workCell = reconSheetIn.Row(i).Cell(1);
-                if (workCell != null)
-                {
-                    tmpStr = reconSheetIn.Row(i).Cell(tmpItemCol).Value.ToString();
-                    //if (tmpStr.IndexOf("Allocated to Charge") != -1 || tmpStr.IndexOf("Unallocated from Charge") != -1)
-                    //{
-                    //    itemToCompare = tmpStr.Substring(0, tmpStr.IndexOf("Allocated to Charge") + 9);
-                    //}
-                    if (tmpStr.IndexOf("Allocated to Charge") != -1)
-                    {
-                        itemToCompare = tmpStr.Substring(0, tmpStr.IndexOf("Allocated to Charge") + 9);
-                    }
-                    else if (tmpStr.IndexOf("Unallocated from Charge") != -1)
-                    {
-                        itemToCompare = tmpStr.Substring(0, tmpStr.IndexOf("Unallocated from Charge") + 11);
-                    }
-                    else
-                    {
-                        itemToCompare = tmpStr;
-                    }
-                }
-                if ((lastClient != "" && lastClient != reconSheetIn.Row(i).Cell(tmpClientCol).Value.ToString()) ||
-                   (lastItem != "" && lastItem != itemToCompare))
-                {
-                    if (runningTotal != 0 && lastGL != "1003" && lastGL != "1014" && lastGL != "1016" && lastGL != "1017" && lastGL != "1018")
-                    {
-                        SpecialRecon tmpRecon = new SpecialRecon() { Gl = lastGL, Client = lastClient, Recon_item = lastItem, Desc = lastDesc, Amount = Math.Round(runningTotal * -1, 2) };
-                        specialReconArray.Add(tmpRecon);
-                    }
-                    runningTotal = 0;
-                }
-                if (reconSheetIn.Row(i).Cell(tmpDescCol).Value.ToString() != "Unallocated Payments" &&
-                    reconSheetIn.Row(i).Cell(tmpDescCol).Value.ToString() != "Deposit Payments" &&
-                    (reconSheetIn.Row(i).Cell(tmpItemCol).Value.ToString().IndexOf("Allocated to Charge") != -1 ||
-                     reconSheetIn.Row(i).Cell(tmpItemCol).Value.ToString().IndexOf("Unallocated from Charge") != -1))
-                {
-                    lastGL = reconSheetIn.Row(i).Cell(tmpGLCol).Value.ToString();
-                    if (lastGL == "362")
-                    {
-                        lastGL = "0362";
-                    }
-                    lastClient = reconSheetIn.Row(i).Cell(tmpClientCol).Value.ToString();
-                    lastItem = reconSheetIn.Row(i).Cell(tmpItemCol).Value.ToString();
-                    if (lastItem.IndexOf("Allocated to Charge") != -1)
-                    {
-                        lastItem = lastItem.Substring(0, lastItem.IndexOf("Allocated to Charge") + 9);
-                    }
-                    else if (lastItem.IndexOf("Unallocated from Charge") != -1)
-                    {
-                        lastItem = lastItem.Substring(0, lastItem.IndexOf("Unallocated from Charge") + 11);
+            var result = new List<SpecialRecon>();
 
-                    }
-                    lastDesc = reconSheetIn.Row(i).Cell(tmpDescCol).Value.ToString();
-                    double.TryParse(reconSheetIn.Row(i).Cell(tmpTotalCol).Value.ToString(), out double tmpVal); // attempt conversion to double, tmpVal will = 0 if conversion fails
-                    runningTotal += tmpVal;
-                }
-            }
-            //foreach (specialRecon item in specialReconArray)
-            //{
-            //System.Diagnostics.Debug.WriteLine(item.gl + " " + item.recon_item + " " + item.client + " " + item.desc + " " + item.amount.ToString("C"));
-            //}
-            return spireReconSheet;
-        }
-        public static string GetMissingCategory(IXLWorksheet sheetIn, string actionIn, string transIn, string clientIn, int catColIn, int transColIn)
-        {
-            int tmpRowIdx;
-            string tmpSearchStr;
-            if (transIn.IndexOf("Voided Payments Voided") != -1)
+            string lastGL = "";
+            string lastItem = "";
+            double runningTotal = 0;
+
+            foreach (var row in recons
+                .Where(r => !string.IsNullOrEmpty(r.ItemDescription))
+                .OrderBy(r => r.ItemDescription)
+                .ThenBy(r => r.GLAccountCode))
             {
-                tmpSearchStr = "Voided Refunds Voided #" + transIn.Substring(transIn.IndexOf("Ref #") + 5).Replace(")", "");
-            }
-            else if (transIn.IndexOf("Voided Refunds Voided") != -1)
-            {
-                tmpSearchStr = "Voided Payments Voided #" + transIn.Substring(transIn.IndexOf("Ref #") + 5).Replace(")", "");
-            }
-            else if (transIn.IndexOf("Refunds Raised") != -1)
-            {
-                tmpSearchStr = "Payments Raised #" + transIn.Substring(transIn.IndexOf("Ref #") + 5).Replace(")", "");
-            }
-            else
-            {
-                tmpSearchStr = "Refunds Raised #" + transIn.Substring(transIn.IndexOf("Ref #") + 5).Replace(")", "");
-            }
-            tmpRowIdx = 1;
-            while (sheetIn.Row(tmpRowIdx).Cell(transColIn).Value.ToString() != "")
-            {
-                if (sheetIn.Row(tmpRowIdx).Cell(transColIn).Value.ToString().IndexOf(tmpSearchStr) != -1)
+                string itemToCompare;
+
+                if (row.ItemDescription!.Contains("Allocated to Charge"))
                 {
-                    // NEW IF BLOCK ADDED 9/11/23 2:15 PM
-                    if (sheetIn.Row(tmpRowIdx).Cell(transColIn + 2).Value.ToString().IndexOf("Guest") != -1)
-                    {
-                        return "GUEST";
-                    }
-                    else
-                    {
-                        return sheetIn.Row(tmpRowIdx).Cell(catColIn).Value.ToString();
-                    }
+                    itemToCompare = row.ItemDescription.Substring(
+                        0, row.ItemDescription.IndexOf("Allocated to Charge") + 9);
                 }
-                tmpRowIdx += 1;
-            }
-            // If we still haven't found a match try for success using the Booking Chart if it's a Group
-            int splitPos = clientIn.IndexOf(" - Split");
-            int parenPos = clientIn.IndexOf(")");
-            string path__1;
-            if (clientIn.IndexOf("Group") != -1)
-            {
-                path__1 = GenericRoutines.DoesFileExist("", @"Bookings_Chart_", ".xlsx", true);
-                if (path__1.IndexOf("FAILURE") == -1)   // The file was found
+                else if (row.ItemDescription.Contains("Unallocated from Charge"))
                 {
-                    XLWorkbook chartBook = new XLWorkbook(path__1);
-                    IXLWorksheet chartSheet = chartBook.Worksheet(1);
-                    int rowCount = chartSheet.LastRowUsed().RowNumber();
-                    if (splitPos != -1)
-                    {
-                        tmpSearchStr = clientIn.Substring(parenPos + 2, splitPos - 1 - parenPos) + "(Split)";
-                    }
-                    else
-                    {
-                        tmpSearchStr = clientIn;
-                    }
-                    tmpRowIdx = 2;
-                    int chartTransCol = 4;
-                    while (tmpRowIdx <= rowCount)
-                    {
-                        if (chartSheet.Row(tmpRowIdx).Cell(chartTransCol).Value.ToString().IndexOf(tmpSearchStr) != -1)
-                        {
-                            if (actionIn.IndexOf("Balance Transfer") == -1)
-                            {
-                                // Move upward through the sheet to find a non-blank row, this will be the category for the split site
-                                for (int i = tmpRowIdx; i >= 1; i--)
-                                {
-                                    if (chartSheet.Row(i).Cell(1).Value.ToString() != "")
-                                    {
-                                        return chartSheet.Row(i).Cell(1).Value.ToString();
-                                    }
-                                }
-                            }
-                        }
-                        tmpRowIdx += 1;
-                        if (tmpRowIdx > rowCount) { break; }
-                    }
+                    itemToCompare = row.ItemDescription.Substring(
+                        0, row.ItemDescription.IndexOf("Unallocated from Charge") + 11);
                 }
                 else
                 {
-                    GenericRoutines.UpdateAlerts(1, "INFORMATIONAL", path__1.Substring(7) + " Not Found, Possible Data Inaccuracy");
-                    return "";
+                    itemToCompare = row.ItemDescription;
+                }
+
+                // Group break
+                if (lastItem != "" && lastItem != itemToCompare)
+                {
+                    if (runningTotal != 0 &&
+                        lastGL != "1003" && lastGL != "1014" &&
+                        lastGL != "1016" && lastGL != "1017" &&
+                        lastGL != "1018")
+                    {
+                        result.Add(new SpecialRecon
+                        {
+                            Gl = lastGL,
+                            Recon_item = lastItem,
+                            Amount = Math.Round(runningTotal * -1, 2)
+                        });
+                    }
+
+                    runningTotal = 0;
+                }
+
+                lastGL = row.GLAccountCode == "362"
+                    ? "0362"
+                    : row.GLAccountCode;
+
+                lastItem = itemToCompare;
+                runningTotal += (double)(row.Total_TaxInc ?? 0);
+            }
+
+            return result;
+        }
+
+
+
+        #region Category Lookup
+        public static string GetMissingCategory(List<TransactionFlow> transactions, string actionIn, string transIn, string clientIn)
+        {
+            string tmpSearchStr = BuildSearchString(transIn);
+            if (string.IsNullOrEmpty(tmpSearchStr))
+                return "";
+
+            for (int i = 0; i < transactions.Count; i++)
+            {
+                var transaction = transactions[i];
+
+                if (transaction.TransType?.Contains(tmpSearchStr) == true)
+                {
+                    if (transaction.ClientAccount?.Contains("Guest", StringComparison.OrdinalIgnoreCase) == true)
+                        return "GUEST";
+
+                    if (!string.IsNullOrEmpty(transaction.Category))
+                        return transaction.Category;
+
+                    // Group fallback 
+                    if (clientIn.Contains("Group", StringComparison.OrdinalIgnoreCase) &&
+                        !actionIn.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Walk UP the list to find nearest category
+                        for (int j = i - 1; j >= 0; j--)
+                        {
+                            if (!string.IsNullOrWhiteSpace(transactions[j].Category))
+                            {
+                                return transactions[j].Category;
+                            }
+                        }
+                    }
                 }
             }
+
+            if (clientIn.Contains("Group", StringComparison.OrdinalIgnoreCase))
+            {
+                return GetCategoryFromBookingChart(actionIn, clientIn);
+            }
+
             return "";
         }
-        public static bool ValidReconEntryFound(string actionIn, string transIn, double amtIn, int transColIn = 0, IXLWorksheet transSheetIn = null)
+
+        private static string GetCategoryFromBookingChart(string actionIn, string clientIn)
         {
-            if (actionIn.IndexOf("Balance Transf") != -1)
+            int splitPos = clientIn.IndexOf(" - Split", StringComparison.OrdinalIgnoreCase);
+            int parenPos = clientIn.IndexOf(")");
+
+            string path = GenericRoutines.DoesFileExist("", @"Bookings_Chart_", ".xlsx", true);
+            if (path.Contains("FAILURE"))
+            {
+                GenericRoutines.UpdateAlerts(
+                    1,
+                    "INFORMATIONAL",
+                    path.Substring(7) + " Not Found, Possible Data Inaccuracy");
+
+                return "";
+            }
+
+            using var chartBook = new XLWorkbook(path);
+            var chartSheet = chartBook.Worksheet(1);
+
+            int rowCount = chartSheet.LastRowUsed().RowNumber();
+            int chartTransCol = 4;
+
+            string tmpSearchStr;
+            if (splitPos != -1 && parenPos != -1)
+            {
+                tmpSearchStr =
+                    clientIn.Substring(parenPos + 2, splitPos - 1 - parenPos) + "(Split)";
+            }
+            else
+            {
+                tmpSearchStr = clientIn;
+            }
+
+            for (int row = 2; row <= rowCount; row++)
+            {
+                if (chartSheet.Row(row).Cell(chartTransCol)
+                    .GetString()
+                    .Contains(tmpSearchStr, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (!actionIn.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Walk UP to find first non-blank category (column 1)
+                        for (int i = row; i >= 1; i--)
+                        {
+                            string category = chartSheet.Row(i).Cell(1).GetString();
+                            if (!string.IsNullOrWhiteSpace(category))
+                                return category;
+                        }
+                    }
+                }
+            }
+
+            return "";
+        }
+
+
+
+
+        private static string BuildSearchString(string transIn)
+        {
+            int refIndex = transIn.IndexOf("Ref #");
+            if (refIndex == -1)
+                return "";
+
+            string refNumber = transIn.Substring(refIndex + 5).Replace(")", "");
+
+            if (transIn.Contains("Voided Payments Voided"))
+                return "Voided Refunds Voided #" + refNumber;
+            
+            if (transIn.Contains("Voided Refunds Voided"))
+                return "Voided Payments Voided #" + refNumber;
+            
+            if (transIn.Contains("Refunds Raised"))
+                return "Payments Raised #" + refNumber;
+            
+            return "Refunds Raised #" + refNumber;
+        }
+        #endregion
+
+        #region Recon Validation
+            
+        public static bool ValidReconEntryFound(string actionIn, TransactionFlow transaction, double amtIn, int transColIn = 0)
+        {
+            if (transaction.TranslatedPaymentType.Contains("Balance Transfer"))
             {
                 return false;
             }
             else
             {
                 string tmpSearchStr;
-                if (transIn.IndexOf("Voided Refunds") != -1)
+                if (transaction.TransType.Contains("Voided Refunds"))
                 {
-                    tmpSearchStr = "Refund #" + transIn.Substring(transIn.IndexOf("Voided #") + 8).Replace("Voided ", "") + " Allocated";
+                    tmpSearchStr =
+                        "Refund #" +
+                        transaction.PaymentTypeReference +
+                        " Allocated";
                 }
-                else if (transIn.IndexOf("Refunds Raised") != -1)
+                else if (transaction.TransType.Contains("Refunds Raised"))
                 {
                     if (transColIn == 0)
                     {
-                        tmpSearchStr = "Payments Raised #" + transIn.Substring(transIn.IndexOf("Ref #") + 5).Replace(")", "");
+                        tmpSearchStr =
+                            "Payments Raised #" +
+                            transaction.PaymentTypeReference;
                     }
-                    //tmpSearchStr = "Payments Raised #" + transIn.Substring(transIn.IndexOf("Ref #") + 5).Replace(")", "");
                     else
                     {
-                        tmpSearchStr = "Payment " + GetRefundPaymentNumber(transSheetIn, transIn, transColIn) + " Unallocated";
+                        tmpSearchStr =
+                            "Payment " +
+                            GetRefundPaymentNumber(transaction) +
+                            " Unallocated";
                     }
                 }
                 else
                 {
-                    tmpSearchStr = transIn.Substring(transIn.IndexOf("#") + 1, 6);
-                    if (tmpSearchStr.IndexOf(" ") == -1)
-                    {
-                        tmpSearchStr = "Payment #" + tmpSearchStr + " Allocated";
-                    }
-                    else
-                    {
-                        tmpSearchStr = "Payment #" + tmpSearchStr.Substring(0, tmpSearchStr.IndexOf(" ") - 1) + " Allocated";
-                    }
+                    tmpSearchStr =
+                        "Payment #" +
+                        transaction.PaymentTypeReference +
+                        " Allocated";
                 }
 
                 int combRowCnt = 0;
@@ -337,149 +359,221 @@ namespace NewbookSupport
                 return false;
             }
         }
-        public static List<Recon> AddRecon(List<Recon> reconArrayIn, string reconCatIn, string transFlowIn, double flowValIn, string glIn = "")
+
+        private static string BuildReconSearchString(string transIn)
         {
-            string modifiedCatIn;
-            if (reconCatIn.IndexOf("Visitor") != -1)
+            if (transIn.Contains("Voided Refunds"))
             {
-                modifiedCatIn = "Visitor";
+                int voidedIndex = transIn.IndexOf("Voided #");
+                if (voidedIndex != -1)
+                    return "Refund #" + transIn.Substring(voidedIndex + 8).Replace("Voided ", "") + " Allocated";
+            }
+            else if (transIn.Contains("Refunds Raised"))
+            {
+                int refIndex = transIn.IndexOf("Ref #");
+                if (refIndex != -1)
+                    return "Payments Raised #" + transIn.Substring(refIndex + 5).Replace(")", "");
             }
             else
             {
-                modifiedCatIn = reconCatIn;
-            }
-            foreach (var item in reconArrayIn)
-            {
-                if (item.ReconItem.IndexOf(modifiedCatIn) != -1)  // if (item.ReconItem.Substring(0, modifiedCatIn.Length) == modifiedCatIn)
+                int hashIndex = transIn.IndexOf("#");
+                if (hashIndex != -1 && hashIndex + 7 <= transIn.Length)
                 {
-                    item.Accum += flowValIn;
-                    if (reconCatIn.IndexOf("Visitor") != -1 || modifiedCatIn == reconCatIn)
+                    string paymentNum = transIn.Substring(hashIndex + 1, Math.Min(6, transIn.Length - hashIndex - 1));
+                    int spaceIndex = paymentNum.IndexOf(" ");
+                    
+                    if (spaceIndex != -1)
+                        paymentNum = paymentNum.Substring(0, spaceIndex);
+                    
+                    return "Payment #" + paymentNum + " Allocated";
+                }
+            }
+
+            return "";
+        }
+        #endregion
+
+        #region Payment Validation
+        public static string PaymentRaised(List<TransactionFlow> transactions, string glIn, string paymentIn, 
+                                          double pymtValIn, string itemCheck )
+        {
+            foreach (var transaction in transactions)
+            {
+                if (!transaction.Amount.HasValue)
+                    continue;
+
+                double amtVal = (double)transaction.Amount.Value;
+
+                bool isNotBalanceTransfer = !(transaction.PaymentTypeAction?.Contains("Balance Transfer") ?? false);
+                bool paymentMatches = transaction.TransType?.Contains(paymentIn) ?? false;
+                bool amountMatches = Math.Round(amtVal, 2) == Math.Round(pymtValIn, 2) ||
+                                   (Math.Round(amtVal, 2) == (Math.Round(pymtValIn, 2) * -1) &&
+                                    itemCheck?.Contains("Unallocated") == true);
+
+                if (isNotBalanceTransfer && paymentMatches && amountMatches)
+                {
+                    if (glIn == "0361")
                     {
-                        AddFlow(item.ReconItem, transFlowIn, flowValIn);
+                        bool isAnnual = transaction.Category?.Contains("Annual") ?? false;
+                        bool hasVehicle = transaction.Description?.Contains("VEHICLE") ?? false;
+
+                        return isAnnual 
+                            ? (hasVehicle ? "ANNUAL - MISC" : "ANNUAL")
+                            : (hasVehicle ? "MOBILE - MISC" : "MOBILE");
+                    }
+                    
+                    return "OK";
+                }
+            }
+
+            return "NO";
+        }
+        #endregion
+
+        #region Array Update Methods
+        public static List<Recon> AddRecon(List<Recon> reconArray, string reconCat, string transFlow, 
+                                          double flowVal, string gl = "")
+        {
+            string modifiedCat = reconCat.Contains("Visitor") ? "Visitor" : reconCat;
+
+            foreach (var item in reconArray)
+            {
+                if (item.ReconItem?.Contains(modifiedCat) == true)
+                {
+                    item.Accum += flowVal;
+                    AddFlow(reconCat.Contains("Visitor") || modifiedCat == reconCat ? item.ReconItem : reconCat, 
+                           transFlow, flowVal);
+                    return reconArray;
+                }
+            }
+
+            reconArray.Add(new Recon 
+            { 
+                ReconItem = reconCat, 
+                Accum = flowVal, 
+                GL = gl, 
+                MiscTrans = true 
+            });
+            
+            return reconArray;
+        }
+
+        public static List<Revenue> AddRevenue(List<Revenue> revArray, string transCat, string transFlow, double flowVal)
+        {
+            if (transCat == "SKIPPED" || transCat == "DROPPED")
+            {
+                AddFlow(transCat, transFlow, flowVal);
+                return revArray;
+            }
+
+            foreach (var item in revArray)
+            {
+                if (item.RevType?.Contains(transCat) == true)
+                {
+                    item.Accum += flowVal;
+                    AddFlow(transCat, transFlow, flowVal);
+                    return revArray;
+                }
+            }
+
+            AddFlow("ERROR REVENUE", transFlow, flowVal);
+            return revArray;
+        }
+
+        public static List<Transfers> AddTransfer(List<Transfers> transArray, string xferCat, string transFlow, double flowVal)
+        {
+            foreach (var item in transArray)
+            {
+                if (item.TranItem?.Contains(xferCat) == true)
+                {
+                    item.Accum += flowVal;
+                    AddFlow(item.TranItem, transFlow, flowVal);
+                    return transArray;
+                }
+            }
+
+            AddFlow("ERROR TRANSFER", transFlow, flowVal);
+            return transArray;
+        }
+
+        public static List<Applied> AddApplied(List<Applied> appArray, string appCat, string transFlow, double flowVal)
+        {
+            foreach (var item in appArray)
+            {
+                if (item.AppliedItem?.Contains(appCat) == true)
+                {
+                    item.Accum += flowVal;
+                    AddFlow(item.AppliedItem, transFlow, flowVal);
+                    return appArray;
+                }
+            }
+
+            AddFlow("ERROR APPLIED", transFlow, flowVal);
+            return appArray;
+        }
+
+        public static List<Deposits> AddDeposit(List<Deposits> depArray, string depCat, int arrayPos, 
+                                               string transFlow, double flowVal)
+        {
+            string depStr;
+
+            switch (depCat)
+            {
+                case "Golf":
+                    depArray[arrayPos].GolfAccum += flowVal;
+                    depStr = $"Golf Deposits(FY{depArray[arrayPos].Fy:yy})";
+                    break;
+
+                case "Vouchers":
+                    depArray[arrayPos].VouchersAccum += flowVal;
+                    depStr = "Vouchers Sold";
+                    break;
+
+                default:
+                    if (depCat.Contains("WESC"))
+                    {
+                        depArray[arrayPos].WescAccum += flowVal;
+                        depStr = $"Campsite Deposits(FY{depArray[arrayPos].Fy:yy})";
+                    }
+                    else if (depCat.Contains("Rentals"))
+                    {
+                        depArray[arrayPos].RentalAccum += flowVal;
+                        depStr = $"Rental Unit Deposits(FY{depArray[arrayPos].Fy:yy})";
                     }
                     else
                     {
-                        AddFlow(reconCatIn, transFlowIn, flowValIn);
+                        depStr = "ERROR DEPOSIT";
                     }
-                    return reconArrayIn; //stop processing, work is complete
-                }
+                    break;
             }
-            Recon newItem = new Recon() { ReconItem = reconCatIn, Accum = flowValIn, GL = glIn, MiscTrans = true };
-            reconArrayIn.Add(newItem);
-            //AddFlow("ERROR", transFlowIn, flowValIn);
-            return reconArrayIn;
-        }
-        public static void AddAssumption(string _classIn)
-        {
-            return;
-        } // EMPTY STUB
-        public static List<Revenue> AddRevenue(List<Revenue> revArrayIn, string transCatIn, string transFlowIn, double flowValIn)
-        {
-            if (Math.Abs(flowValIn) == 114.24)
-            {
-                System.Diagnostics.Debug.WriteLine("REVENUE");
-            }
-            if (transCatIn != "SKIPPED" && transCatIn != "DROPPED")
-            {
-                foreach (var item in revArrayIn)
-                {
-                    if (item.RevType.IndexOf(transCatIn) != -1)
-                    {
-                        item.Accum += flowValIn;
-                        AddFlow(transCatIn, transFlowIn, flowValIn);
-                        //System.Diagnostics.Debug.WriteLine(transCatIn + ":" + transFlowIn + " " + flowValIn.ToString("C"));
-                        if (transCatIn == "Misc" && (transFlowIn.ToUpper().IndexOf("CHAIR") != -1 ||
-                            transFlowIn.ToUpper().IndexOf("CHAIR") != -1))
-                        {
-                            if (flowValIn > 0)
-                            {
-                                depositsChairs += flowValIn;
-                            }
-                            else
-                            {
-                                returnedChairs += flowValIn;
-                            }
-                            //item.Accum -= flowValIn; //Back it out since we'll list chairs on their own 925 lines
-                        }
-                        return revArrayIn; //stop processing, work is complete
-                    }
-                }
-                AddFlow("ERROR REVENUE", transFlowIn, flowValIn); // Only get here it we fell all the way through the foreach loop
-                //System.Diagnostics.Debug.WriteLine("THROUGH:" + transFlowIn + " " + flowValIn.ToString("C"));
-            }
-            else
-            {
-                AddFlow(transCatIn, transFlowIn, flowValIn);
-                //System.Diagnostics.Debug.WriteLine(transCatIn + ":" + transFlowIn + " " + flowValIn.ToString("C"));
-            }
-            return revArrayIn;
-        }
-        public static List<Transfers> AddTransfer(List<Transfers> transArrayIn, string xferCatIn, string transFlowIn, double flowValIn)
-        {
-            foreach (var item in transArrayIn)
-            {
-                if (item.TranItem.IndexOf(xferCatIn) != -1)
-                {
-                    item.Accum += flowValIn;
-                    AddFlow(item.TranItem, transFlowIn, flowValIn);
-                    return transArrayIn; //stop processing, work is complete
-                }
-            }
-            AddFlow("ERROR TRANSFER", transFlowIn, flowValIn);
-            return transArrayIn;
-        }
-        public static List<Applied> AddApplied(List<Applied> appArrayIn, string appCatIn, string transFlowIn, double flowValIn)
-        {
-            foreach (var item in appArrayIn)
-            {
-                if (item.AppliedItem.IndexOf(appCatIn) != -1)
-                {
-                    item.Accum += flowValIn;
-                    AddFlow(item.AppliedItem, transFlowIn, flowValIn);
-                    //System.Diagnostics.Debug.WriteLine(appCatIn + ":" + transFlowIn + " " + flowValIn.ToString("C"));
-                    return appArrayIn; //stop processing, work is complete
-                }
-            }
-            AddFlow("ERROR APPLIED", transFlowIn, flowValIn);
-            return appArrayIn;
-        }
-        public static List<Deposits> AddDeposit(List<Deposits> depArrayIn, string depCatIn, int arrayPosIn, string transFlowIn, double flowValIn)
-        {
-            string depStr;
-            if (depCatIn == "Golf")
-            {
-                depArrayIn[arrayPosIn].GolfAccum += flowValIn;
-                depStr = "Golf Deposits(FY" + depArrayIn[arrayPosIn].Fy.ToString("yy") + ")";
-                depositsCarts += flowValIn;
-            }
-            else if (depCatIn == "Vouchers")
-            {
-                depArrayIn[arrayPosIn].VouchersAccum += flowValIn;
-                depStr = "Vouchers Sold";
-                vouchersSold += flowValIn;
-            }
-            else
-            {
-                if (depCatIn.IndexOf("WESC") != -1)
-                {
-                    depArrayIn[arrayPosIn].WescAccum += flowValIn;
-                    depStr = "Campsite Deposits(FY" + depArrayIn[arrayPosIn].Fy.ToString("yy") + ")";
-                    if (Math.Abs(flowValIn) == 114.24)
-                    {
-                        System.Diagnostics.Debug.WriteLine("DEPOSIT");
-                    }
 
-                }
-                else if (depCatIn.IndexOf("Rentals") != -1)
-                {
-                    depArrayIn[arrayPosIn].RentalAccum += flowValIn;
-                    depStr = "Rental Unit Deposits(FY" + depArrayIn[arrayPosIn].Fy.ToString("yy") + ")";
-                }
-                else { depStr = "ERROR DEPOSIT"; }
-            }
-            AddFlow(depStr, transFlowIn, flowValIn);
-            return depArrayIn;
+            AddFlow(depStr, transFlow, flowVal);
+            return depArray;
         }
+
+        public static List<Checks> AddCheck(List<Checks> checkArray, string checkCat, string checkFlow, double flowVal)
+        {
+            foreach (var item in checkArray)
+            {
+                if (item.CheckItem?.Contains(checkCat) == true)
+                {
+                    item.Accum += flowVal;
+                    AddFlow(item.CheckItem, checkFlow, flowVal);
+                    return checkArray;
+                }
+            }
+
+            AddFlow("ERROR CHECK", checkFlow, flowVal);
+            return checkArray;
+        }
+        #endregion
+
+        #region Helper Methods
+        public static void AddAssumption(string classIn)
+        {
+            return;// Stub for future implementation
+        }
+
         public static void AddFlow(string assignedIn, string actionIn, double amtIn)
         {
             string assignedParam = assignedIn + ":";
@@ -488,196 +582,121 @@ namespace NewbookSupport
             {
                 bookingParam = "GUEST";
             }
-            if (Math.Abs(amtIn) == 4320.00)
+            //if(Math.Abs(amtIn) == 30.24)
             //if(assignedIn.IndexOf("Golf") != -1)
             //if(assignedIn.IndexOf("GolfDepApp") != -1 || assignedIn.IndexOf("GolfCartRentals") != -1)
             //if (actionIn.IndexOf("344287") != -1 || actionIn.IndexOf("352158") != -1)
-            {
-                System.Diagnostics.Debug.WriteLine(assignedParam + actionIn + " " + amtIn.ToString("C") + " " + bookingParam);
-            }
+            //{
+            //    System.Diagnostics.Debug.WriteLine(assignedParam + actionIn + " " + amtIn.ToString("C") + " " + bookingParam);
+            //}
             return;
         }
-        public static List<Checks> AddCheck(List<Checks> checkArrayIn, string checkCatIn, string checkFlowIn, double flowValIn)
+    
+       public int CheckForCancel(int idToCheck, DateTime reportDate)
         {
-            foreach (var item in checkArrayIn)
+            string sqlQuery = @"
+                SELECT BookingCancelled
+                FROM dbo.Bookings
+                WHERE BookingId = @idToCheck
+            ";
+
+            try
             {
-                if (item.CheckItem.IndexOf(checkCatIn) != -1)
+                using (var sqlConn = _dbConnectionService.CreateConnection())
+                using (var cmd = new SqlCommand(sqlQuery, sqlConn))
                 {
-                    item.Accum += flowValIn;
-                    AddFlow(item.CheckItem, checkFlowIn, flowValIn);
-                    return checkArrayIn; //stop processing, work is complete
+                    cmd.Parameters.Add("@idToCheck", SqlDbType.Int).Value = idToCheck;
+
+                    sqlConn.Open();
+
+                    object result = cmd.ExecuteScalar();
+
+                    // No record found
+                    if (result == null || result == DBNull.Value)
+                    {
+                        return 0; // treat as not cancelled
+                    }
+
+                    string bookingCancelled = result.ToString();
+
+                    return bookingCancelled != null ? 1 : 0;
                 }
             }
-            AddFlow("ERROR CHECK", checkFlowIn, flowValIn);
-            return checkArrayIn;
-        }
-        public static int CheckForCancel(string idToCheck)
-        {
-            string path__1 = GenericRoutines.DoesFileExist("", @"Booking_Adjustments_", ".xlsx", true);
-            if (path__1.IndexOf("FAILURE") == -1) // file found
+            catch (Exception ex)
             {
-                if (idToCheck.IndexOf("Booking") != -1) { idToCheck = idToCheck.Substring(10, 6); }
-                XLWorkbook adjustBook = new XLWorkbook(path__1);
-                IXLWorksheet adjustSheet = adjustBook.Worksheet(1);
-                IXLAutoFilter myFilter = adjustSheet.Range(adjustSheet.Cell(2, 1), adjustSheet.LastCellUsed()).SetAutoFilter(true);
-                myFilter.Column(1).EqualTo("Bookings #" + idToCheck);
-                myFilter.Column(2).EqualTo("Status");
-                myFilter.Column(3).EqualTo("Confirmed");
-                myFilter.Column(4).EqualTo("Cancelled");
-                if (myFilter.VisibleRows.Count() != 1) { return 1; } else { return 0; }
-            }
-            else
-            {
-                GenericRoutines.UpdateAlerts(1, "FATAL ERROR", path__1.Substring(7) + " Not Found, IMPORT ABORTED");
+                GenericRoutines.UpdateAlerts2(
+                    1,
+                    "FATAL ERROR",
+                    $"API Request for CheckForCancel failed: {ex.Message}",
+                    reportDate
+                );
                 return -1;
             }
         }
-        public static bool CheckFYChange(string idToCheck)
+
+        public bool CheckFYChange(int bookingId, DateTime reportDate)
         {
-            string path__1 = GenericRoutines.DoesFileExist("", @"Booking_Adjustments_", ".xlsx", true);
-            if (path__1.IndexOf("FAILURE") == -1) // file found
+            string sqlQuery = @"
+                SELECT BookingArrival, BookingDeparture
+                FROM dbo.Bookings
+                WHERE BookingId = @bookingId
+            ";
+
+            try
             {
-                if (idToCheck.IndexOf("Booking") != -1) { idToCheck = idToCheck.Substring(11, 6); }
-                XLWorkbook adjustBook = new XLWorkbook(path__1);
-                IXLWorksheet adjustSheet = adjustBook.Worksheet(1);
-                IXLAutoFilter myFilter = adjustSheet.Range(adjustSheet.Cell(2, 1), adjustSheet.LastCellUsed()).SetAutoFilter(true);
-                myFilter.Column(1).EqualTo("Bookings #" + idToCheck); // filter for specific booking
-                myFilter.Column(2).EqualTo("Period To");
-                if (myFilter.VisibleRows.Count() != 0) { return true; } else { return false; }
+                using (var sqlConn = _dbConnectionService.CreateConnection())
+                using (var cmd = new SqlCommand(sqlQuery, sqlConn))
+                {
+                    cmd.Parameters.Add("@bookingId", SqlDbType.Int).Value = bookingId;
+
+                    sqlConn.Open();
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (!reader.Read())
+                        {
+                            // Booking not found → no FY change
+                            return false;
+                        }
+
+                        DateTime arrival = reader.GetDateTime(0);
+                        DateTime departure = reader.GetDateTime(1);
+
+                        int arrivalFY = GetFinancialYear(arrival);
+                        int departureFY = GetFinancialYear(departure);
+
+                        return arrivalFY != departureFY;
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                GenericRoutines.UpdateAlerts(1, "FATAL ERROR", path__1.Substring(7) + " Not Found, IMPORT ABORTED");
+                GenericRoutines.UpdateAlerts2(
+                    1,
+                    "FATAL ERROR",
+                    $"API Request for CheckFYChange failed: {ex.Message}",
+                    reportDate
+                );
                 return false;
             }
         }
-        public static string PaymentRaised(IXLWorksheet tmpSheet, string glIn, string paymentIn, double pymtValIn, string itemCheck,
-                       int startIn)
-        {
-            for (int i = startIn; i <= tmpSheet.LastRowUsed().RowNumber(); i++) // Loop to the end of the file or until match is found
-            {
-                double.TryParse(tmpSheet.Row(i).Cell(8).Value.ToString(), out double amtVal); // attempt conversion to double, ignore if false (cellVal will = 0)
-                if (tmpSheet.Row(i).Cell(1).Value.ToString().IndexOf("Balance Transfer") == -1 &&
-                    tmpSheet.Row(i).Cell(3).Value.ToString().IndexOf(paymentIn) != -1 &&
-                    (Math.Round(amtVal, 2) == Math.Round(pymtValIn, 2) ||
-                     (Math.Round(amtVal, 2) == (Math.Round(pymtValIn, 2) * -1) && itemCheck.IndexOf("Unallocated") != -1)))
-                {
-                    if (glIn == "0361")
-                    {
-                        if (tmpSheet.Row(i).Cell(3 - 1).Value.ToString().IndexOf("Annual") != -1)
-                        {
-                            if (tmpSheet.Row(i).Cell(7).Value.ToString().IndexOf("VEHICLE") != -1)
-                            {
-                                return "ANNUAL - MISC";
-                            }
-                            else
-                            {
-                                return "ANNUAL";
-                            }
-                        }
-                        else
-                        {
-                            if (tmpSheet.Row(i).Cell(7).Value.ToString().IndexOf("VEHICLE") != -1)
-                            {
-                                return "MOBILE - MISC";
-                            }
-                            else
-                            {
-                                return "MOBILE";
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return "OK";
-                    }
-                }
-            }
-            return "NO";
-        } // END OF PaymentRaised
-        public static string GetRefundPaymentNumber(IXLWorksheet sheetIn, string transIn, int transColIn)
-        {
-            int tmpRowIdx = 1; ;
-            string tmpSearchStr = transIn.Substring(transIn.IndexOf("Ref #")).Replace(")", "");
-            while (sheetIn.Row(tmpRowIdx).Cell(transColIn).Value.ToString() != "")
-            {
-                if (sheetIn.Row(tmpRowIdx).Cell(transColIn).Value.ToString().IndexOf(tmpSearchStr) != -1)
-                {
-                    int hashPos = sheetIn.Row(tmpRowIdx).Cell(transColIn).Value.ToString().IndexOf("#");
-                    return sheetIn.Row(tmpRowIdx).Cell(transColIn).Value.ToString().Substring(hashPos, 7);
-                }
-                tmpRowIdx += 1;
-            }
-            return "#999999";
-        }
-        public DataSet RetrieveCheckedInData()
-        {
-            DataSet checkedInData = new DataSet();
-            try
-            {
-                // Open database connection
-                using (SqlConnection sqlConn = _dbConnectionService.CreateConnection())
-                {
-                    sqlConn.Open();
 
-                    // Fetch current fiscal year data
-                    using (SqlCommand cmd = new SqlCommand("dbo.RetrieveCheckedInReport", sqlConn))
-                    {
-                        cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.Add("@StartDate", SqlDbType.Date).Value = DateTime.Parse(GenericRoutines.repDateStr);
-                        cmd.Parameters.Add("@EndDate", SqlDbType.Date).Value = DateTime.Parse(GenericRoutines.repDateStr).AddDays(1);
-                        SqlDataAdapter myDA = new SqlDataAdapter(cmd);
-                        myDA.Fill(checkedInData);
-                    }
-                }
-            }
-            catch (SqlException sqlEx)
-            {
-                System.Diagnostics.Debug.WriteLine("SQL error: " + sqlEx.Message);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("General error: " + ex.Message);
-                System.Diagnostics.Debug.WriteLine("Stack Trace: " + ex.StackTrace);
-                throw;
-            }
-            return checkedInData;
-        }
-        public DateTime ActualCheckInDate(DataSet checkedInData, string clientIn)
+        private static int GetFinancialYear(DateTime date)
         {
-            string bookingIn = "1";
-            if (clientIn.IndexOf("Booking") != -1)
-            {
-                bookingIn = clientIn.Substring(clientIn.IndexOf("Booking") + 9, 6); // extract the booking number
-            }
-            DateTime actualCheckIn = DateTime.Now.AddYears(3);  // default to a date far in the future
-            try
-            {
-                var query = from row in checkedInData.Tables[0].AsEnumerable()
-                            where row.Field<int>("BookingId") == int.Parse(bookingIn)
-                            select new { bookingCheckedIn = row.Field<DateTime>("BookingCheckedIn") };
-                foreach (var row2 in query)
-                {
-                    Console.WriteLine($"DateIn: {row2.bookingCheckedIn}");
-                }
-
-                var result = query.FirstOrDefault();
-                if (result != null)
-                {
-                    actualCheckIn = result.bookingCheckedIn;
-                }
-                if(actualCheckIn == DateTime.Parse("0001-1-1")) // If no check-in date found, set to a date far in the future
-                {
-                    actualCheckIn = DateTime.Now.AddYears(3);
-                }
-                return actualCheckIn;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine("Error retrieving ActualCheckIn date: " + ex.Message);
-                return actualCheckIn;
-            }
+            // Fiscal year starts October 1
+            return date.Month < 10
+                ? date.Year
+                : date.Year + 1;
         }
+
+        public static string GetRefundPaymentNumber(TransactionFlow transaction)
+        {
+            if (string.IsNullOrWhiteSpace(transaction?.PaymentTypeReference))
+                return "#999999";
+
+            return "#" + transaction.PaymentTypeReference;
+        }
+
+        #endregion
     }
 }

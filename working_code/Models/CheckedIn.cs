@@ -65,7 +65,7 @@ namespace MBTP.Models
         public decimal? OnlineBookingFee { get; set; }
         public decimal? RefundedAmount { get; set; }
         public decimal? CancellationFee { get; set; }
-        public decimal PaymentsAfterCheckIn { get; set; }
+        public decimal? PaymentsAfterCheckIn { get; set; }
         public string? PaymentsAfterCheckInDesc { get; set; }
         public string? Extras { get; set; }
 

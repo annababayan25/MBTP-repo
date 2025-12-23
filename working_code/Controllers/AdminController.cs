@@ -53,8 +53,6 @@ namespace MBTP.Controllers
         private readonly OccupancyApi _occupancyApi;
         private readonly PaymentsApi _paymentsApi;
         private readonly ChargesApi _chargesApi;
-        private readonly ReservationsDepositsService _reservationsDepositsService;
-        private readonly ReservationsDepositsRepo _reservationsDepositsRepo;
         private readonly OccupancyRepo _occupancyRepo;
         private readonly ReconRepo _reconRepo;
         private readonly TransactionFlowRepo _transactionFlowRepo;
@@ -62,6 +60,7 @@ namespace MBTP.Controllers
         private readonly BookingsRepo _bookingsRepo;
         private readonly InventoryApi _inventory;
         private readonly GLAccounts _glAccounts;
+        private readonly NewbookImport _newbook;
         
         public AdminController(
             ILogger<HomeController> logger,
@@ -81,15 +80,14 @@ namespace MBTP.Controllers
             OccupancyApi occupancyApi,
             PaymentsApi paymentsApi,
             ChargesApi chargesApi,
-            ReservationsDepositsService reservationsDepositsService,
-            ReservationsDepositsRepo reservationsDepositsRepo,
             OccupancyRepo occupancyRepo,
             ReconRepo reconRepo,
             TransactionFlowRepo transactionFlowRepo,
             CheckedInListRepo checkedInListRepo,
             BookingsRepo bookingsRepo,
             InventoryApi inventory,
-            GLAccounts glAccounts
+            GLAccounts glAccounts,
+            NewbookImport newbook
         )
 
         {
@@ -109,8 +107,6 @@ namespace MBTP.Controllers
             _occupancyApi = occupancyApi;
             _paymentsApi = paymentsApi;
             _chargesApi = chargesApi;
-            _reservationsDepositsService = reservationsDepositsService;
-            _reservationsDepositsRepo = reservationsDepositsRepo;
             _occupancyRepo = occupancyRepo;
             _reconRepo = reconRepo;
             _transactionFlowRepo = transactionFlowRepo;
@@ -118,6 +114,7 @@ namespace MBTP.Controllers
             _bookingsRepo = bookingsRepo;
             _inventory = inventory;
             _glAccounts = glAccounts;
+            _newbook = newbook;
         }
         
 
@@ -169,11 +166,13 @@ namespace MBTP.Controllers
                 {
                     GenericRoutines.repDateStr = counter.ToString("yyyy-MM-dd");
                     cnvrtResult = System.DateTime.TryParse(GenericRoutines.repDateStr, out GenericRoutines.repDateTmp);
+                    /*
                     if (opts.Contains('F'))
                     {
                         NewbookImport newbookImport = new NewbookImport(_dbConnectionService);
                         newbookImport.ReadNewbookFiles();
                     }
+                    */
                     if (opts.Contains('A'))
                     {
                         POSImports posImports = new POSImports(_dbConnectionService);
@@ -402,8 +401,7 @@ namespace MBTP.Controllers
     
             var selectedDay = day ?? DateTime.Today;
             ViewBag.SelectedDay = selectedDay;
-            var reservations = await _reservationsDepositsService.ProcessReservationsDepositsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
-            await _reservationsDepositsRepo.SaveReservationsDepositsAsync(reservations);
+            await _newbook.ProcessReservationsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
 
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
 

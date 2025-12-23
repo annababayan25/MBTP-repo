@@ -15,7 +15,7 @@ namespace MBTP.Services
             _dbConnectionService = dbConnectionService;
         }
 
-        public async Task SaveReconAsync(IEnumerable<Recon> reconReport)
+        public async Task SaveReconAsync(IEnumerable<ReconsApi> reconReport)
         {
             using var sqlConn = _dbConnectionService.CreateConnection();
             await sqlConn.OpenAsync();

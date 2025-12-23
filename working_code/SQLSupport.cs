@@ -33,7 +33,7 @@ namespace SQLStuff
                 };
                 _cmd.Parameters.Add("@TransDate", SqlDbType.Date).Value = GenericRoutines.repDateStr;
                 _cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
-                
+
                 return true;
             }
             catch (Exception e)
@@ -43,6 +43,30 @@ namespace SQLStuff
                 return false;
             }
         }
+
+        public bool PrepareForNewImport(string procName, DateTime reportDate)
+        {
+            try
+            {
+                _sqlConn = _dbConnectionService.CreateConnection();
+                _cmd = new SqlCommand(procName, _sqlConn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                _cmd.Parameters.Add("@TransDate", SqlDbType.Date).Value = reportDate;
+                _cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                GenericRoutines.UpdateAlerts2(0, "FATAL ERROR",
+                    $"Problem encountered preparing {procName}: {e}", reportDate);
+                return false;
+            }
+        }
+        
+
 
         public void AddSQLParameter(string paramName, SqlDbType sqlType, double val, bool updateExisting = false)
         {
@@ -84,6 +108,28 @@ namespace SQLStuff
             return returnVal;
         }
 
+        public string ExecuteStoredProcedure2(byte pcIDIn, DateTime reportDate)
+        {
+            string returnVal = "Failure";
+
+            _sqlConn.Open();
+            _cmd.ExecuteNonQuery();
+
+            if (_cmd.Parameters["@status"].Value?.ToString() == "SUCCESS")
+            {
+                GenericRoutines.UpdateAlerts2(pcIDIn, "SUCCESS", "", reportDate);
+                returnVal = "SUCCESS";
+            }
+            else
+            {
+                GenericRoutines.UpdateAlerts2(pcIDIn, "FATAL ERROR",
+                    $"{_cmd.CommandText} failed: {_cmd.Parameters["@status"].Value}", reportDate);
+            }
+
+            _sqlConn.Close();
+            return returnVal;
+        }
+
         public void RemoveParameters()
         {
             // Keep TransDate and @status (usually first 2 parameters)
@@ -106,6 +152,28 @@ namespace SQLStuff
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.Add("@TransDate", SqlDbType.Date).Value = GenericRoutines.repDateStr;
+                    cmd.Parameters.Add("@PCID", SqlDbType.TinyInt).Value = pcidIn;
+                    cmd.Parameters.Add("@Severity", SqlDbType.VarChar, 50).Value = severityIn;
+                    cmd.Parameters.Add("@AlertText", SqlDbType.VarChar, 4000).Value = textIn;
+                    cmd.Parameters.Add("@status", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output;
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public static void UpdateAlertsTable2(IDatabaseConnectionService dbConnectionService, byte pcidIn, string severityIn, string textIn, DateTime reportDate)
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .Build();
+
+            using (var conn = dbConnectionService.CreateConnection())
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("dbo.UpdateAlerts", conn))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.Add("@TransDate", SqlDbType.Date).Value = reportDate;
                     cmd.Parameters.Add("@PCID", SqlDbType.TinyInt).Value = pcidIn;
                     cmd.Parameters.Add("@Severity", SqlDbType.VarChar, 50).Value = severityIn;
                     cmd.Parameters.Add("@AlertText", SqlDbType.VarChar, 4000).Value = textIn;
