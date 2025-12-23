@@ -135,63 +135,6 @@ namespace GenericSupport
             }
         }
 
-        public static bool DidGuestArrive(string subDirectoryIn, string fileNameIn, string suffixIn, DateTime arrDateIn, string bookingIDIn)
-        {
-            string arrDateToCheck = arrDateIn.ToString("MMMdd").ToUpper();
-            string workingFilePath;
-
-            if (arrDateIn.Month >= 10)
-            {
-                workingFilePath = altPath + "FY" + arrDateIn.ToString("yyyy") + @"\" + arrDateIn.ToString("MMM") + @"\";
-            }
-            else
-            {
-                workingFilePath = altPath + "FY" + (arrDateIn.Year - 1).ToString() + @"\" + arrDateIn.ToString("MMM") + @"\";
-            }
-
-            workingFilePath = workingFilePath + subDirectoryIn + fileNameIn + arrDateToCheck + suffixIn;
-
-            if (System.IO.File.Exists(workingFilePath))
-            {
-                string modifiedFilePath = workingFilePath.Replace(suffixIn, " - MODIFIED" + suffixIn);
-                if (System.IO.File.Exists(modifiedFilePath))
-                {
-                    workingFilePath = modifiedFilePath;
-                }
-            }
-            else
-            {
-                workingFilePath = dirPath + subDirectoryIn + fileNameIn + arrDateToCheck + suffixIn;
-                if (System.IO.File.Exists(workingFilePath))
-                {
-                    string modifiedFilePath = workingFilePath.Replace(suffixIn, " - MODIFIED" + suffixIn);
-                    if (System.IO.File.Exists(modifiedFilePath))
-                    {
-                        workingFilePath = modifiedFilePath;
-                    }
-                }
-                else
-                {
-                    return false;
-                }
-            }
-
-            XLWorkbook checkedInBook = new XLWorkbook(workingFilePath);
-            IXLWorksheet checkedInSheet = checkedInBook.Worksheet(1);
-            int listRowCount = checkedInSheet.LastRowUsed().RowNumber();
-
-            for (int listCounter = 2; listCounter <= listRowCount; listCounter++)
-            {
-                if (checkedInSheet.Row(listCounter).Cell(3).Value.ToString().Length == 6 &&
-                    checkedInSheet.Row(listCounter).Cell(3).Value.ToString().Substring(0, 6) == bookingIDIn)
-                {
-                    checkedInBook.Dispose();
-                    return true;
-                }
-            }
-            return false;
-        }
-
         public static bool IsOperationBlackedOut(DateTime dateToCheck, byte pcidIn, out string reason)
         {
             reason = string.Empty;
