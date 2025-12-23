@@ -133,7 +133,7 @@ namespace MBTP.Services
                     // Online booking fee column
                     decimal onlineBookingFee = checkedIn.Charges?
                     .Where(c => c.Description?.Contains("online booking fee", StringComparison.OrdinalIgnoreCase) == true &&
-                    (c.VoidedWhen != null))
+                    (c.VoidedWhen == null))
                     .Sum(c => c.Amount ?? 0) ?? 0;
                     checkedIn.OnlineBookingFee = onlineBookingFee;
 
