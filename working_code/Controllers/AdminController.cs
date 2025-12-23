@@ -240,8 +240,8 @@ namespace MBTP.Controllers
             await _bookingsRepo.SaveBookingsAsync(bookings);
 
             return View();
-        } 
-        
+        }
+        /*
         [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
@@ -260,9 +260,9 @@ namespace MBTP.Controllers
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
         }
-        
-        /*
-         [Authorize]
+        */
+
+        [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
             if (day == null)
@@ -274,8 +274,6 @@ namespace MBTP.Controllers
             var startDay = day.Value.Date;
             var today = DateTime.Today;
 
-            // Store daily resultsz
-            var allReports = new List<(DateTime Date, DataSet Report)>();
 
             for (var currentDay = startDay; currentDay <= today; currentDay = currentDay.AddDays(1))
             {
@@ -286,18 +284,30 @@ namespace MBTP.Controllers
                 var checkedInList = await _checkedInApi.PopulateCheckIns(from, to);
                 await _checkedInListRepo.SaveCheckedInListAsync(checkedInList);
 
-                // Get daily report
-                DataSet ds = await _dailyReport.RetrieveCheckInsReport(from, currentDay.AddDays(1));
-
-                // Store a tuple of (Date, DataSet)
-                allReports.Add((currentDay, ds));
             }
 
             ViewBag.TitleDate = $"{startDay:MMMM dd, yyyy} - {today:MMMM dd, yyyy}";
 
-            return View(allReports);
+            return View();
         }
-*/
+        
+        [Authorize]
+        public async Task<IActionResult> PopulateReservations(DateTime? day)
+        {
+            if (day == null)
+            {
+                ViewBag.SelectedDay = null;
+                return View();
+            }
+    
+            var selectedDay = day ?? DateTime.Today;
+            ViewBag.SelectedDay = selectedDay;
+            await _newbook.ProcessReservationsAsync(selectedDay, selectedDay.AddDays(1).AddTicks(-1));
+
+            ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
+
+            return View();
+        }
 
         [Authorize]
         public async Task<IActionResult> PopulateRecons(DateTime? day)
