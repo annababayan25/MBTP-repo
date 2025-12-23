@@ -173,6 +173,10 @@ namespace MBTP.Controllers
                         newbookImport.ReadNewbookFiles();
                     }
                     */
+                    if (opts.Contains('F'))
+                    {
+                        await _newbook.ProcessReservationsAsync(startDateParsed, endDateParsed);
+                    }
                     if (opts.Contains('A'))
                     {
                         POSImports posImports = new POSImports(_dbConnectionService);
