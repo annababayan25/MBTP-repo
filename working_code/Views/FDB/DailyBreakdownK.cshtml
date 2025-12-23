@@ -207,14 +207,14 @@
     }
     <tr>
         <td class="breakdownTotalsScrollingSmallText">Month&#8209;to&#8209;Date&nbsp;Totals:</td>
-        <td class="breakdownTotals2">@combinedFood</td>
-        <td class="breakdownTotals2">@totalKayBo</td>
-        <td class="breakdownTotals2">@totalPedBo</td>
-        <td class="breakdownTotals2">@totalMisc</td>
-        <td class="breakdownTotals2">@totalGrossRevenue</td>
-        <td class="breakdownTotals2">@totalTaxCollected</td>
-        <td class="breakdownTotals2">@totalNetRevenue</td>
-        <td class="breakdownTotals2">@totalTaxExpected</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @combinedFood)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalKayBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalPedBo)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalMisc)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalGrossRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalTaxCollected)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalNetRevenue)</td>
+        <td class="breakdownTotals2">@String.Format("{0:c2}", @totalTaxExpected)</td>
     </tr>
     @if (startDate.Month == currentDate.Month)
     {

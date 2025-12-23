@@ -389,9 +389,10 @@ namespace MBTP.Controllers
 
             return View();
         }
-        
+        /*
+
         [Authorize]
-        public async Task<IActionResult> PopulateReservationsDeposits(DateTime? day)
+        public async Task<IActionResult> PopulateReservations(DateTime? day)
         {
             if (day == null)
             {
@@ -407,10 +408,11 @@ namespace MBTP.Controllers
 
             return View();
         }
-         
-/*
+
+        */
+
         [Authorize]
-        public async Task<IActionResult> PopulateReservationsDeposits(DateTime? day)
+        public async Task<IActionResult> PopulateReservations(DateTime? day)
         {
             if (day == null)
             {
@@ -430,8 +432,8 @@ namespace MBTP.Controllers
                 var to = currentDay.AddDays(1).AddTicks(-1);
 
                 // Process reservations and deposits
-                var reservations = await _reservationsDepositsService.ProcessReservationsDepositsAsync(from, to);
-                await _reservationsDepositsRepo.SaveReservationsDepositsAsync(reservations);
+                var reservations = await _reservationsService.ProcessReservationsAsync(from, to);
+                await _reservationsRepo.SaveReservationsAsync(reservations);
 
                 // Retrieve daily report
             }
@@ -440,7 +442,7 @@ namespace MBTP.Controllers
 
             return View(allReports);
         } 
-     */
+        
         [HttpPost]
         public async Task<string> AddUpdateUser(int lidIn, string unameIn, string fnameIn, string lnameIn, string pwdIn, int accIDIn)
         {
