@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 
 namespace MBTP.Models 
 {
-    public class Recon
+    public class ReconsApi
     {
         [JsonProperty("gl_account_id")]
         public string? GLAccountId { get; set; }

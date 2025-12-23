@@ -200,7 +200,7 @@ namespace MBTP.Services
                         Console.WriteLine("Booking ID " + booking.BookingId + " not added");
                     }
 
-                    if(booking.BookingId == 378087)
+                    if(booking.BookingId == 378322)
                     {
                         
                         File.WriteAllText("bookings.json", item.ToString() + Environment.NewLine);
