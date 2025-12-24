@@ -113,7 +113,8 @@ namespace MBTP.Services
                         .Where(c => !string.IsNullOrEmpty(c.Description) &&
                             (c.Description.Contains("lock fee", StringComparison.OrdinalIgnoreCase) ||
                             c.Description.Contains("site selection", StringComparison.OrdinalIgnoreCase))
-                            && c.VoidedWhen == null)
+                            && c.VoidedWhen == null ||
+                            (checkedIn.BookingCheckedIn.HasValue && c.VoidedWhen >= checkedIn.BookingCheckedIn.Value))
                         .Select(c => c.Id)
                         .ToHashSet();
 
@@ -133,7 +134,7 @@ namespace MBTP.Services
                     // Online booking fee column
                     decimal onlineBookingFee = checkedIn.Charges?
                     .Where(c => c.Description?.Contains("online booking fee", StringComparison.OrdinalIgnoreCase) == true &&
-                    (c.VoidedWhen == null))
+                    (c.VoidedWhen == null || (checkedIn.BookingCheckedIn.HasValue && c.VoidedWhen >= checkedIn.BookingCheckedIn.Value)))
                     .Sum(c => c.Amount ?? 0) ?? 0;
                     checkedIn.OnlineBookingFee = onlineBookingFee;
 
