@@ -241,7 +241,7 @@ namespace MBTP.Controllers
 
             return View();
         }
-       
+        
         [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
@@ -260,8 +260,8 @@ namespace MBTP.Controllers
             ViewBag.TitleDate = selectedDay.ToString("MMMM dd, yyyy");
             return View(reportData);
         }
-        
- /*
+         
+/*
         [Authorize]
         public async Task<IActionResult> PopulateCheckIns(DateTime? day)
         {
@@ -290,7 +290,7 @@ namespace MBTP.Controllers
 
             return View();
         }
-        */
+       */
         [Authorize]
         public async Task<IActionResult> PopulateReservations(DateTime? day)
         {

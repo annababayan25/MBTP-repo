@@ -8,9 +8,6 @@ using System;
 using System.Data;
 using MBTP.Models;
 using MBTP.Interfaces;
-using GenericSupport;
-using SQLStuff;
-using NewbookSupport;
 
 // ReservationsService is a class dedicated to Reservations Deposits Table (Daily Breakdown R)
 namespace MBTP.Services
@@ -46,23 +43,11 @@ namespace MBTP.Services
         {
 
             int tmpId;
-            string tmpAction, tmpDesc, tmpCat, tmpTrans, tmpID, tmpClient, tmpGen, flowStr, tmpFTN, tmpTPM, tmpFPM;
+            string tmpAction, tmpDesc, tmpCat, tmpTrans, tmpClient, tmpGen, flowStr, tmpFTN, tmpTPM, tmpFPM;
             double tmpVal = 0, totAmex = 0, totOtherCC = 0, totCash = 0;
             decimal tmpAmt = 0m;
-            double lockFee, siteDeposit = 100, rentalDeposit = 200;
             System.DateTime arrDate, departDate;
-            int startRow;
             bool refundChecksActive = false;
-            const int catCol = 2;
-            const int transCol = 3;
-            const int dateCol = 4;
-            const int clientCol = 5;
-            const int genCol = 6;
-            const int descCol = 7;
-            const int amtCol = 8;
-            const int arrCol = 9;
-            const int depCol = 10;
-            bool validCheckin;
 
             string[] siteCategories = { "WESC", "Water & Electric Only" };
             string[] rentalCategories = { "Ocean Villa", "Cottage", "Cabin", "Travel Trailer" };
@@ -84,15 +69,6 @@ namespace MBTP.Services
                 return new List<Reservations>();
             }
 
-            if (startDate < System.DateTime.Parse("2024-01-01"))
-            {
-                lockFee = 30.0;
-            }
-            else
-            {
-                lockFee = 40.0;
-            }
-
             /*
             // Verify that all files exist.  If any are missing there is no point in processing further.
             if (!GenericRoutines.AllFilesPresent(1)) 
@@ -110,7 +86,7 @@ namespace MBTP.Services
                 )
                 &&
                 !p.Category.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
-                !p.Description.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
+                (p.Description != null && !p.Description.Contains("Storage", StringComparison.OrdinalIgnoreCase)) &&
                 (p.Description.Contains("Deposit", StringComparison.OrdinalIgnoreCase) ||
                 p.Description.Contains("at Myrtle Beach Travel Park", StringComparison.OrdinalIgnoreCase) ||  
                 p.Description.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase)) &&

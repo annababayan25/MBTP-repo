@@ -113,8 +113,7 @@ namespace MBTP.Services
                         .Where(c => !string.IsNullOrEmpty(c.Description) &&
                             (c.Description.Contains("lock fee", StringComparison.OrdinalIgnoreCase) ||
                             c.Description.Contains("site selection", StringComparison.OrdinalIgnoreCase))
-                            && c.VoidedWhen == null ||
-                            (checkedIn.BookingCheckedIn.HasValue && c.VoidedWhen >= checkedIn.BookingCheckedIn.Value))
+                            && c.VoidedWhen == null)
                         .Select(c => c.Id)
                         .ToHashSet();
 
@@ -343,8 +342,12 @@ namespace MBTP.Services
                         }
                     }
                     checkedInList.Add(checkedIn);
-                    //var jsonOutput = JsonConvert.SerializeObject(checkedInList, Formatting.Indented);
-                    //File.AppendAllText("checkedInList.json", jsonOutput);
+                    if(checkedIn.BookingId == 297811)
+                    {
+                        var jsonOutput = JsonConvert.SerializeObject(checkedInList, Formatting.Indented);
+                    File.AppendAllText("checkedInList.json", jsonOutput);
+                    }
+                    
                     
                 }
             }
