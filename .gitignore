@@ -22,3 +22,5 @@ obj/
 *.bak
 
 *.DS_Store
+
+*.jsonworking_code/checkedInList.json
