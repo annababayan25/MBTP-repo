@@ -349,8 +349,8 @@ namespace MBTP.Services
                         }
                     }
                     checkedInList.Add(checkedIn);
-                    var jsonOutput = JsonConvert.SerializeObject(checkedInList, Formatting.Indented);
-                    File.AppendAllText("checkedInList.json", jsonOutput);
+                    //var jsonOutput = JsonConvert.SerializeObject(checkedInList, Formatting.Indented);
+                    //File.AppendAllText("checkedInList.json", jsonOutput);
                     
                 }
             }
