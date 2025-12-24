@@ -66,12 +66,6 @@ namespace MBTP.Services
 
             string[] siteCategories = { "WESC", "Water & Electric Only" };
             string[] rentalCategories = { "Ocean Villa", "Cottage", "Cabin", "Travel Trailer" };
-            string[] extrasVehicles = { "Extra Vehicle", "Extra Vehicles Fee", "Extra Vehicle Fees", "Extra", "Visitor", "PASS", "Accommodation"};
-            string[] annualLease = { "Annual", "Annual Lease", "ANNUAL LEASE", "A/L" };
-            string[] employee = { "Employee" };
-            string[] mobileHome = { "Mobile", "Mobile Home", "M/L", "ML" };
-            string[] storage = { "Storage" };
-            string[] security = { "Security" };
             string[] golfCategories = { "Golf" };
 
             // Call all the APIs needed and retrieve list
@@ -1247,7 +1241,9 @@ namespace MBTP.Services
                         bool isLongTerm = 
                             (record.BookingDeparture - record.BookingArrival)?.TotalDays >= 90;
 
-                        if (rentalCategories.Any(c =>
+                        if (!string.IsNullOrEmpty(record.CategoryName) &&
+                            !string.IsNullOrEmpty(record.BookingName) &&
+                            rentalCategories.Any(c =>
                                 record.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
                             !record.CategoryName.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
                             !record.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
@@ -1259,9 +1255,11 @@ namespace MBTP.Services
                                 (double)netDepositHeld
                             );
                         }
-                        else if (siteCategories.Any(c =>
-                                record.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
-                            !record.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
+                        else if (!string.IsNullOrEmpty(record.CategoryName) &&
+                                !string.IsNullOrEmpty(record.BookingName) &&
+                                siteCategories.Any(c =>
+                                    record.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
+                                !record.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
                         {
                             revenueArray = SupportRoutines.AddRevenue(
                                 revenueArray,
@@ -1273,7 +1271,6 @@ namespace MBTP.Services
                     }
                 }
 
-                
                 // Populate applied deposits array using the helper methods
                 // Calculate deposits applied from checked-in list
                 appliedArray.First(a => a.AppliedItem == "SiteDepApp").Accum = 
@@ -1281,8 +1278,8 @@ namespace MBTP.Services
                 
                 appliedArray.First(a => a.AppliedItem == "RentalDepApp").Accum = 
                     (double)GetDepositsApplied(rentalCategories, checkedInList);
-                
-                appliedArray.First(a => a.AppliedItem == "GolfDepApp").Accum = 
+
+                appliedArray.First(a => a.AppliedItem == "GolfDepApp").Accum =
                     (double)GetDepositsApplied(golfCategories, checkedInList);
 
                 revenueArray.First(a => a.RevType == "GolfCartRentals").Accum += 
@@ -1482,17 +1479,19 @@ namespace MBTP.Services
         {
             if (checkedInList == null || checkedInList.Count == 0)
                 return 0m;
+            
 
             return checkedInList
-                .Where(d =>
-                    !string.IsNullOrEmpty(d.CategoryName) &&
-                    categories.Any(c =>
-                        d.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
-                    !d.CategoryName.Contains("Storage", StringComparison.OrdinalIgnoreCase) ||
-                    (string.IsNullOrEmpty(d.BookingName) ||
-                    !d.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
-                )
-                .Sum(d => d.DepositsHeld ?? 0m);
+            .Where(d =>
+                !string.IsNullOrEmpty(d.CategoryName) &&
+                categories.Any(c =>
+                    d.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
+                !d.CategoryName.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrEmpty(d.BookingName) &&
+                !d.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase)
+            )
+            .Sum(d => d.DepositsHeld ?? 0m);
+
             
         }
 

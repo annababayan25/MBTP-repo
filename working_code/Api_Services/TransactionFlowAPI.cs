@@ -120,8 +120,8 @@ namespace MBTP.Services
 
                 transactionFlow.Add(transactions);
 
-                var jsonOutput = JsonConvert.SerializeObject(transactionFlow, Formatting.Indented);
-                File.WriteAllText("transFlow2.json", jsonOutput);
+                //var jsonOutput = JsonConvert.SerializeObject(transactionFlow, Formatting.Indented);
+                //File.WriteAllText("transFlow2.json", jsonOutput);
                 
                 // File.AppendAllText("transFlow.txt", item.ToString() + Environment.NewLine);
             }

@@ -318,16 +318,9 @@ namespace MBTP.Services
                                 }
                             }
 
-                        }*/
-
+                        }
+                    */
                     // debug to see the full json for a booking
-
-                    if (checkedIn.BookingId == 372922)
-                    {
-                        string filePath = "checkedinOut.txt";
-                        string contentFile = item.ToString();
-                        File.WriteAllText(filePath, contentFile + Environment.NewLine);
-                    }
 
 
                     // Only proceed if refund should apply the same day as check-in
