@@ -216,7 +216,7 @@ namespace MBTP.Services
                     (tmpDesc?.IndexOf("Balance Transfer for Gift Voucher to Client Account") ?? -1) == -1)
                 {
                     // Get category from transaction - simplified call without Excel parameters
-                    tmpCat = SupportRoutines.GetMissingCategory(transactionsList, tmpAction, tmpTrans, tmpClient);
+                    tmpCat = SupportRoutines.GetMissingCategory(transactionsList, tmpAction, tmpFTN, tmpClient, startDate);
                 }
                 
                 tmpCat = tmpCat.ToUpper();  // Make it uppercase, then simplify for all remaining comparisons

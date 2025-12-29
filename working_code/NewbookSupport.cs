@@ -139,29 +139,37 @@ namespace NewbookSupport
 
 
         #region Category Lookup
-        public static string GetMissingCategory(List<TransactionFlow> transactions, string actionIn, string transIn, string clientIn)
+        public static string GetMissingCategory(List<TransactionFlow> transactions, string actionIn, string transIn, string clientIn, DateTime reportDate)
         {
             string tmpSearchStr = BuildSearchString(transIn);
+
             if (string.IsNullOrEmpty(tmpSearchStr))
+            {
                 return "";
+            }
 
             for (int i = 0; i < transactions.Count; i++)
             {
                 var transaction = transactions[i];
 
-                if (transaction.TransType?.Contains(tmpSearchStr) == true)
+                if (transaction.FormattedTransNumber?.Contains(tmpSearchStr) == true)
                 {
-                    if (transaction.ClientAccount?.Contains("Guest", StringComparison.OrdinalIgnoreCase) == true)
+
+                    if (transaction.ClientAccount?
+                        .Contains("Guest", StringComparison.OrdinalIgnoreCase) == true)
+                    {
                         return "GUEST";
+                    }
 
                     if (!string.IsNullOrEmpty(transaction.Category))
+                    {
                         return transaction.Category;
+                    }
 
-                    // Group fallback 
+                    // Group fallback
                     if (clientIn.Contains("Group", StringComparison.OrdinalIgnoreCase) &&
                         !actionIn.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase))
                     {
-                        // Walk UP the list to find nearest category
                         for (int j = i - 1; j >= 0; j--)
                         {
                             if (!string.IsNullOrWhiteSpace(transactions[j].Category))
@@ -169,19 +177,22 @@ namespace NewbookSupport
                                 return transactions[j].Category;
                             }
                         }
+
                     }
+
                 }
             }
 
             if (clientIn.Contains("Group", StringComparison.OrdinalIgnoreCase))
             {
-                return GetCategoryFromBookingChart(actionIn, clientIn);
+                return GetCategoryFromBookingChart(actionIn, clientIn, reportDate);
             }
 
             return "";
         }
 
-        private static string GetCategoryFromBookingChart(string actionIn, string clientIn)
+
+        private static string GetCategoryFromBookingChart(string actionIn, string clientIn, DateTime reportDate)
         {
             int splitPos = clientIn.IndexOf(" - Split", StringComparison.OrdinalIgnoreCase);
             int parenPos = clientIn.IndexOf(")");
@@ -189,10 +200,10 @@ namespace NewbookSupport
             string path = GenericRoutines.DoesFileExist("", @"Bookings_Chart_", ".xlsx", true);
             if (path.Contains("FAILURE"))
             {
-                GenericRoutines.UpdateAlerts(
+                GenericRoutines.UpdateAlerts2(
                     1,
                     "INFORMATIONAL",
-                    path.Substring(7) + " Not Found, Possible Data Inaccuracy");
+                    path.Substring(7) + " Not Found, Possible Data Inaccuracy", reportDate);
 
                 return "";
             }
@@ -235,8 +246,6 @@ namespace NewbookSupport
 
             return "";
         }
-
-
 
 
         private static string BuildSearchString(string transIn)
