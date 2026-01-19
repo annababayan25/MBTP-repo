@@ -159,9 +159,7 @@ namespace MBTP.Retrieval
                     throw;
                 }
 
-                DataSet snapshotDs = ds.Copy();
-
-                return snapshotDs;
+                return ds;
             });
         }
 
@@ -177,7 +175,7 @@ namespace MBTP.Retrieval
                     using (SqlCommand cmd = new SqlCommand("dbo.RetrieveOccupancyReport", sqlConn))
                     {
                         cmd.CommandType = CommandType.StoredProcedure;
-                        cmd.Parameters.AddWithValue("@TransDate", startDate);
+                        cmd.Parameters.AddWithValue("@StartDate", startDate);
                         cmd.Parameters.AddWithValue("@EndDate", endDate);
 
                         SqlDataAdapter da = new SqlDataAdapter(cmd);
@@ -192,9 +190,7 @@ namespace MBTP.Retrieval
                     throw;
                 }
 
-                DataSet snapshotDs = ds.Copy();
-
-                return snapshotDs;
+                return ds;
             });
         }   
 
