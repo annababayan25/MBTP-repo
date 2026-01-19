@@ -98,7 +98,10 @@ namespace MBTP.Services
 
                     // cleaning fee 
                     decimal cleaningFee = checkedIn.Charges?
-                        .Where(c => c.Description?.IndexOf("cleaning fee", StringComparison.OrdinalIgnoreCase) >= 0)
+                        .Where(c => c.Description?.IndexOf("cleaning fee", StringComparison.OrdinalIgnoreCase) >= 0  &&
+                        (checkedIn.BookingCheckedIn.HasValue
+                            ? c.GeneratedWhen < checkedIn.BookingCheckedIn.Value
+                            : true))
                         .Sum(c => c.Amount ?? 0) ?? 0;
 
                     // cancellation fee column - included in CSC and DH
@@ -210,19 +213,31 @@ namespace MBTP.Services
                     ? string.Join("; ", afterCheckInPayments.Select(p => $"({p.Description})"))
                     : null;
 
-                    decimal totalRefundAmount = 0m;
+                    decimal totalRefundAmount_BeforeCheckedIn = 0m;
 
                     if (checkedIn.Refunds != null && checkedIn.BookingCheckedIn.HasValue)
                     {
-                        totalRefundAmount = checkedIn.Refunds
+                        totalRefundAmount_BeforeCheckedIn = checkedIn.Refunds
                             .Where(r => r.GeneratedWhen.HasValue &&
                                         r.GeneratedWhen.Value < checkedIn.BookingCheckedIn.Value)
                             .Sum(r => r.Amount ?? 0m);
                     }
-                    checkedIn.RefundedAmount = totalRefundAmount;
 
+                    decimal totalRefundAmount_AfterCheckedIn = 0m;
+
+                    if (checkedIn.Refunds != null && checkedIn.BookingCheckedIn.HasValue)
+                    {
+                        totalRefundAmount_AfterCheckedIn = checkedIn.Refunds
+                            .Where(r => r.GeneratedWhen.HasValue &&
+                                        r.GeneratedWhen.Value > checkedIn.BookingCheckedIn.Value &&
+                                        r.GeneratedWhen.Value.Date == checkedIn.BookingCheckedIn.Value.Date)
+                            .Sum(r => r.Amount ?? 0m);
+                    }
+                    checkedIn.RefundedAmount = totalRefundAmount_AfterCheckedIn;
+
+                    
                     // Calculate the Deposits Held
-                    checkedIn.DepositsHeld = mergedDeposits + cancellationFee - lockFeePaid - onlineBookingFee - totalRefundAmount;
+                    checkedIn.DepositsHeld = mergedDeposits + cancellationFee - lockFeePaid - onlineBookingFee - totalRefundAmount_BeforeCheckedIn;
 
                     decimal clientDebit = 0m;
                     if (checkedIn.Refunds != null && checkedIn.BookingCheckedIn.HasValue)
@@ -236,6 +251,8 @@ namespace MBTP.Services
                     } 
 
                     // Calculate the Stay Cost 
+
+                    
                     decimal baseStayCost = checkedIn.TariffsQuoted?.Sum(t => t.CalculatedAmount) ?? 0;
                     decimal discounts = checkedIn.Credits?.Where(c => c.VoidedWhen == null).Sum(c => c.Amount ?? 0) ?? 0;
 
@@ -281,7 +298,7 @@ namespace MBTP.Services
                         }
                     }
 
-
+                    
                     if ((checkedIn.CalculatedStayCost ?? 0) == 0 && (checkedIn.DepositsHeld ?? 0) > 0)
                     {
                         checkedIn.CalculatedStayCost = checkedIn.DepositsHeld;
@@ -341,8 +358,9 @@ namespace MBTP.Services
                             checkedIn.Extras = $"{checkedIn.Extras} (Possible balance transfer?)";
                         }
                     }
+                    
                     checkedInList.Add(checkedIn);
-                    if(checkedIn.BookingId == 297811)
+                    if(checkedIn.BookingId == 381571)
                     {
                         var jsonOutput = JsonConvert.SerializeObject(checkedInList, Formatting.Indented);
                     File.AppendAllText("checkedInList.json", jsonOutput);
