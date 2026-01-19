@@ -56,17 +56,22 @@ namespace MBTP.Services
             System.DateTime arrDate, departDate;
             bool refundChecksActive = false;
 
-            var amtDep = 0m;
-
             string[] siteCategories = { "WESC", "Water & Electric Only" };
             string[] rentalCategories = { "Ocean Villa", "Cottage", "Cabin", "Travel Trailer" };
             string[] golfCategories = { "Golf" };
 
-            // Call all the APIs needed and retrieve list
+            // API CALL 1: Fetch all guests who checked in during the date range
+            // Replaces: Opening and reading "Bookings_Checked_In_List_Current_Quarter_*.xlsx"
             var checkedInList = await _checkedIn.PopulateCheckIns(startDate, endDate);
+
+            // API CALL 2: Fetch all financial transactions during the date range
+            // Replaces: Opening and reading "Transaction_Flow_*.xlsx"
             var transactionsList = await _transactionFlowApi.PopulateTransactions(startDate, endDate);
-            // Call the Reconciliation Api and retrieve the list
+
+            // API CALL 3: Fetch reconciliation data during the date range
+            // Replaces: Opening and reading reconciliation Excel file
             var reconsList = await _recon.PopulateRecons(startDate, endDate);
+
             var reservations = new Reservations { };
             var reservationsList = new List<Reservations>();
             var paymentsAfterIds = new Dictionary<int, decimal?>();
@@ -78,36 +83,15 @@ namespace MBTP.Services
                 return new List<Reservations>();
             }
 
+            // The following block was removed because we no longer depend on downloaded Excel files:
             /*
             // Verify that all files exist.  If any are missing there is no point in processing further.
+
             if (!GenericRoutines.AllFilesPresent(1)) 
             {
                 return; 
             }
             */
-
-             var depositsTakenList = transactionsList
-            .Where(p =>
-                p.Category != null &&
-                (
-                    siteCategories.Any(c => p.Category.Contains(c, StringComparison.OrdinalIgnoreCase)) ||
-                    rentalCategories.Any(c => p.Category.Contains(c, StringComparison.OrdinalIgnoreCase))
-                )
-                &&
-                !p.Category.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
-                (p.Description != null && !p.Description.Contains("Storage", StringComparison.OrdinalIgnoreCase)) &&
-                (p.Description.Contains("Deposit", StringComparison.OrdinalIgnoreCase) ||
-                p.Description.Contains("at Myrtle Beach Travel Park", StringComparison.OrdinalIgnoreCase) ||  
-                p.Description.Contains("Balance Transfer", StringComparison.OrdinalIgnoreCase)) &&
-                p.Deposit != null &&
-                p.Deposit.Contains("1", StringComparison.OrdinalIgnoreCase) &&
-                (p.Description == null || !p.Description.Contains("EXTRA VEHICLE", StringComparison.OrdinalIgnoreCase))
-            )
-            .OrderBy(p => p.AccountForId)
-            .ToList();
-
-            // Exclude deposits that have had any refunds for the same PaymentTypeReference + AccountForId on the same day
-            var depositsTakenList_NoRefunds = IgnoreEntries("Refunds Raised", depositsTakenList, transactionsList);
 
             // initialize revenue array
             var revenueArray = new List<NewbookSupport.Revenue>
@@ -208,13 +192,13 @@ namespace MBTP.Services
             {
                
                 tmpId = t.AccountForId;
-                tmpAction = t.PaymentTypeAction ?? "";
                 tmpCat = t.Category ?? "";
-                tmpTrans = t.TransType ?? "";
-                tmpFTN = t.FormattedTransNumber ?? "";
                 tmpClient = t.ClientAccount ?? "";
                 tmpGen = t.GeneratedBy ?? "";
                 tmpDesc = t.Description ?? "";
+                tmpAction = t.PaymentTypeAction ?? "";
+                tmpTrans = t.TransType ?? "";
+                tmpFTN = t.FormattedTransNumber ?? "";
                 tmpTPM = t.TranslatedPaymentType ?? "";
                 tmpFPM = t.FormattedPaymentMethod ?? "";
                 tmpAmt = t.Amount ?? 0m;
@@ -269,18 +253,11 @@ namespace MBTP.Services
                 // flowStr is a common string that will be passed to all "Add" routines
                 flowStr = $"{tmpAction} ({tmpGen}) for {tmpCat}/{tmpClient}/{tmpTrans}/{tmpDesc} for {tmpAmt:C}";
 
-                // Since the Transaction Flow is sorted by actions we can open or close the Departing file if we enter or leave
-                // the Refund Check entries
                 if ((tmpFPM?.IndexOf("Manual Entry Check Refunds") ?? -1) != -1 && !refundChecksActive)
                 {
                     refundChecksActive = true;
                 }
                 
-                // 'sheetsToProcess = openSourceFile("Departed List", ThisWorkbook.fixedDownloadsPath, "Bookings_Departing_List_Current_Quarter_" & wrkDay & ".xlsx", "XLSX", "Newbook")
-                //  sheetsToProcess = openSourceFile("Departed List", downloadsPath, "Bookings_Departing_List_Current_Quarter_" & wrkDay & ".xlsx", "XLSX", "Newbook")
-                //  If sheetsToProcess = -10 Then Exit Sub
-                //Set departedBookCurr = ThisWorkbook.srcBook
-                //Set departedSheetCurr = ThisWorkbook.srcSheet
                 else if (refundChecksActive && (tmpFPM?.IndexOf("Manual Entry Check Refunds") ?? -1) == -1)
                 {
                     refundChecksActive = false;
@@ -360,7 +337,6 @@ namespace MBTP.Services
                             TimeSpan daysBetween = departDate - arrDate;
                             if (daysBetween.Days >= 90) // Long term rental unit or site
                             {
-                                if (isWESC) { Console.WriteLine($"LT SITE - {t.AccountForId} {t.Category} {t.Amount}"); }
                                 string checkType = tmpCat.Contains("WESC") ? "LTCampsitesC" : "LTRentalsC";
                                 SupportRoutines.AddCheck(checkArray, checkType, flowStr, tmpVal);
                             }
@@ -841,8 +817,6 @@ namespace MBTP.Services
                             {
                                 if (t.HasArrived == false)
                                 {
-                                    Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");                                    
-                                    if (isWESC) { amtDep += t.Amount ?? 0; }
                                     appliedArray = SupportRoutines.AddApplied(appliedArray, tmpCat.IndexOf("WESC") != -1 ? "VouchersRedSiteDep" : "VouchersRedRentalDep", flowStr, tmpVal);
                                     depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                                     transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
@@ -863,8 +837,6 @@ namespace MBTP.Services
                                 }
                                 else if (t.HasArrived == false)
                                 {
-                                    Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");                                    
-                                    if (isWESC) { amtDep += t.Amount ?? 0; }
                                     depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                                     transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
                                 }
@@ -877,8 +849,6 @@ namespace MBTP.Services
                             else if (tmpDesc.Contains("CANCEL"))
                             {
                                 transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
-                                Console.WriteLine($"[SITE DEPOSIT] | {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");
-                                if (isWESC) { amtDep += t.Amount ?? 0; }
                                 depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", 2, flowStr, tmpVal);
                             }
                             else if ((tmpTrans.Contains("Voided Payments Voided") && tmpDesc == "") ||
@@ -909,8 +879,6 @@ namespace MBTP.Services
                             if ((t.ArrivalDate.HasValue && t.ArrivalDate.Value.Date == t.TransDate.Date) &&
                             t.BookingCheckedIn == null && !tmpTrans.ToUpper().Contains("REFUND") && t.Deposit == "1") // Same day checkin but still treat as a deposit
                             {
-                                    Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");
-                                if (isWESC) { amtDep += t.Amount ?? 0; }
                                 depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                             }
                             else if (tmpDesc.Contains("ACCOMMODATION") && !tmpTrans.ToUpper().Contains("REFUND") &&
@@ -932,8 +900,6 @@ namespace MBTP.Services
                                 }
                                 else
                                 {
-                                    Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");                                    
-                                    if (isWESC) { amtDep += t.Amount ?? 0; }
                                     depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "i", jCnt, flowStr, tmpVal);
                                 }
                             }
@@ -945,8 +911,6 @@ namespace MBTP.Services
                             }
                             else if (t.HasArrived == false)
                             {
-                                Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");                                
-                                if (isWESC) { amtDep += t.Amount ?? 0; }
                                 depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                             }
                         }
@@ -1184,7 +1148,6 @@ namespace MBTP.Services
                     }
                 }
             } // END OF specific inventory items
-            Console.WriteLine($"TOTAL SITE DEPOSIT AMOUNT: {amtDep}");
                 // Now we loop through the recon array and process any non-zero values
                 foreach (Recon reconArrItem in reconArray)
                 {
@@ -1237,9 +1200,7 @@ namespace MBTP.Services
                         }
 
                     bool isLongTerm =
-                        (record.BookingDeparture - record.BookingArrival)?.TotalDays >= 90;
-                        
-                       
+                        (record.BookingDeparture - record.BookingArrival)?.TotalDays >= 90;                       
 
                         if (!string.IsNullOrEmpty(record.CategoryName) &&
                             !string.IsNullOrEmpty(record.BookingName) &&
@@ -1267,7 +1228,6 @@ namespace MBTP.Services
                             $"Booking #{record.BookingId} Deposit Held",
                             (double)netDepositHeld
                         );
-                             if (isLongTerm) { Console.WriteLine($"LT SITE - {record.BookingId} {record.CategoryName}"); }
                         }
                     }
                 }
@@ -1436,7 +1396,6 @@ namespace MBTP.Services
                 _ = sqlSupport.ExecuteStoredProcedure2(1, startDate);
             }
 
-            Console.WriteLine("\n=== PROCESSING COMPLETE ===");
             SupportRoutines.specialReconArray.Clear();
             reservationsList.Add(reservations);
             return reservationsList;
