@@ -28,7 +28,7 @@ namespace MBTP.Services
         private const double vehicleRateYrTax = 42;
         private const double wristbandRate = 5;
 
-        public NewbookImport(IDatabaseConnectionService dbConnectionService, HttpClient client, ReconApi recon, TransactionFlowApi transactionFlowApi, 
+        public NewbookImport(IDatabaseConnectionService dbConnectionService, HttpClient client, ReconApi recon, TransactionFlowApi transactionFlowApi,
                             CheckedInApi checkedIn, SupportRoutines supportRoutines)
         : base(client)
         {
@@ -38,7 +38,14 @@ namespace MBTP.Services
             _supportRoutines = supportRoutines;
             _checkedIn = checkedIn;
         }
-
+        
+        // ========================================
+        // API INTEGRATION: Replacing Excel file reads with API calls
+        // ========================================
+        // Instead of reading data from downloaded Excel files (Checked In List, Transaction Flow, Reconciliation),
+        // we now call asynchronous API methods that fetch data directly from Newbook's system
+        // This eliminates file dependency and ensures we always have the latest data
+    
         public async Task<List<Reservations>> ProcessReservationsAsync(DateTime startDate, DateTime endDate)
         {
 
@@ -48,6 +55,8 @@ namespace MBTP.Services
             decimal tmpAmt = 0m;
             System.DateTime arrDate, departDate;
             bool refundChecksActive = false;
+
+            var amtDep = 0m;
 
             string[] siteCategories = { "WESC", "Water & Electric Only" };
             string[] rentalCategories = { "Ocean Villa", "Cottage", "Cabin", "Travel Trailer" };
@@ -351,6 +360,7 @@ namespace MBTP.Services
                             TimeSpan daysBetween = departDate - arrDate;
                             if (daysBetween.Days >= 90) // Long term rental unit or site
                             {
+                                if (isWESC) { Console.WriteLine($"LT SITE - {t.AccountForId} {t.Category} {t.Amount}"); }
                                 string checkType = tmpCat.Contains("WESC") ? "LTCampsitesC" : "LTRentalsC";
                                 SupportRoutines.AddCheck(checkArray, checkType, flowStr, tmpVal);
                             }
@@ -788,8 +798,7 @@ namespace MBTP.Services
                             depositsArray = SupportRoutines.AddDeposit(depositsArray, "Golf", jCnt, flowStr, tmpVal);
                         }
                     } // GOLF CARTS ENDS
-
-                    // WESC AND RENTALS BEGINS
+                      // WESC AND RENTALS BEGINS
                     else if (tmpCat.Contains("WESC") || tmpCat.Contains("RENTAL"))
                     {
                         int jCnt = 3;
@@ -832,6 +841,8 @@ namespace MBTP.Services
                             {
                                 if (t.HasArrived == false)
                                 {
+                                    Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");                                    
+                                    if (isWESC) { amtDep += t.Amount ?? 0; }
                                     appliedArray = SupportRoutines.AddApplied(appliedArray, tmpCat.IndexOf("WESC") != -1 ? "VouchersRedSiteDep" : "VouchersRedRentalDep", flowStr, tmpVal);
                                     depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                                     transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
@@ -852,6 +863,8 @@ namespace MBTP.Services
                                 }
                                 else if (t.HasArrived == false)
                                 {
+                                    Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");                                    
+                                    if (isWESC) { amtDep += t.Amount ?? 0; }
                                     depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                                     transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
                                 }
@@ -864,6 +877,8 @@ namespace MBTP.Services
                             else if (tmpDesc.Contains("CANCEL"))
                             {
                                 transferArray = SupportRoutines.AddTransfer(transferArray, isWESC ? "SiteDepositsT" : "RentalDepositsT", flowStr, tmpVal);
+                                Console.WriteLine($"[SITE DEPOSIT] | {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");
+                                if (isWESC) { amtDep += t.Amount ?? 0; }
                                 depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", 2, flowStr, tmpVal);
                             }
                             else if ((tmpTrans.Contains("Voided Payments Voided") && tmpDesc == "") ||
@@ -894,6 +909,8 @@ namespace MBTP.Services
                             if ((t.ArrivalDate.HasValue && t.ArrivalDate.Value.Date == t.TransDate.Date) &&
                             t.BookingCheckedIn == null && !tmpTrans.ToUpper().Contains("REFUND") && t.Deposit == "1") // Same day checkin but still treat as a deposit
                             {
+                                    Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");
+                                if (isWESC) { amtDep += t.Amount ?? 0; }
                                 depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                             }
                             else if (tmpDesc.Contains("ACCOMMODATION") && !tmpTrans.ToUpper().Contains("REFUND") &&
@@ -915,6 +932,8 @@ namespace MBTP.Services
                                 }
                                 else
                                 {
+                                    Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");                                    
+                                    if (isWESC) { amtDep += t.Amount ?? 0; }
                                     depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "i", jCnt, flowStr, tmpVal);
                                 }
                             }
@@ -926,6 +945,8 @@ namespace MBTP.Services
                             }
                             else if (t.HasArrived == false)
                             {
+                                Console.WriteLine($"[SITE DEPOSIT] |  {t.AccountForId} | Cat={(isWESC ? "WESC" : "Rentals")} | Val={tmpVal} | Desc={tmpDesc}");                                
+                                if (isWESC) { amtDep += t.Amount ?? 0; }
                                 depositsArray = SupportRoutines.AddDeposit(depositsArray, isWESC ? "WESC" : "Rentals", jCnt, flowStr, tmpVal);
                             }
                         }
@@ -1056,7 +1077,7 @@ namespace MBTP.Services
                             revenueArray = SupportRoutines.AddRevenue(revenueArray, "DROPPED TO BOTTOM", flowStr, tmpVal); // This record fell through and should not have
                         }
                     } // END OF ELSE BLOCK
-            }
+                }
                 if (t.PaymentMethod.StartsWith("Authorize.Net"))
                 {
                     if (tmpTPM.Contains("AMEX"))
@@ -1089,80 +1110,81 @@ namespace MBTP.Services
                 // Look for specific inventory items
                 string pymtResult;
 
-                foreach (SpecialRecon item in SupportRoutines.specialReconArray)
+            foreach (SpecialRecon item in SupportRoutines.specialReconArray)
+            {
+                // look for valid GL code to check, exclude visitor fees, vehicles, golf carts, lost keys
+                if ((item.Gl != "0360" && item.Gl != "0361" && item.Gl is not null && item.Gl.StartsWith("07") == false) ||
+                    (item.Gl == "1018" || item.Gl == "1020"))
                 {
-                    // look for valid GL code to check, exclude visitor fees, vehicles, golf carts, lost keys
-                    if ((item.Gl != "0360" && item.Gl != "0361" && item.Gl is not null && item.Gl.StartsWith("07") == false) || 
-                        (item.Gl == "1018" || item.Gl == "1020"))
+                    if (item.Gl == "0362")
                     {
-                        if (item.Gl == "0362")
+                        item.Gl = item.Gl;
+                    }
+
+                    string pymtNum;
+                    if (item.Recon_item is not null && item.Recon_item.Contains("Unallocated"))
+                    {
+                        int startIndex = 9;
+                        int endIndex = item.Recon_item.IndexOf(" Unalloc");
+                        pymtNum = item.Recon_item.Substring(startIndex, endIndex - startIndex);
+                    }
+                    else if (item.Desc == "Unallocated Payments" && item.Recon_item is not null)
+                    {
+                        int hashIndex = item.Recon_item.IndexOf("#");
+                        int spaceIndex = item.Recon_item.IndexOf(" ", hashIndex);
+                        pymtNum = item.Recon_item.Substring(hashIndex, spaceIndex - hashIndex);
+                    }
+                    else if (item.Recon_item is not null && item.Recon_item.Contains(" Alloc"))
+                    {
+                        int startIndex = 9;
+                        int endIndex = item.Recon_item.IndexOf(" Alloc");
+                        pymtNum = item.Recon_item.Substring(startIndex, endIndex - startIndex);
+                    }
+                    else
+                    {
+                        int hashIndex = item.Recon_item!.IndexOf("#");
+                        int spaceIndex = item.Recon_item.IndexOf(" ", hashIndex);
+                        pymtNum = item.Recon_item.Substring(hashIndex, spaceIndex - hashIndex);
+                    }
+
+                    double pymtVal = Math.Round(item.Amount, 2);
+
+                    // Look for matching Payments Raised entry in Transaction Flow using the transactions list
+                    pymtResult = SupportRoutines.PaymentRaised(transactionsList, item.Gl, pymtNum, pymtVal * -1, item.Recon_item);
+
+                    if (pymtResult != "NO") // ignore this line if result is "NO"
+                    {
+                        if (item.Gl == "1018" || item.Gl == "1020") // Correction for original GL codes used in Newbook
                         {
-                            item.Gl = item.Gl;
+                            item.Gl = "0356";
                         }
-                        
-                        string pymtNum;
-                        if (item.Recon_item is not null && item.Recon_item.Contains("Unallocated"))
+
+                        bool matchFound = false;
+                        foreach (Recon reconArrItem in reconArray)
                         {
-                            int startIndex = 9;
-                            int endIndex = item.Recon_item.IndexOf(" Unalloc");
-                            pymtNum = item.Recon_item.Substring(startIndex, endIndex - startIndex);
-                        }
-                        else if (item.Desc == "Unallocated Payments" && item.Recon_item is not null)
-                        {
-                            int hashIndex = item.Recon_item.IndexOf("#");
-                            int spaceIndex = item.Recon_item.IndexOf(" ", hashIndex);
-                            pymtNum = item.Recon_item.Substring(hashIndex, spaceIndex - hashIndex);
-                        }
-                        else if (item.Recon_item is not null && item.Recon_item.Contains(" Alloc"))
-                        {
-                            int startIndex = 9;
-                            int endIndex = item.Recon_item.IndexOf(" Alloc");
-                            pymtNum = item.Recon_item.Substring(startIndex, endIndex - startIndex);
-                        }
-                        else
-                        {
-                            int hashIndex = item.Recon_item!.IndexOf("#");
-                            int spaceIndex = item.Recon_item.IndexOf(" ", hashIndex);
-                            pymtNum = item.Recon_item.Substring(hashIndex, spaceIndex - hashIndex);
-                        }
-                        
-                        double pymtVal = Math.Round(item.Amount, 2);
-                        
-                        // Look for matching Payments Raised entry in Transaction Flow using the transactions list
-                        pymtResult = SupportRoutines.PaymentRaised(transactionsList, item.Gl, pymtNum, pymtVal * -1, item.Recon_item);
-                        
-                        if (pymtResult != "NO") // ignore this line if result is "NO"
-                        {
-                            if (item.Gl == "1018" || item.Gl == "1020") // Correction for original GL codes used in Newbook
+                            if (string.IsNullOrEmpty(reconArrItem.GL))
                             {
-                                item.Gl = "0356";
+                                matchFound = true;
+                                break;
                             }
-                            
-                            bool matchFound = false;
-                            foreach (Recon reconArrItem in reconArray)
+                            else if (item.Gl == reconArrItem.GL)
                             {
-                                if (string.IsNullOrEmpty(reconArrItem.GL))
-                                {
-                                    matchFound = true;
-                                    break;
-                                }
-                                else if (item.Gl == reconArrItem.GL)
-                                {
-                                    matchFound = true;
-                                    string reconItem = string.IsNullOrEmpty(reconArrItem.ReconItem) ? reconArrItem.GL : reconArrItem.ReconItem;
-                                    reconArray = SupportRoutines.AddRecon(reconArray, reconItem, 
-                                        $"{item.Gl} {item.Client} {item.Recon_item} {(item.Amount * -1):C}", item.Amount);
-                                    break;
-                                }
+                                matchFound = true;
+                                string reconItem = string.IsNullOrEmpty(reconArrItem.ReconItem) ? reconArrItem.GL : reconArrItem.ReconItem;
+                                reconArray = SupportRoutines.AddRecon(reconArray, reconItem,
+                                    $"{item.Gl} {item.Client} {item.Recon_item} {(item.Amount * -1):C}", item.Amount);
+                                break;
                             }
-                            
-                            if (matchFound == false)   // Add this GL code to the recon array list
-                            {
-                                reconArray.Add(new Recon { ReconItem = item.Recon_item, Accum = item.Amount, GL = item.Gl });
-                            }
+                        }
+
+                        if (matchFound == false)   // Add this GL code to the recon array list
+                        {
+                            reconArray.Add(new Recon { ReconItem = item.Recon_item, Accum = item.Amount, GL = item.Gl });
                         }
                     }
-                } // END OF specific inventory items
+                }
+            } // END OF specific inventory items
+            Console.WriteLine($"TOTAL SITE DEPOSIT AMOUNT: {amtDep}");
                 // Now we loop through the recon array and process any non-zero values
                 foreach (Recon reconArrItem in reconArray)
                 {
@@ -1214,8 +1236,10 @@ namespace MBTP.Services
                         netDepositHeld = netDepositHeld - securityDeposits;
                         }
 
-                        bool isLongTerm = 
-                            (record.BookingDeparture - record.BookingArrival)?.TotalDays >= 90;
+                    bool isLongTerm =
+                        (record.BookingDeparture - record.BookingArrival)?.TotalDays >= 90;
+                        
+                       
 
                         if (!string.IsNullOrEmpty(record.CategoryName) &&
                             !string.IsNullOrEmpty(record.BookingName) &&
@@ -1224,12 +1248,12 @@ namespace MBTP.Services
                             !record.CategoryName.Contains("Storage", StringComparison.OrdinalIgnoreCase) &&
                             !record.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
                         {
-                            revenueArray = SupportRoutines.AddRevenue(
-                                revenueArray,
-                                isLongTerm ? "LTUnits" : "Rental",
-                                $"Booking #{record.BookingId} Deposit Held",
-                                (double)netDepositHeld
-                            );
+                        revenueArray = SupportRoutines.AddRevenue(
+                            revenueArray,
+                            isLongTerm ? "LTUnits" : "Rental",
+                            $"Booking #{record.BookingId} Deposit Held",
+                            (double)netDepositHeld
+                        );
                         }
                         else if (!string.IsNullOrEmpty(record.CategoryName) &&
                                 !string.IsNullOrEmpty(record.BookingName) &&
@@ -1237,12 +1261,13 @@ namespace MBTP.Services
                                     record.CategoryName.Contains(c, StringComparison.OrdinalIgnoreCase)) &&
                                 !record.BookingName.Contains("Blocked", StringComparison.OrdinalIgnoreCase))
                         {
-                            revenueArray = SupportRoutines.AddRevenue(
-                                revenueArray,
-                                isLongTerm ? "LTSites" : "Campsite",
-                                $"Booking #{record.BookingId} Deposit Held",
-                                (double)netDepositHeld
-                            );
+                        revenueArray = SupportRoutines.AddRevenue(
+                            revenueArray,
+                            isLongTerm ? "LTSites" : "Campsite",
+                            $"Booking #{record.BookingId} Deposit Held",
+                            (double)netDepositHeld
+                        );
+                             if (isLongTerm) { Console.WriteLine($"LT SITE - {record.BookingId} {record.CategoryName}"); }
                         }
                     }
                 }

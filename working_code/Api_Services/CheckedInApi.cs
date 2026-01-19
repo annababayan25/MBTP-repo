@@ -364,7 +364,7 @@ namespace MBTP.Services
                     if(checkedIn.BookingId == 381571)
                     {
                         var jsonOutput = JsonConvert.SerializeObject(checkedInList, Formatting.Indented);
-                    File.AppendAllText("checkedInList.json", jsonOutput);
+                        File.AppendAllText("checkedInList.json", jsonOutput);
                     }
                     */
                     

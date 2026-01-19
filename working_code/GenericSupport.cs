@@ -221,17 +221,17 @@ namespace GenericSupport
                     {
                         var filesToCheck = new Dictionary<string, Action<string>>()
                         {
-                            { "Transaction_Flow_", path => nbfiles.Transflow = path },
-                            { "Reconciliation_Report_", path => nbfiles.Recon = path },
-                            { "Inventory_Items_", path => nbfiles.Invitems = path },
-                            { "Bookings_Departing_List_Current_Quarter_", path => nbfiles.DepcurrQ = path },
-                            { "Bookings_Departing_List_Previous_Quarter_", path => nbfiles.DepprevQ = path },
-                            { "Bookings_Departing_List_2nd_Previous_Quarter_", path => nbfiles.DepprevQ2 = path },
-                            { "Booking_Adjustments_", path => nbfiles.Bookadj = path },
-                            { "Checked_In_List_", path => nbfiles.Checkedin = path },
+                            //{ "Transaction_Flow_", path => nbfiles.Transflow = path },
+                            //{ "Reconciliation_Report_", path => nbfiles.Recon = path },
+                            //{ "Inventory_Items_", path => nbfiles.Invitems = path },
+                            //{ "Bookings_Departing_List_Current_Quarter_", path => nbfiles.DepcurrQ = path },
+                            //{ "Bookings_Departing_List_Previous_Quarter_", path => nbfiles.DepprevQ = path },
+                            //{ "Bookings_Departing_List_2nd_Previous_Quarter_", path => nbfiles.DepprevQ2 = path },
+                            //{ "Booking_Adjustments_", path => nbfiles.Bookadj = path },
+                            //{ "Checked_In_List_", path => nbfiles.Checkedin = path },
                             { "Bookings_Chart_", path => nbfiles.Bookchart = path },
-                            { "Bookings_Departing_", path => nbfiles.Bookdep = path },
-                            { "Bookings_Staying_", path => nbfiles.Bookstay = path },
+                            //{ "Bookings_Departing_", path => nbfiles.Bookdep = path },
+                            //{ "Bookings_Staying_", path => nbfiles.Bookstay = path },
                             { "Occupancy_Report_", path => nbfiles.Occupancy = path }
                         };
 

@@ -119,11 +119,7 @@ namespace MBTP.Services
                     $"{transactions.PaymentMethod} {paymentDetail} {transactions.PaymentTypeAction} - For {FormatShortDate(transactions.TransDate)}";
 
                 transactionFlow.Add(transactions);
-
-                //var jsonOutput = JsonConvert.SerializeObject(transactionFlow, Formatting.Indented);
-                //File.WriteAllText("transFlow2.json", jsonOutput);
                 
-                // File.AppendAllText("transFlow.txt", item.ToString() + Environment.NewLine);
             }
 
             return transactionFlow;
