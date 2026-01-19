@@ -358,14 +358,15 @@ namespace MBTP.Services
                             checkedIn.Extras = $"{checkedIn.Extras} (Possible balance transfer?)";
                         }
                     }
-                    
+
                     checkedInList.Add(checkedIn);
+                    /*
                     if(checkedIn.BookingId == 381571)
                     {
                         var jsonOutput = JsonConvert.SerializeObject(checkedInList, Formatting.Indented);
                     File.AppendAllText("checkedInList.json", jsonOutput);
                     }
-                    
+                    */
                     
                 }
             }
